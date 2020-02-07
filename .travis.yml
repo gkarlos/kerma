@@ -1,7 +1,4 @@
 language : cpp
-compiler :
-  - gcc
-  - clang
 os : linux
 dist : bionic
 sudo : required
@@ -14,9 +11,28 @@ addons :
       - git
       - doxygen
 
+stages :
+  - build
+  - test
+
 jobs : 
   include :
-    - name : "llvm-9"
+    - name : "gcc-llvm-9"
+      stage : build
+      compiler : gcc
+      env : 
+        - LLVM_VERSION=9
+        - LLVM_HOME=/usr/lib/llvm-9
+      before_script:
+        - wget https://apt.llvm.org/llvm.sh
+        - chmod +x llvm.sh
+        - sudo ./llvm.sh $LLVM_VERSION
+      script:
+        - mkdir build && cd build && cmake ..
+        - make
+    - name : "clang-9-llvm-9"
+      stage : build
+      compiler : clang
       env : 
         - LLVM_VERSION=9
         - LLVM_HOME=/usr/lib/llvm-9
