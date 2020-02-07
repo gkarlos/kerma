@@ -1,0 +1,15 @@
+*.ll
+*.ptx
+*.o
+*.cubin
+*.fatbin
+*.cui
+!/compile-tests/*.ll
+!/compile-tests/*.ptx
+!/compile-tests/*.cui
+!/input/rodinia/bfs/*.ll
+!/input/rodinia/gaussian/*.ll
+build/
+
+*.b.*
+*.b

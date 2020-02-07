@@ -1,0 +1,122 @@
+clang version 10.0.0 (https://llvm.org/git/clang.git 65acf43270ea2894dffa0d0b292b92402f80c8cb) (https://llvm.org/git/llvm.git 2c4ca6832fa6b306ee6a7010bfb80a3f2596f824)
+Target: x86_64-unknown-linux-gnu
+Thread model: posix
+InstalledDir: /home/gkarlos/s/llvm/10/bin
+Found candidate GCC installation: /usr/lib/gcc/i686-linux-gnu/8
+Found candidate GCC installation: /usr/lib/gcc/i686-linux-gnu/9
+Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/6
+Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/6.5.0
+Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/7
+Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/7.4.0
+Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/8
+Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/9
+Selected GCC installation: /usr/lib/gcc/x86_64-linux-gnu/7.4.0
+Candidate multilib: .;@m64
+Candidate multilib: 32;@m32
+Candidate multilib: x32;@mx32
+Selected multilib: .;@m64
+Found CUDA installation: /usr/local/cuda, version 10.1
+ "/home/gkarlos/s/llvm/10/bin/clang-10" -cc1 -triple nvptx64-nvidia-cuda -aux-triple x86_64-unknown-linux-gnu -S -disable-free -disable-llvm-verifier 
+ -discard-value-names -main-file-name input.cu -mrelocation-model static -mthread-model posix -mframe-pointer=all -no-integrated-as -fuse-init-array 
+ -fcuda-is-device -mlink-builtin-bitcode /usr/local/cuda/nvvm/libdevice/libdevice.10.bc -target-feature +ptx64 -target-sdk-version=10.1 -target-cpu sm_52 
+ -dwarf-column-info -debug-info-kind=limited -dwarf-version=2 -debugger-tuning=gdb -v -resource-dir /home/gkarlos/s/llvm/10/lib/clang/10.0.0 
+ -internal-isystem /home/gkarlos/s/llvm/10/lib/clang/10.0.0/include/cuda_wrappers -internal-isystem /usr/local/cuda/include 
+ -include __clang_cuda_runtime_wrapper.h -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0 
+ -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0 
+ -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0 
+ -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0/backward 
+ -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0 
+ -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0 
+ -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0 
+ -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0/backward 
+ -internal-isystem /usr/local/include -internal-isystem /home/gkarlos/s/llvm/10/lib/clang/10.0.0/include 
+ -internal-externc-isystem /usr/include/x86_64-linux-gnu -internal-externc-isystem /include 
+ -internal-externc-isystem /usr/include -internal-isystem /usr/local/include 
+ -internal-isystem /home/gkarlos/s/llvm/10/lib/clang/10.0.0/include 
+ -internal-externc-isystem /usr/include/x86_64-linux-gnu -internal-externc-isystem /include 
+ -internal-externc-isystem /usr/include 
+ -fdeprecated-macro -fno-dwarf-directory-asm 
+ -fdebug-compilation-dir /home/gkarlos/Projects/msc-project/kerma-static-analysis/compile-tests 
+ -ferror-limit 19 -fmessage-length 0 -pthread -fgnuc-version=4.2.1 
+ -fobjc-runtime=gcc -fcxx-exceptions -fexceptions -fdiagnostics-show-option 
+ -o /tmp/input-fc2862.s -x cuda input.cu
+
+clang -cc1 version 10.0.0 based upon LLVM 10.0.0svn default target x86_64-unknown-linux-gnu
+ignoring nonexistent directory "/include"
+ignoring nonexistent directory "/include"
+ignoring duplicate directory "/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0"
+ignoring duplicate directory "/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0"
+ignoring duplicate directory "/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0"
+ignoring duplicate directory "/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0"
+ignoring duplicate directory "/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0/backward"
+ignoring duplicate directory "/usr/local/include"
+ignoring duplicate directory "/home/gkarlos/s/llvm/10/lib/clang/10.0.0/include"
+ignoring duplicate directory "/usr/include/x86_64-linux-gnu"
+ignoring duplicate directory "/usr/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /home/gkarlos/s/llvm/10/lib/clang/10.0.0/include/cuda_wrappers
+ /usr/local/cuda/include
+ /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0
+ /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0
+ /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0/backward
+ /usr/local/include
+ /home/gkarlos/s/llvm/10/lib/clang/10.0.0/include
+ /usr/include/x86_64-linux-gnu
+ /usr/include
+End of search list.
+ "/usr/local/cuda/bin/ptxas" -m64 -g --dont-merge-basicblocks --return-at-end -v 
+ --gpu-name sm_52 --output-file /tmp/input-b54830.o /tmp/input-fc2862.s
+ptxas info    : 16 bytes gmem
+ptxas info    : Function properties for cudaGetDevice
+    8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Function properties for cudaFuncGetAttributes
+    16 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Function properties for cudaOccupancyMaxActiveBlocksPerMultiprocessorWithFlags
+    40 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Function properties for cudaDeviceGetAttribute
+    16 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Compiling entry function 'testKernel' for 'sm_52'
+ptxas info    : Function properties for testKernel
+    8 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 8 registers, 8 bytes cumulative stack size, 320 bytes cmem[0]
+ptxas info    : Function properties for cudaMalloc
+    16 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Function properties for cudaOccupancyMaxActiveBlocksPerMultiprocessor
+    32 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ 
+ "/usr/local/cuda/bin/fatbinary" -64 --create /tmp/input-3d6667.fatbin -g 
+ --image=profile=sm_52,file=/tmp/input-b54830.o 
+ --image=profile=compute_52,file=/tmp/input-fc2862.s
+ 
+ "/home/gkarlos/s/llvm/10/bin/clang-10" -cc1 -triple x86_64-unknown-linux-gnu 
+ -target-sdk-version=10.1 
+ -aux-triple nvptx64-nvidia-cuda -emit-obj -mrelax-all 
+ -disable-free -disable-llvm-verifier 
+ -discard-value-names -main-file-name input.cu 
+ -mrelocation-model static -mthread-model posix -mframe-pointer=all -fmath-errno -masm-verbose -mconstructor-aliases -munwind-tables -fuse-init-array -target-cpu x86-64 -dwarf-column-info -debug-info-kind=limited -dwarf-version=4 -debugger-tuning=gdb -v -resource-dir /home/gkarlos/s/llvm/10/lib/clang/10.0.0 -internal-isystem /home/gkarlos/s/llvm/10/lib/clang/10.0.0/include/cuda_wrappers -internal-isystem /usr/local/cuda/include -include __clang_cuda_runtime_wrapper.h -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0 -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0 -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0 -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0/backward -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0 -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0 -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0 -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0/backward -internal-isystem /usr/local/include -internal-isystem /home/gkarlos/s/llvm/10/lib/clang/10.0.0/include -internal-externc-isystem /usr/include/x86_64-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -internal-isystem /usr/local/include -internal-isystem /home/gkarlos/s/llvm/10/lib/clang/10.0.0/include -internal-externc-isystem /usr/include/x86_64-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/gkarlos/Projects/msc-project/kerma-static-analysis/compile-tests -ferror-limit 19 -fmessage-length 0 -pthread -fgnuc-version=4.2.1 -fobjc-runtime=gcc -fcxx-exceptions -fexceptions -fdiagnostics-show-option -fcuda-include-gpubinary /tmp/input-3d6667.fatbin -faddrsig -o /tmp/input-8ab505.o -x cuda input.cu
+clang -cc1 version 10.0.0 based upon LLVM 10.0.0svn default target x86_64-unknown-linux-gnu
+ignoring nonexistent directory "/include"
+ignoring nonexistent directory "/include"
+ignoring duplicate directory "/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0"
+ignoring duplicate directory "/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0"
+ignoring duplicate directory "/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0"
+ignoring duplicate directory "/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0"
+ignoring duplicate directory "/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0/backward"
+ignoring duplicate directory "/usr/local/include"
+ignoring duplicate directory "/home/gkarlos/s/llvm/10/lib/clang/10.0.0/include"
+ignoring duplicate directory "/usr/include/x86_64-linux-gnu"
+ignoring duplicate directory "/usr/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /home/gkarlos/s/llvm/10/lib/clang/10.0.0/include/cuda_wrappers
+ /usr/local/cuda/include
+ /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0
+ /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/x86_64-linux-gnu/c++/7.4.0
+ /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../../include/c++/7.4.0/backward
+ /usr/local/include
+ /home/gkarlos/s/llvm/10/lib/clang/10.0.0/include
+ /usr/include/x86_64-linux-gnu
+ /usr/include
+End of search list.
+ "/usr/bin/ld" -z relro --hash-style=gnu --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o a.out /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../x86_64-linux-gnu/crt1.o /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/7.4.0/crtbegin.o -L/usr/local/cuda/lib64 -L/usr/lib/gcc/x86_64-linux-gnu/7.4.0 -L/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../x86_64-linux-gnu -L/lib/x86_64-linux-gnu -L/lib/../lib64 -L/usr/lib/x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../.. -L/home/gkarlos/s/llvm/10/bin/../lib -L/lib -L/usr/lib /tmp/input-8ab505.o -lcudart -ldl -lrt -lstdc++ -lm -lgcc_s -lgcc -lpthread -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/7.4.0/crtend.o /usr/lib/gcc/x86_64-linux-gnu/7.4.0/../../../x86_64-linux-gnu/crtn.o

@@ -1,0 +1,6 @@
+file(GLOB KERMA_LIB_SUPPORT_SOURCES "*.cpp")
+# llvm_map_components_to_libnames(KERMA_LIB_SUPPORT_LLVM_COMPONENTS Support)
+add_library(KermaSupport SHARED ${KERMA_LIB_SUPPORT_SOURCES})
+# target_link_libraries(KermaSupport ${KERMA_LIB_SUPPORT_LLVM_COMPONENTS})
+set_target_properties(KermaSupport PROPERTIES COMPILE_FLAGS "-fno-rtti")
+target_compile_options(KermaSupport PUBLIC "-fPIC")

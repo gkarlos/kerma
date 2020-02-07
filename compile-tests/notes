@@ -1,0 +1,19 @@
+> To link the modified axpy-sm_20.bc to the final binary, you need several
+> extra steps:
+> 1. Compile axpy-sm_20.bc to PTX assembly using llc: llc axpy-sm_20.bc -o
+> axpy-sm_20.ptx -march=<nvptx or nvptx64>
+> 2. Compile the PTX assembly to SASS using ptxas
+> 3. Make the SASS a fat binary using NVIDIA's fatbinary tool
+> 4. Link the fat binary to the host code using ld.
+>
+> Clang does step 2-4 by invoking subcommands. Therefore, you can use "clang
+> -###" to dump all the subcommands, and then find the ones for step 2-4. For
+> example,
+>
+> $ clang++ -### -O3 axpy.cu -I/usr/local/cuda/samples/common/inc
+> -L/usr/local/cuda/lib64 -lcudart_static -lcuda -ldl -lrt -pthread
+> --cuda-gpu-arch=sm_35
+
+
+
+"/usr/local/cuda/bin/ptxas" -m64 -g --dont-merge-basicblocks --return-at-end -v --gpu-name sm_52 --output-file /tmp/input-bae51e.o /tmp/input-fac573.s

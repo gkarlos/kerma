@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${env:LLVM_HOME}/include"
+            ],
+            "defines": [],
+            "cStandard": "c99",
+            "compilerArgs": [],
+            "cppStandard": "c++11",
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "${env:LLVM_HOME}/bin/clang++"
+        }
+    ],
+    "version": 4
+}

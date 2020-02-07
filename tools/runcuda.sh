@@ -1,0 +1,1 @@
+$LLVM_HOME/bin/clang++ -g -Xclang -load -Xclang ./build/passes/detect-modules/libLLVMKermaDetectModulesPass.so $1 --cuda-path=$CUDA_HOME -L$CUDA_LIB --cuda-gpu-arch=sm_52 -lcudart -ldl -lrt -pthread
