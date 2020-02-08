@@ -18,7 +18,7 @@ else()
     set(LLVM_LIB $ENV{LLVM_LIB})
     message("\tFound $LLVM_LIB = ${LLVM_LIB}")
   else()
-    set(LLVM_INC ${LLVM_HOME}/lib)
+    set(LLVM_LIB ${LLVM_HOME}/lib)
     message("\tUsing $LLVM_HOME/lib")
   endif()
   
@@ -33,7 +33,8 @@ else()
   set(LLVM_CMAKE ${LLVM_LIB}/cmake/llvm)
   set(LLVM_DIR ${LLVM_CMAKE})
 
-  find_package(LLVM REQUIRED CONFIG)
+  find_package(LLVM REQUIRED CONFIG PATHS ${LLVM_DIR})
+  
   message("   [-] Vers: ${LLVM_PACKAGE_VERSION}")
   message("   [-] Using LLVMConfig.cmake in ${LLVM_DIR}")
 
