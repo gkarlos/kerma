@@ -183,20 +183,18 @@ std::string cudaSideToString(CudaSide side)
 
 } /// NAMESPACE cuda
 
-std::string
-demangleFn(llvm::Function *f) {
-  return llvm::demangle(f->getName().str());
-}
+// #if LLVM_VERSION_MAJOR < 9
+ 
+//   int status;
+//   char *p = abi::__cxa_demangle( this->fn_->getName().str().c_str(), nullptr, nullptr, &status);
+//   std::string demangled(p);
+//   free(p);
 
-std::string
-demangleFnWithoutArgs(llvm::Function *f)
-{
-  std::string demangledName = llvm::demangle(std::string(f->getName().str()));
-  if ( auto argstart = demangledName.find('(')) {
-    demangledName = demangledName.substr(0, argstart);
-  }
-  return demangledName;
-}
+// #else
+  
+//   std::string demangled = llvm::demangle(this->fn_->getName());
+
+// #endif
 
 bool
 isDeviceModule(llvm::Module &module)
