@@ -5,7 +5,7 @@ sudo : required
 addons :
   apt :
     sources :
-      - ubuntu-toolchain-r-test
+      - sourceline: "ppa:ubuntu-toolchain-r/test"
     packages:
       - cmake
       - git
@@ -47,11 +47,11 @@ jobs :
         - cmake -DCMAKE_C_COMPILER=$CLANG -DCMAKE_CXX_COMPILER=$CLANGPP ..
         - make
 
-    - name : "llvm-10-gcc"
+    - name : "llvm-8-gcc"
       stage : build
       compiler : gcc
       env : 
-        - LLVM_VERSION=10
+        - LLVM_VERSION=8
         - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
       before_script:
         - wget https://apt.llvm.org/llvm.sh
@@ -61,10 +61,10 @@ jobs :
         - mkdir build && cd build && cmake ..
         - make
 
-    - name : "llvm-10-clang"
+    - name : "llvm-8-clang"
       stage : build
       env : 
-        - LLVM_VERSION=10
+        - LLVM_VERSION=8
         - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
         - CLANGPP=$LLVM_HOME/bin/clang++
         - CLANG=$LLVM_HOME/bin/clang
