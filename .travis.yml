@@ -17,7 +17,7 @@ stages :
 
 jobs : 
   include :
-    - name : "gcc-llvm-9"
+    - name : "llvm-9-gcc"
       stage : build
       compiler : gcc
       env : 
@@ -30,16 +30,49 @@ jobs :
       script:
         - mkdir build && cd build && cmake ..
         - make
-    - name : "clang-9-llvm-9"
+
+    - name : "llvm-9-clang"
       stage : build
-      compiler : clang
       env : 
         - LLVM_VERSION=9
-        - LLVM_HOME=/usr/lib/llvm-9
+        - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
+        - CLANGPP=$LLVM_HOME/bin/clang++
+        - CLANG=$LLVM_HOME/bin/clang
+      before_script:
+        - wget https://apt.llvm.org/llvm.sh
+        - chmod +x llvm.sh
+        - sudo ./llvm.sh $LLVM_VERSION
+      script:
+        - mkdir build && cd build 
+        - cmake -DCMAKE_C_COMPILER=$CLANG -DCMAKE_CXX_COMPILER=$CLANGPP ..
+        - make
+
+    - name : "llvm-10-gcc"
+      stage : build
+      compiler : gcc
+      env : 
+        - LLVM_VERSION=10
+        - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
       before_script:
         - wget https://apt.llvm.org/llvm.sh
         - chmod +x llvm.sh
         - sudo ./llvm.sh $LLVM_VERSION
       script:
         - mkdir build && cd build && cmake ..
+        - make
+
+    - name : "llvm-10-clang"
+      stage : build
+      env : 
+        - LLVM_VERSION=10
+        - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
+        - CLANGPP=$LLVM_HOME/bin/clang++
+        - CLANG=$LLVM_HOME/bin/clang
+      before_script:
+        - wget https://apt.llvm.org/llvm.sh
+        - chmod +x llvm.sh
+        - sudo ./llvm.sh $LLVM_VERSION
+      script:
+        - mkdir build && cd build 
+        - cmake -DCMAKE_C_COMPILER=$CLANG -DCMAKE_CXX_COMPILER=$CLANGPP ..
         - make
