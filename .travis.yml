@@ -1,0 +1,78 @@
+language : cpp
+os : linux
+dist : bionic
+sudo : required
+addons :
+  apt :
+    sources :
+      - sourceline: "ppa:ubuntu-toolchain-r/test"
+    packages:
+      - cmake
+      - git
+      - doxygen
+
+stages :
+  - build
+
+jobs : 
+  include :
+    - name : "llvm-9-gcc"
+      stage : build
+      compiler : gcc
+      env : 
+        - LLVM_VERSION=9
+        - LLVM_HOME=/usr/lib/llvm-9
+      before_script:
+        - wget https://apt.llvm.org/llvm.sh
+        - chmod +x llvm.sh
+        - sudo ./llvm.sh $LLVM_VERSION
+      script:
+        - mkdir build && cd build && cmake ..
+        - make
+
+    - name : "llvm-9-clang"
+      stage : build
+      env : 
+        - LLVM_VERSION=9
+        - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
+        - CLANGPP=$LLVM_HOME/bin/clang++
+        - CLANG=$LLVM_HOME/bin/clang
+      before_script:
+        - wget https://apt.llvm.org/llvm.sh
+        - chmod +x llvm.sh
+        - sudo ./llvm.sh $LLVM_VERSION
+      script:
+        - mkdir build && cd build 
+        - cmake -DCMAKE_C_COMPILER=$CLANG -DCMAKE_CXX_COMPILER=$CLANGPP ..
+        - make
+
+    - name : "llvm-8-gcc"
+      stage : build
+      compiler : gcc
+      env : 
+        - LLVM_VERSION=8
+        - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
+      before_script:
+        - wget https://apt.llvm.org/llvm.sh
+        - chmod +x llvm.sh
+        - sudo ./llvm.sh $LLVM_VERSION
+        - cat /usr/lib/llvm-8/include/llvm/Demangle/Demangle.h
+      script:
+        - mkdir build && cd build && cmake ..
+        - make
+
+    - name : "llvm-8-clang"
+      stage : build
+      env : 
+        - LLVM_VERSION=8
+        - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
+        - CLANGPP=$LLVM_HOME/bin/clang++
+        - CLANG=$LLVM_HOME/bin/clang
+      before_script:
+        - wget https://apt.llvm.org/llvm.sh
+        - chmod +x llvm.sh
+        - sudo ./llvm.sh $LLVM_VERSION
+      script:
+        - mkdir build && cd build 
+        - cmake -DCMAKE_C_COMPILER=$CLANG -DCMAKE_CXX_COMPILER=$CLANGPP ..
+        - make
