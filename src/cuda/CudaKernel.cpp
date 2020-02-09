@@ -4,7 +4,7 @@
 
 #include <kerma/cuda/CudaKernel.h>
 
-#include <llvm/Demangle/Demangle.h>
+#include <kerma/Support/Demangle.h>
 
 namespace kerma
 {
@@ -12,7 +12,7 @@ namespace cuda
 {
 
 void CudaKernel::pp(llvm::raw_ostream& os) {
-  std::string demangled = llvm::demangle(this->fn_->getName());
+  std::string demangled = demangleFn(this->fn_);
   os << demangled
      << ((demangled != this->fn_->getName())? " (demangled)" : "") << "\n"
      << " " << u8"└" << " In " << cudaSideToString(this->irModuleSide_)
