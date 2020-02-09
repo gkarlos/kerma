@@ -18,7 +18,6 @@ jobs :
   include :
     - name : "llvm-9-gcc"
       stage : build
-      compiler : gcc
       env : 
         - LLVM_VERSION=9
         - LLVM_HOME=/usr/lib/llvm-9
@@ -48,7 +47,6 @@ jobs :
 
     - name : "llvm-8-gcc"
       stage : build
-      compiler : gcc
       env : 
         - LLVM_VERSION=8
         - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
