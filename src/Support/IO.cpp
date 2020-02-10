@@ -6,6 +6,9 @@
 #include <stdexcept>
 #include <system_error>
 
+std::string kerma::IOErrToString(IOErr &&err) {
+  return IOErrToString(err);
+}
 
 std::string kerma::IOErrToString(IOErr &err)
 {
@@ -31,7 +34,7 @@ kerma::readFile(const std::string &path)
   std::string res = readFile(path, err);
   if ( err.value() == IOErr::IO_SUCCESS)
     return res;
-  throw std::runtime_error("Error reading file: " + path);
+  throw std::runtime_error("Error reading: " + path + ": " + IOErrToString(static_cast<IOErr>(err.value())));
 }
 
 std::string
@@ -42,7 +45,7 @@ kerma::readFile(const std::string &path, std::error_code& err)
     return "";
   }
   
-  if ( !boost::filesystem::is_directory(path)) {
+  if ( boost::filesystem::is_directory(path)) {
     err.assign(IO_IS_DIR, std::generic_category());
     return "";
   }
@@ -57,6 +60,7 @@ kerma::readFile(const std::string &path, std::error_code& err)
       contents.resize(fSize);
       ifs.read(const_cast<char*>(contents.data()), fSize);
       ifs.close();
+      err.assign(IO_SUCCESS, std::generic_category());
       return contents;
     } catch ( ... ) {
       ifs.close();
@@ -67,4 +71,37 @@ kerma::readFile(const std::string &path, std::error_code& err)
 
   err.assign(IO_INTERNAL_RD_ERR, std::generic_category());
   return "";
+}
+
+void 
+kerma::writeFile(const std::string &path, const std::string &contents) 
+{
+  std::error_code err;
+  writeFile(path, contents, err);
+  if ( err.value() != IOErr::IO_SUCCESS)
+    throw std::runtime_error("Error writting: " + path + ": " + IOErrToString(static_cast<IOErr>(err.value())));
+}
+
+void 
+kerma::writeFile(const std::string &path, const std::string &contents, std::error_code &status)
+{ 
+  if ( boost::filesystem::is_directory(path))
+    status.assign(IO_IS_DIR, std::generic_category());
+  
+  std::ofstream ofs(path, std::ios::binary);
+
+  if (ofs.is_open()) {
+    try {
+      ofs.write(contents.data(), contents.size());
+      ofs.close();
+      status.assign(IO_SUCCESS, std::generic_category());
+    } catch ( ... ) {
+      ofs.close();
+      status.assign(IO_INTERNAL_WR_ERR, std::generic_category());
+    }
+  }
+  else {
+    status.assign(IO_INTERNAL_WR_ERR, std::generic_category());
+  }
+  
 }
