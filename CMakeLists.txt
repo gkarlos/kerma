@@ -5,6 +5,7 @@ project("kerma-static-analysis")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(cmake/llvm.cmake)
+include(cmake/boost.cmake)
 
 set(KERMA_INCLUDE_DIRS include)
 

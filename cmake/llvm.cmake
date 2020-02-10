@@ -1,4 +1,4 @@
-message(STATUS "Configuring LLVM")
+message(STATUS "Detecting LLVM")
 
 if ( NOT DEFINED ENV{LLVM_HOME})
   message(FATAL_ERROR "$LLVM_HOME is not defined")
@@ -49,6 +49,6 @@ else()
   set(LLVM_RUNTIME_OUTPUT_INTDIR "${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INT_DIR}")
   set(LLVM_LIBRARY_OUTPUT_INTDIR "${CMAKE_BINARY_DIR}/lib/${CMAKE_CFG_INT_DIR}")
 
-  message(STATUS "Configuring LLVM - done")
+  message(STATUS "Detecting LLVM - done")
   
 endif()
