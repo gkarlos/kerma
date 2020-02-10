@@ -10,7 +10,6 @@ addons :
       - cmake
       - git
       - doxygen
-
 stages :
   - build
 
@@ -18,28 +17,44 @@ jobs :
   include :
     - name : "llvm-9-gcc"
       stage : build
+      cache :
+        ccache : true
+        apt : true
+        directories :
+          - $HOME/boost/
       env : 
         - LLVM_VERSION=9
         - LLVM_HOME=/usr/lib/llvm-9
+        - BOOST_ROOT=$HOME/boost/172
       before_script:
         - wget https://apt.llvm.org/llvm.sh
         - chmod +x llvm.sh
         - sudo ./llvm.sh $LLVM_VERSION
+        - chmod +x scripts/travis/install_boost.sh
+        - scripts/travis/install_boost.sh
       script:
         - mkdir build && cd build && cmake ..
         - make
 
     - name : "llvm-9-clang"
       stage : build
+      cache :
+        ccache : true
+        apt : true
+        directories :
+          - $HOME/boost/
       env : 
         - LLVM_VERSION=9
         - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
         - CLANGPP=$LLVM_HOME/bin/clang++
         - CLANG=$LLVM_HOME/bin/clang
+        - BOOST_ROOT=$HOME/boost/172
       before_script:
         - wget https://apt.llvm.org/llvm.sh
         - chmod +x llvm.sh
         - sudo ./llvm.sh $LLVM_VERSION
+        - chmod +x scripts/travis/install_boost.sh
+        - scripts/travis/install_boost.sh
       script:
         - mkdir build && cd build 
         - cmake -DCMAKE_C_COMPILER=$CLANG -DCMAKE_CXX_COMPILER=$CLANGPP ..
@@ -47,29 +62,44 @@ jobs :
 
     - name : "llvm-8-gcc"
       stage : build
+      cache :
+        ccache : true
+        apt : true
+        directories :
+          - $HOME/boost/
       env : 
         - LLVM_VERSION=8
         - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
+        - BOOST_ROOT=$HOME/boost/172
       before_script:
         - wget https://apt.llvm.org/llvm.sh
         - chmod +x llvm.sh
         - sudo ./llvm.sh $LLVM_VERSION
-        - cat /usr/lib/llvm-8/include/llvm/Demangle/Demangle.h
+        - chmod +x scripts/travis/install_boost.sh
+        - scripts/travis/install_boost.sh
       script:
         - mkdir build && cd build && cmake ..
         - make
 
     - name : "llvm-8-clang"
       stage : build
+      cache :
+        ccache : true
+        apt : true
+        directories :
+          - $HOME/boost/
       env : 
         - LLVM_VERSION=8
         - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
         - CLANGPP=$LLVM_HOME/bin/clang++
         - CLANG=$LLVM_HOME/bin/clang
+        - BOOST_ROOT=$HOME/boost/172
       before_script:
         - wget https://apt.llvm.org/llvm.sh
         - chmod +x llvm.sh
         - sudo ./llvm.sh $LLVM_VERSION
+        - chmod +x scripts/travis/install_boost.sh
+        - scripts/travis/install_boost.sh
       script:
         - mkdir build && cd build 
         - cmake -DCMAKE_C_COMPILER=$CLANG -DCMAKE_CXX_COMPILER=$CLANGPP ..
