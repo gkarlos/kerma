@@ -65,6 +65,6 @@ kerma::readFile(const std::string &path, std::error_code& err)
     }
   }
 
-  err.assign(IO_INTERNAL_RD_ERR, std::generic_category()));
+  err.assign(IO_INTERNAL_RD_ERR, std::generic_category());
   return "";
 }
