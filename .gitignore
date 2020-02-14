@@ -15,3 +15,6 @@ build/
 *.b
 
 *.exe
+*.out
+
+*.log
