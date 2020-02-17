@@ -82,6 +82,8 @@ do
     $VERBOSE && echo -ne "   - $d/"
     
     cd $d
+
+    rm -f *.ll
     
     # loop not really needed as there is only one .cu file per directory
     for f in *.cu; do
