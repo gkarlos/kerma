@@ -6,12 +6,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(cmake/llvm.cmake)
 include(cmake/boost.cmake)
+include(cmake/gtest.cmake)
 
 set(KERMA_INCLUDE_DIRS include)
 
 include_directories(${KERMA_INCLUDE_DIRS})
 
 add_subdirectory(src)
-# if ( NOT EXISTS ${LLVM})
 
-# add_subdirectory(test)
+enable_testing()
+add_subdirectory(test)

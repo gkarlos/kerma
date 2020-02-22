@@ -1,4 +1,5 @@
 # add_subdirectory(test-pass)
+add_subdirectory(detect-addr-space)
 add_subdirectory(detect-kernels)
 add_subdirectory(memop-graph)
 add_subdirectory(dg)
@@ -6,7 +7,8 @@ add_subdirectory(dg)
 
 ## Build LLVM Module
 
-set(KERMA_SA_LLVM_MODULE_SOURCES detect-kernels/DetectKernels.cpp
+set(KERMA_SA_LLVM_MODULE_SOURCES detect-addr-space/DetectAddrSpace.cpp
+                                 detect-kernels/DetectKernels.cpp
                                  memop-graph/MemOpGraphPass.cpp
                                  dg/DGDotPass.cpp )
 
