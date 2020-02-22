@@ -168,7 +168,7 @@ enum class intrinsics {
 
   // TODO https://docs.nvidia.com/cuda/nvvm-ir-spec/index.html#nvvm-intrin-warp-level-matrix
 
-} /// enum class intrinsics
+}; /// enum class intrinsics
 
 static const std::set<kerma::cuda::Compute> SupportedComputes {
   cuda::Compute::CC30, cuda::Compute::CC32,
@@ -194,7 +194,7 @@ static const std::set<std::string> SupportedLLVMNamedMetadata {
 
 enum class SupportedLLVMLinkage {
   PRIVATE,
-  INTERNAL
+  INTERNAL,
 
   EXTERNAL,
 
