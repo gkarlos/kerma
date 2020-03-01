@@ -6,7 +6,6 @@
 #ifndef KERMA_SUPPORT_CUDA_H
 #define KERMA_SUPPORT_CUDA_H
 
-#include "kerma/cuda/CudaSupport.h"
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/Function.h"
 
@@ -25,11 +24,17 @@ class CudaKernel;
 class CudaKernelLaunch;
 class CudaKernelLaunchConfiguration;
 
-class CudaKernel {
-  
+class CudaKernel 
+{
+
+private:
+  llvm::Function &fn_;
+  CudaSide IRModuleSide_;
+  int numArgs_;
+
 public:
-  CudaKernel(llvm::Function *fn, CudaSide irModuleSide);
-  CudaKernel(llvm::Function *fn);
+  CudaKernel(llvm::Function &fn, CudaSide IRModuleSide);
+  CudaKernel(llvm::Function &fn);
   ~CudaKernel()=default;
 
 public:
@@ -38,25 +43,33 @@ public:
    */
   llvm::Function *getFn();
 
+  void setIRModuleSide(CudaSide IRModuleSide);
+
   /*
    * Retrieve the side of the LLVM IR file this kernel was detected at
    */
-  CudaSide getIrModuleSide();
+  CudaSide getIRModuleSide();
 
   /*
    * Retrieve the number of arguments of this kernel
    */
   int getNumArgs();
 
+  void addArg(llvm::Argument *arg);
+  
   /*
    * Retrieve the i-th argument of this kernel
    */
   llvm::Argument *getArg(int i);
 
+  void setLineStart(int line);
+
   /*
    * Retrieve the first (source code) line of the kernel's definition
    */
   int getLineStart();
+
+  void setLineEnd(int line);
 
   /*
    * Retrieve the last (source code) line of the kernel's definition
