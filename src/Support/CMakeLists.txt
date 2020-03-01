@@ -1,4 +1,4 @@
-file(GLOB KERMA_LIB_SUPPORT_SOURCES "*.cpp")
+file(GLOB KERMA_LIB_SUPPORT_SOURCES Demangle.cpp LLVMStringUtils.cpp)
 llvm_map_components_to_libnames(KERMA_LIB_SUPPORT_LLVM_COMPONENTS Support)
 add_library(KermaSupport ${KERMA_LIB_SUPPORT_SOURCES})
 # target_link_libraries(KermaSupport ${KERMA_LIB_SUPPORT_LLVM_COMPONENTS})
