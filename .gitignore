@@ -10,6 +10,7 @@
 !/input/rodinia/bfs/*.ll
 !/input/rodinia/gaussian/*.ll
 build/
+cmake-build-debug/
 
 *.b.*
 *.b
@@ -18,3 +19,4 @@ build/
 *.out
 
 *.log
+
