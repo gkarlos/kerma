@@ -1,6 +1,6 @@
 add_executable(TestSupportNVVM SupportNVVM.cpp)
 
-target_link_libraries(TestSupportNVVM KermaSupport gtest gtest_main)
+target_link_libraries(TestSupportNVVM KermaSupport KermaCuda gtest gtest_main)
 
 set_target_properties(TestSupportNVVM PROPERTIES COMPILE_FLAGS "-fno-rtti")
 

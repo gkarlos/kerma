@@ -1,4 +1,4 @@
-#include "kerma/Support/NVVM.h"
+#include "kerma/Cuda/NVVM.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"

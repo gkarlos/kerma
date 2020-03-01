@@ -2,7 +2,7 @@
 #define KERMA_STATIC_ANALYSIS_DETECTADDRESSSPACE_H
 
 
-#include "kerma/Support/NVVM.h"
+#include "kerma/Cuda/NVVM.h"
 #include <llvm/Pass.h>
 #include <llvm/IR/Value.h>
 
