@@ -1,6 +1,6 @@
 message(STATUS "Detecting Boost")
 
-set(KERMA_BOOST_MIN_VERSION "1.72.0")
+set(KERMA_BOOST_MIN_VERSION "1.66.0")
 
 # when adding components remember to update scripts/travis/install_boost.sh too for CI
 set(KERMA_BOOST_COMPONENTS system filesystem)
@@ -27,7 +27,7 @@ else()
     message("   [-]  Checking default system installation")
 endif()
 
-find_package(Boost ${BOOST_MIN_VERSION} REQUIRED ${KERMA_BOOST_COMPONENTS})
+find_package(Boost)
 if (Boost_FOUND)
     message("        Found INC: ${Boost_INCLUDE_DIRS}")
     # TODO CI prints nothing for ${Boost_LIBRARY_DIRS} even though it reports Boost found
