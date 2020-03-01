@@ -1,4 +1,4 @@
 add_subdirectory(Support)
-add_subdirectory(cuda)
+add_subdirectory(Cuda)
 add_subdirectory(passes)
 # add_subdirectory(tools)

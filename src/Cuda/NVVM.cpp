@@ -1,4 +1,4 @@
-#include <kerma/Support/NVVM.h>
+#include <kerma/Cuda/NVVM.h>
 #include <string>
 
 namespace kerma

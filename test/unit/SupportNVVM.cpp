@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "kerma/Support/NVVM.h"
+#include "kerma/Cuda/NVVM.h"
 
 #include <iostream>
 
