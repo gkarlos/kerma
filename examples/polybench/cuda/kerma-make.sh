@@ -58,8 +58,8 @@ CU_INC=$CU_HOME/include
 CC=clang++
 [[ -z "$LLVM_HOME" ]] || CC=$LLVM_HOME/bin/clang++
 CC_FLAGS="-x cuda -L$CUDA_LIB --cuda-gpu-arch=$GPU_ARCH"
-CC_LIBS="-lcudart -ldl -lrt -lm -pthread"
-CC_FLAGS_IR="-g -S -emit-llvm"
+CC_LIBS="-lcudart_static -ldl -lrt -lm -pthread"
+CC_FLAGS_IR="-O1 -g -S -emit-llvm"
 
 
 if $VERBOSE; then
