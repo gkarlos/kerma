@@ -4,11 +4,11 @@
   "C_Cpp.errorSquiggles": "Disabled",
 
   "python.pythonPath": "/usr/bin/python3.5",
-  "clangd.path": "/home/gkarlos/s/llvm/10/bin/clangd",
+  "clangd.path": "/home/gkarlos/s/llvm/9/bin/clangd",
   "clangd.arguments": [ 
     "-compile-commands-dir=build/",
     "-background-index",
     "-log=verbose",
-    "-pretty",
+    "-pretty"
   ]
 }
