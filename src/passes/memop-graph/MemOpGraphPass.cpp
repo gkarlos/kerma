@@ -47,14 +47,14 @@ void processStore(StoreInst *SI, MemoryDependenceResults &MDA, int i) {
 }
 
 void
-MemOpGraphPass::analyzeKernel(cuda::CudaKernel* kernel)
+MemOpGraphPass::analyzeKernel(CudaKernel* kernel)
 {
-  Function *F = kernel->getFn();
-  auto& MSSA = getAnalysis<MemorySSAWrapperPass>(*F).getMSSA();
+  Function &F = kernel->getFn();
+  auto& MSSA = getAnalysis<MemorySSAWrapperPass>(F).getMSSA();
 
   auto walker = MSSA.getWalker();
 
-  for ( auto &BB : *F) {
+  for ( auto &BB : F) {
     for ( auto &I : BB) {
       if ( LoadInst *load = dyn_cast<LoadInst>(&I)) {
         errs() << "[+] Load:" << *load << " - " << getDbgLocString(load) << "\n";
@@ -98,7 +98,7 @@ MemOpGraphPass::runOnModule(Module &M) {
   auto kernels = getAnalysis<DetectKernelsPass>().getKernels();
 
   for ( auto* kernel : kernels) {
-    MemoryDependenceResults &MDA = getAnalysis<MemoryDependenceWrapperPass>(*kernel->getFn()).getMemDep();
+    MemoryDependenceResults &MDA = getAnalysis<MemoryDependenceWrapperPass>(kernel->getFn()).getMemDep();
     analyzeKernel(kernel);
   }
 

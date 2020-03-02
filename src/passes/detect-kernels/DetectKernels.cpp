@@ -14,13 +14,13 @@
 #include <string>
 #include <map>
 
-#include <kerma/cuda/CudaSupport.h>
-#include <kerma/passes/Util.h>
+#include <kerma/Cuda/NVVM.h>
+#include <kerma/Cuda/CudaKernel.h>
 #include <kerma/passes/detect-kernels/DetectKernels.h>
 #include <kerma/Support/LLVMStringUtils.h>
 
 using namespace llvm;
-using namespace kerma::cuda;
+using namespace kerma;
 
 namespace kerma {
 //  cl::opt<bool> Json("kerma-json", cl::desc("Write results to a json file"));
@@ -32,7 +32,7 @@ DetectKernelsPass::getKernels() {
 }
 
 void
-DetectKernelsPass::attachProgram(cuda::CudaProgram *program)
+DetectKernelsPass::attachProgram(CudaProgram *program)
 {
   this->program_ = program;
   // Try to populate the new program with kernels just in case the
@@ -91,7 +91,7 @@ DetectKernelsPass::runOnModule(Module &M) {
           if (auto *mdStr = dyn_cast_or_null<MDString>(mdOperand))
             if (mdStr->getString() == "kernel")
               this->kernels_.insert(
-                  new CudaKernel(fun, getIRModuleSide(M)));
+                  new CudaKernel(*fun, getIRModuleSide(M)));
         }
       }
     }

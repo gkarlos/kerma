@@ -7,7 +7,7 @@
 #include <llvm/Pass.h>
 #include <llvm/IR/Instructions.h>
 
-#include <kerma/cuda/CudaKernel.h>
+#include <kerma/Cuda/CudaKernel.h>
 #include <set>
 
 using namespace llvm;
@@ -50,7 +50,7 @@ public:
 private:
   std::set<LoadInst*> allLoads_;
   std::set<StoreInst*> allStores_;
-  virtual void analyzeKernel(cuda::CudaKernel *kernel);
+  virtual void analyzeKernel(CudaKernel *kernel);
 };
 
 } /// NAMESPACE kerma

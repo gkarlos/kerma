@@ -9,7 +9,7 @@
 #include "llvm/PassAnalysisSupport.h"
 #include "llvm/Support/raw_ostream.h"
 #include <kerma/passes/dg/Dot.h>
-#include <kerma/cuda/CudaKernel.h>
+#include <kerma/Cuda/CudaKernel.h>
 
 #include <set>
 
@@ -56,7 +56,7 @@ public:
   void print(llvm::raw_ostream &OS, const llvm::Module *M) const override;
 
 private:
-  std::set<cuda::CudaKernel*>* kernels_;
+  std::set<CudaKernel*>* kernels_;
 };
 
 } /// NAMESPACE kerma

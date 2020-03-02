@@ -17,7 +17,6 @@
 #include <kerma/passes/detect-kernels/DetectKernels.h>
 #include <kerma/Support/FileSystem.h>
 #include <kerma/Support/LLVMStringUtils.h>
-#include <kerma/passes/Util.h>
 
 #include <string>
 #include <sstream>
@@ -52,9 +51,9 @@ DGDotKernelPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const
   AU.addRequired<kerma::DetectKernelsPass>();
 }
 
-static bool isKernel(llvm::Function& fn, std::set<kerma::cuda::CudaKernel*>& kernels) {
+static bool isKernel(llvm::Function& fn, std::set<CudaKernel*>& kernels) {
   for ( auto *kernel: kernels)
-    if ( kernel->getFn()->getName() == fn.getName())
+    if ( kernel->getFn().getName() == fn.getName())
       return true;
 
   return false;

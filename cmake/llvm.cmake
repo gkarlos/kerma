@@ -36,7 +36,13 @@ else()
   set(LLVM_CMAKE ${LLVM_LIB}/cmake/llvm)
   set(LLVM_DIR ${LLVM_CMAKE})
 
-  find_package(LLVM REQUIRED CONFIG PATHS ${LLVM_DIR})
+  set(LLVM_SEARCH_PATHS
+    ${LLVM_HOME}
+    ${LLVM_LIB}/cmake/llvm/
+    ${LLVM_HOME}/share/llvm/cmake/
+  )
+
+  find_package(LLVM REQUIRED CONFIG PATHS ${LLVM_SEARCH_PATHS} NO_DEFAULT_PATH)
   
   message("   [-] Vers: ${LLVM_PACKAGE_VERSION}")
   message("   [-] Using LLVMConfig.cmake in ${LLVM_DIR}")
