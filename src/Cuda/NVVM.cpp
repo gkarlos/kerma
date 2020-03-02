@@ -1,3 +1,4 @@
+#include "kerma/Cuda/Cuda.h"
 #include <kerma/Cuda/NVVM.h>
 #include <string>
 
@@ -33,6 +34,23 @@ const std::string& AddressSpace::getName() {
 
 const int AddressSpace::getCode() {
   return code_;
+}
+
+
+bool isDeviceModule(llvm::Module& module)
+{
+  return module.getTargetTriple().find("nvptx") != std::string::npos;
+}
+
+bool isHostModule(llvm::Module& module)
+{
+  return !isDeviceModule(module);
+}
+
+CudaSide getIRModuleSide(llvm::Module &module)
+{
+  return isDeviceModule(module)? CudaSide::DEVICE : 
+        (isHostModule(module)? CudaSide::HOST : CudaSide::Unknown);
 }
 
 }
