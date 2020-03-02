@@ -8,17 +8,10 @@
 
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/Function.h"
+#include <kerma/Cuda/Cuda.h>
 
 namespace kerma
 {
-
-/// Represents a 'side' for CUDA. That is, either HOST or DEVICE
-/// Usually used to mark stuff like depending on which IR file (host, device) was used
-enum CudaSide {
-  HOST,
-  DEVICE,
-  UKNOWN
-};
 
 class CudaKernel;
 class CudaKernelLaunch;
@@ -38,11 +31,19 @@ public:
   ~CudaKernel()=default;
 
 public:
+  bool operator==(const CudaKernel &other) const;
+  bool operator<(const CudaKernel &other) const;
+  bool operator>(const CudaKernel &other) const;
+
+public:
   /*
    * Get a pointer to the llvm::Function for this kernel
    */
-  llvm::Function *getFn();
+  llvm::Function &getFn();
 
+  /*
+   * Set the side of the LLVM IR file that this kernel was detected in (host or device)
+   */
   void setIRModuleSide(CudaSide IRModuleSide);
 
   /*
@@ -55,6 +56,9 @@ public:
    */
   int getNumArgs();
 
+  /*
+   * Add an argument to the kernel
+   */
   void addArg(llvm::Argument *arg);
   
   /*
@@ -62,15 +66,21 @@ public:
    */
   llvm::Argument *getArg(int i);
 
+  /*
+   * Set the line number at which the kernel's definition starts
+   */
   void setLineStart(int line);
+
+  /*
+   * Set the line number at which the kernel's definition ends (incluside)
+   */
+  void setLineEnd(int line);
 
   /*
    * Retrieve the first (source code) line of the kernel's definition
    */
   int getLineStart();
-
-  void setLineEnd(int line);
-
+  
   /*
    * Retrieve the last (source code) line of the kernel's definition
    */
@@ -81,6 +91,7 @@ public:
    */
   int getNumLines();
   
+  void pp(llvm::raw_ostream& os);
 };
 
 class CudaKernelLaunchConfiguration
