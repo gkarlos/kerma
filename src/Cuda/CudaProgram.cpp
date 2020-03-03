@@ -21,12 +21,13 @@ CudaProgram::CudaProgram( llvm::Module &hostModule, llvm::Module &deviceModule)
     throw std::runtime_error("Internal Error: Target triple missing");
 
   try {
-    std::string const& triple = deviceModule.getTargetTriple();
+    std::string triple = deviceModule.getTargetTriple();
     std::string name = deviceModule.getName();
 
     name = name.substr(0, name.size() - 3);
 
     std::string part = triple.substr(0, triple.find("-"));
+
     this->is64bit_ = part == "nvptx64";
     this->is32bit_ = !this->is64bit_;
 

@@ -20,5 +20,7 @@ std::string get_cwd();
  */
 std::string get_realpath(const std::string& relpath);
 
+bool fileExists(const std::string& name);
+
 }
 #endif // KERMA_STATIC_ANALYSIS_FILESYSTEM_H

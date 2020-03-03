@@ -1,3 +1,4 @@
+#include "kerma/Cuda/CudaProgram.h"
 #include <llvm/Pass.h>
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/ADT/StringRef.h"
@@ -16,7 +17,7 @@
 
 #include <kerma/Cuda/NVVM.h>
 #include <kerma/Cuda/CudaKernel.h>
-#include <kerma/passes/detect-kernels/DetectKernels.h>
+#include <kerma/Pass/DetectKernels.h>
 #include <kerma/Support/LLVMStringUtils.h>
 
 using namespace llvm;
@@ -26,23 +27,28 @@ namespace kerma {
 //  cl::opt<bool> Json("kerma-json", cl::desc("Write results to a json file"));
   // https://github.com/trailofbits/KRFAnalysis/blob/master/KRFAnalysisPass/KRF.cpp
 
-std::set<CudaKernel*>&
-DetectKernelsPass::getKernels() {
-  return this->kernels_;
-}
+DetectKernelsPass::DetectKernelsPass() 
+: llvm::ModulePass(ID),
+  program_(nullptr)
+{}
 
-void
-DetectKernelsPass::attachProgram(CudaProgram *program)
-{
-  this->program_ = program;
-  // Try to populate the new program with kernels just in case the
-  // function is called after the pass has finished
-  if ( this->program_ != nullptr) {
-    for ( auto kernel : this->kernels_) {
-      this->program_->addKernel(kernel);
-    }
-  }
-}
+DetectKernelsPass::DetectKernelsPass(CudaProgram &program)
+: llvm::ModulePass(ID),
+  program_(&program)
+{}
+
+// void
+// DetectKernelsPass::attachProgram(CudaProgram *program)
+// {
+//   this->program_ = program;
+//   // Try to populate the new program with kernels just in case the
+//   // function is called after the pass has finished
+//   if ( this->program_ != nullptr) {
+//     for ( auto kernel : this->kernels_) {
+//       this->program_->addKernel(kernel);
+//     }
+//   }
+// }
 
 bool
 DetectKernelsPass::doInitialization(Module &)
@@ -59,9 +65,8 @@ DetectKernelsPass::doFinalization(Module& M)
 {
   // If there is a program attached to this pass, populate it with kernels
   if ( this->program_ != nullptr) {
-    for ( auto kernel : this->kernels_) {
-      this->program_->addKernel(kernel);
-    }
+    // for ( auto kernel : this->kernels_)
+    //   this->program_->addKernel(kernel)
   }
   return false;
 }
@@ -70,11 +75,11 @@ DetectKernelsPass::doFinalization(Module& M)
 void
 DetectKernelsPass::print(llvm::raw_ostream &OS, const llvm::Module *M) const
 {
-  if ( this->kernels_.empty())
+  if ( kernels_.empty())
     errs() << "No kernels detected\n";
   else
     for ( auto kernel : this->kernels_)
-      kernel->pp(OS);
+      kernel.pp(OS);
 }
 
 
@@ -90,8 +95,7 @@ DetectKernelsPass::runOnModule(Module &M) {
           mdOperand = node->getOperand(1).get();
           if (auto *mdStr = dyn_cast_or_null<MDString>(mdOperand))
             if (mdStr->getString() == "kernel")
-              this->kernels_.insert(
-                  new CudaKernel(*fun, getIRModuleSide(M)));
+              this->kernels_.insert(CudaKernel(*fun, getIRModuleSide(M)));
         }
       }
     }
@@ -102,6 +106,58 @@ DetectKernelsPass::runOnModule(Module &M) {
 void
 DetectKernelsPass::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.setPreservesAll();
+}
+
+
+/// API
+
+std::set<CudaKernel>
+DetectKernelsPass::getKernels() {
+  std::set<CudaKernel> res;
+  res.insert(kernels_.begin(), kernels_.end());
+  return res;
+}
+
+void
+DetectKernelsPass::getKernels(std::set<CudaKernel> &kernels)
+{
+  for ( auto kernel : kernels_)
+    kernels.insert(kernel);
+}
+
+bool
+DetectKernelsPass::isKernel(llvm::Function &F)
+{
+  for ( auto kernel : kernels_)
+    if ( static_cast<llvm::Value*>(&kernel.getFn()) == static_cast<llvm::Value*>(&F))
+      return true;
+  return false;
+}
+
+bool
+DetectKernelsPass::hasCudaProgramAttached()
+{
+  return program_ != nullptr;
+}
+
+CudaProgram *
+DetectKernelsPass::getCudaProgram()
+{
+  return program_;
+}
+
+bool
+DetectKernelsPass::attachCudaProgram(CudaProgram &program)
+{
+  if ( program_ != nullptr)
+    return false;
+  
+  program_ = &program;
+
+  for ( auto kernel : kernels_)
+    program_->addKernel(kernel);
+  
+  return true;
 }
 
 } /// NAMESPACE kerma
