@@ -141,21 +141,21 @@ TEST(LineNumber, all )
   SMDiagnostic error;
   auto deviceModule = parseIRFile(deviceIR, error, context);
 
-  // for ( auto &F : *deviceModule.get()) {
-  //   CudaKernel f(F, CudaSide::DEVICE);
-  //   ASSERT_EQ(f.getLineStart(), 0);
-  //   ASSERT_EQ(f.getLineEnd(), 0);
-  //   ASSERT_EQ(f.getNumLines(), 0);
+  for ( auto &F : *deviceModule.get()) {
+    CudaKernel f(F, CudaSide::DEVICE);
+    ASSERT_EQ(f.getLineStart(), 0);
+    ASSERT_EQ(f.getLineEnd(), 0);
+    ASSERT_EQ(f.getNumLines(), 0);
 
-  //   f.setLineStart(10);
-  //   ASSERT_EQ(f.getLineStart(), 10);
+    f.setLineStart(10);
+    ASSERT_EQ(f.getLineStart(), 10);
 
-  //   f.setLineEnd(15);
-  //   ASSERT_EQ(f.getLineEnd(), 15);
+    f.setLineEnd(15);
+    ASSERT_EQ(f.getLineEnd(), 15);
 
-  //   ASSERT_EQ(f.getNumLines(), 5);
+    ASSERT_EQ(f.getNumLines(), 5);
 
-  //   f.setLineEnd(0);
-  //   ASSERT_EQ(f.getNumLines(), 0);
-  // }
+    f.setLineEnd(0);
+    ASSERT_EQ(f.getNumLines(), 0);
+  }
 }
