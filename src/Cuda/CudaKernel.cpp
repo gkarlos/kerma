@@ -75,7 +75,7 @@ CudaKernel::pp(llvm::raw_ostream& os) {
   std::string demangled = demangleFn(&fn_);
   os << demangled
      << ((demangled != fn_.getName())? " (demangled)" : "") << "\n"
-     << " " << u8"└" << " In " << getCudaSideToStr(IRModuleSide_)
+     << " " << u8"└" << " In " << getCudaSideStr(IRModuleSide_)
      << "-side module:" << (fn_.getParent())->getName() << "\n";
 }
 
