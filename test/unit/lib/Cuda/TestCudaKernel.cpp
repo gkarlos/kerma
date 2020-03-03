@@ -75,17 +75,17 @@ TEST(Constructor, Function)
 
   for ( auto &F : *deviceModule.get()) {
     if ( dkp->isKernel(F)) {
-      // CudaKernel kernel(F);
-      // ASSERT_EQ(kernel.getIRModuleSide(), CudaSide::Unknown);
+      CudaKernel kernel(F);
+      ASSERT_EQ(kernel.getIRModuleSide(), CudaSide::Unknown);
 
-      // kernel.setIRModuleSide(CudaSide::DEVICE);
-      // ASSERT_EQ(kernel.getIRModuleSide(), CudaSide::DEVICE);
+      kernel.setIRModuleSide(CudaSide::DEVICE);
+      ASSERT_EQ(kernel.getIRModuleSide(), CudaSide::DEVICE);
 
-      // ASSERT_EQ(kernel.getNumArgs(), F.arg_size());
-      // ASSERT_EQ(kernel.getFn().getName().compare(F.getName()), 0);
-      // ASSERT_EQ(kernel.getName().compare(demangleFnWithoutArgs(F)), 0);
-      // ASSERT_EQ(kernel.getMangledName().compare(F.getName()), 0);
-      // ASSERT_EQ(kernel.getNumArgs(), F.arg_size());
+      ASSERT_EQ(kernel.getNumArgs(), F.arg_size());
+      ASSERT_EQ(kernel.getFn().getName().compare(F.getName()), 0);
+      ASSERT_EQ(kernel.getName().compare(demangleFnWithoutArgs(F)), 0);
+      ASSERT_EQ(kernel.getMangledName().compare(F.getName()), 0);
+      ASSERT_EQ(kernel.getNumArgs(), F.arg_size());
     }
   }
 }
