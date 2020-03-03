@@ -47,11 +47,11 @@ public:
   bool is32bit();
 
 
-  void addKernel(CudaKernel* kernel) {
+  void addKernel(CudaKernel &kernel) {
     this->kernels_.insert(kernel);
   }
 
-  std::set<CudaKernel*>& getKernels() {
+  std::set<CudaKernel> &getKernels() {
     return this->kernels_;
   }
 
@@ -61,7 +61,7 @@ private:
   // Use a custom comparator to insert in order to avoid duplicates, since the
   // pass (DetectKernels) creates a new CudaKernel object for each kernel fn it
   // detects and the pass could potentially run multiple times
-  std::set<CudaKernel*> kernels_;
+  std::set<CudaKernel> kernels_;
   CudaArch arch_;
   bool is64bit_;
   bool is32bit_;

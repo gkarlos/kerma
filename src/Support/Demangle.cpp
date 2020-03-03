@@ -9,9 +9,10 @@
 #include <llvm/Demangle/Demangle.h>
 #endif
 
+namespace kerma {
 
-std::string kerma::demangleFn(llvm::Function *f) {
-
+std::string demangleFn(llvm::Function &f) 
+{
 #if LLVM_VERSION_MAJOR < 9
   int status;
   char *p = abi::__cxa_demangle( f->getName().str().c_str(), nullptr, nullptr, &status);
@@ -21,15 +22,22 @@ std::string kerma::demangleFn(llvm::Function *f) {
   free(p);
   return demangled;
 #else
-  return llvm::demangle(f->getName().str());
+  return llvm::demangle(f.getName().str());
 #endif
 }
 
-std::string kerma::demangleFnWithoutArgs(llvm::Function *f)
+std::string demangleFnWithoutArgs(llvm::Function &f)
 {
   std::string demangledName = kerma::demangleFn(f); //llvm::demangle(std::string(f->getName().str()));
+  
   if ( auto argstart = demangledName.find('(')) {
     demangledName = demangledName.substr(0, argstart);
   }
+
   return demangledName;
 }
+
+}
+
+
+

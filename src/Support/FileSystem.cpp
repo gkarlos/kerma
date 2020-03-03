@@ -7,6 +7,7 @@
 #include <string>
 #include <unistd.h>
 #include <cstdlib>
+#include <fstream>
 
 namespace kerma {
 
@@ -44,6 +45,11 @@ get_realpath(const std::string& relpath)
     throw std::runtime_error("realpath() error");
 
   return std::string(real);
+}
+
+bool fileExists(const std::string& name) {
+    std::ifstream f(name.c_str());
+    return f.good();
 }
 
 } /// NAMESPACE kerma

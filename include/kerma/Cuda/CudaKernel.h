@@ -6,8 +6,10 @@
 #ifndef KERMA_SUPPORT_CUDA_H
 #define KERMA_SUPPORT_CUDA_H
 
+#include "kerma/Support/PrettyPrintable.h"
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/Function.h"
+#include "llvm/Support/raw_ostream.h"
 #include <kerma/Cuda/Cuda.h>
 
 namespace kerma
@@ -17,13 +19,16 @@ class CudaKernel;
 class CudaKernelLaunch;
 class CudaKernelLaunchConfiguration;
 
-class CudaKernel 
+class CudaKernel : public PrettyPrintable
 {
 
 private:
   llvm::Function &fn_;
   CudaSide IRModuleSide_;
-  int numArgs_;
+  std::string name_;
+  std::string mangledName_;
+  unsigned int lineStart_;
+  unsigned int lineEnd_;
 
 public:
   CudaKernel(llvm::Function &fn, CudaSide IRModuleSide);
@@ -34,6 +39,10 @@ public:
   bool operator==(const CudaKernel &other) const;
   bool operator<(const CudaKernel &other) const;
   bool operator>(const CudaKernel &other) const;
+
+public:
+  virtual void pp(llvm::raw_ostream& os);
+  virtual void pp(std::ostream& os);
 
 public:
   /*
@@ -57,24 +66,24 @@ public:
   int getNumArgs();
 
   /*
-   * Add an argument to the kernel
+   * Retrieve the name of this kernel
    */
-  void addArg(llvm::Argument *arg);
-  
+  std::string& getName();
+
   /*
-   * Retrieve the i-th argument of this kernel
+   * Retrieve the mangled name of this kernel
    */
-  llvm::Argument *getArg(int i);
+  std::string& getMangledName();
 
   /*
    * Set the line number at which the kernel's definition starts
    */
-  void setLineStart(int line);
+  void setLineStart(unsigned int line);
 
   /*
    * Set the line number at which the kernel's definition ends (incluside)
    */
-  void setLineEnd(int line);
+  void setLineEnd(unsigned int line);
 
   /*
    * Retrieve the first (source code) line of the kernel's definition
@@ -90,8 +99,6 @@ public:
    * Retrieve the number of source code this kernel function spans
    */
   int getNumLines();
-  
-  void pp(llvm::raw_ostream& os);
 };
 
 class CudaKernelLaunchConfiguration
