@@ -3,6 +3,8 @@
 //
 
 #include "kerma/Cuda/Cuda.h"
+#include "llvm/IR/DebugInfoMetadata.h"
+#include "llvm/Support/Casting.h"
 #include <kerma/Cuda/CudaModule.h>
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Support/SourceMgr.h>
@@ -14,7 +16,8 @@ namespace kerma {
 
 
 CudaModule::CudaModule( llvm::Module &hostModule, llvm::Module &deviceModule)
-: hostModule_(hostModule), deviceModule_(deviceModule)
+: hostModule_(hostModule), 
+  deviceModule_(deviceModule)
 {
   if ( deviceModule.getTargetTriple().empty())
     throw std::runtime_error("Internal Error: Target triple missing");
@@ -40,6 +43,18 @@ CudaModule::CudaModule( llvm::Module &hostModule, llvm::Module &deviceModule)
 
   } catch(...) {
     throw;
+  }
+
+  llvm::NamedMDNode *MDcu = deviceModule_.getNamedMetadata("llvm.dbg.cu");
+  if ( MDcu) {
+    for ( const llvm::MDNode *node : MDcu->operands()) {
+      if ( auto *DIcu = llvm::dyn_cast<llvm::DICompileUnit>(node)) {
+        sourceFilename_ = DIcu->getFile()->getFilename();
+        sourceDirectory_ = DIcu->getDirectory();
+        if ( !sourceFilename_.empty() && !sourceDirectory_.empty())
+          sourceFilenameFull_ = sourceDirectory_ + "/" + sourceFilename_;
+      }
+    }
   }
 }
 
@@ -84,10 +99,22 @@ CudaModule::getKernels() {
   return kernels_;
 }
 
-std::string
+const std::string &
 CudaModule::getSourceFilename()
 {
-  return deviceModule_.getSourceFileName();
+  return sourceFilename_;
+}
+
+const std::string &
+CudaModule::getSourceDirectory()
+{
+  return sourceDirectory_;
+}
+
+const std::string &
+CudaModule::getSourceFilenameFull()
+{
+  return sourceFilenameFull_;
 }
 
 }

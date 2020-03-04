@@ -8,6 +8,8 @@
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IRReader/IRReader.h>
 
+#include <string>
+
 using namespace llvm;
 using namespace kerma;
 
@@ -71,4 +73,10 @@ TEST(Create, thenDetectKernelsPass )
 
   ASSERT_EQ( module.getKernels().size(), 2);
   ASSERT_EQ( module.getNumberOfKernels(), 2);
+  ASSERT_TRUE( module.getSourceDirectory().find("2MM") != std::string::npos);
+  ASSERT_TRUE( module.getSourceFilenameFull().find("2MM/") != std::string::npos
+      && module.getSourceFilenameFull().find("2mm.cu") != std::string::npos);
+  ASSERT_TRUE( module.getSourceFilenameFull().find( module.getSourceDirectory()) != std::string::npos
+      && module.getSourceFilenameFull().find( "/") != std::string::npos
+      && module.getSourceFilenameFull().find( module.getSourceFilename()) != std::string::npos);
 }

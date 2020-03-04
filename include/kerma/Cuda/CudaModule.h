@@ -71,11 +71,25 @@ public:
    * Retrieve the name of the source code file associated with this CudaModule
    * (as defined by the host and device IR)
    */
-  std::string getSourceFilename();
+  const std::string & getSourceFilename();
+
+  /*
+   * Retrieve the name of the directory of the source code file for this CudaModule
+   */
+  const std::string & getSourceDirectory();
+
+  /*
+   * Retrieve the full path (directory + filename) of the source code file for this 
+   * CudaModule
+   */
+  const std::string & getSourceFilenameFull();
 
 private:
   llvm::Module &hostModule_;
   llvm::Module &deviceModule_;
+  std::string sourceFilename_;
+  std::string sourceDirectory_;
+  std::string sourceFilenameFull_;
   std::set<CudaKernel> kernels_;
   CudaArch arch_;
   bool is64bit_;
