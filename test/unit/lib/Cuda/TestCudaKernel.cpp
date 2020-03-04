@@ -146,15 +146,15 @@ TEST(LineNumber, All )
     ASSERT_EQ(f.getLineEnd(), 0);
     ASSERT_EQ(f.getNumLines(), 0);
 
-    f.setLineStart(10);
+    f.setSignatureLineStart(10);
     ASSERT_EQ(f.getLineStart(), 10);
 
-    f.setLineEnd(15);
+    f.setBodyLineEnd(15);
     ASSERT_EQ(f.getLineEnd(), 15);
 
     ASSERT_EQ(f.getNumLines(), 5);
 
-    f.setLineEnd(0);
+    f.setBodyLineEnd(0);
     ASSERT_EQ(f.getNumLines(), 0);
   }
 }

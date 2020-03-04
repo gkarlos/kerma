@@ -27,8 +27,10 @@ private:
   CudaSide IRModuleSide_;
   std::string name_;
   std::string mangledName_;
-  unsigned int lineStart_;
-  unsigned int lineEnd_;
+  unsigned int signatureLineStart_;
+  unsigned int signatureLineEnd_;
+  unsigned int bodyLineStart_;
+  unsigned int bodyLineEnd_;
 
 public:
   CudaKernel(llvm::Function &fn, CudaSide IRModuleSide);
@@ -76,29 +78,49 @@ public:
   std::string& getMangledName();
 
   /*
-   * Set the line number at which the kernel's definition starts
+   * Set the line number at which the signature of the kernel's definition starts
    */
-  void setLineStart(unsigned int line);
+  void setSignatureLineStart(unsigned int line);
 
   /*
-   * Set the line number at which the kernel's definition ends (incluside)
+   * Set the line number at which the signature of the kernel's definition ends
    */
-  void setLineEnd(unsigned int line);
+  void setSignatureLineEnd(unsigned int line);
+
+  void setSignatureLines(unsigned int start, unsigned int end);
+
+  unsigned int getSignatureLineStart();
+
+  unsigned int getSignatureLineEnd();
+
+  unsigned int getSignatureNumLines();
+
+  void setBodyLineStart(unsigned int line);
+
+  void setBodyLineEnd(unsigned int line);
+
+  void setBodyLines(unsigned int start, unsigned int end);
+
+  unsigned int getBodyLineStart();
+
+  unsigned int getBodyLineEnd();
+
+  unsigned int getBodyNumLines();
 
   /*
    * Retrieve the first (source code) line of the kernel's definition
    */
-  int getLineStart();
+  unsigned int getLineStart();
   
   /*
    * Retrieve the last (source code) line of the kernel's definition
    */
-  int getLineEnd();
+  unsigned int getLineEnd();
 
   /*
    * Retrieve the number of source code this kernel function spans
    */
-  int getNumLines();
+  unsigned int getNumLines();
 };
 
 class CudaKernelLaunchConfiguration

@@ -11,6 +11,9 @@ namespace kerma
  */
 int getFnNumArgs(llvm::Function &fn);
 
+llvm::Function *
+getNextFunctionDefinition(llvm::Function &f);
+
 }
 
 #endif /* KERMA_SUPPORT_LLVMFUNCTIONSHORTHANDS_H */
