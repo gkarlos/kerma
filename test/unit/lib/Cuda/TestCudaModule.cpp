@@ -39,6 +39,12 @@ TEST(Create, Simple )
   ASSERT_EQ( module.getSourceFilename().compare("2mm.cu"), 0);
   ASSERT_EQ( module.getSourceFilename().compare(deviceModule.get()->getSourceFileName()), 0);
   ASSERT_EQ( module.getSourceFilename().compare(hostModule.get()->getSourceFileName()), 0);
+  ASSERT_TRUE( module.getSourceDirectory().find("2MM") != std::string::npos);
+  ASSERT_TRUE( module.getSourceFilenameFull().find("2MM/") != std::string::npos
+      && module.getSourceFilenameFull().find("2mm.cu") != std::string::npos);
+  ASSERT_TRUE( module.getSourceFilenameFull().find( module.getSourceDirectory()) != std::string::npos
+      && module.getSourceFilenameFull().find( "/") != std::string::npos
+      && module.getSourceFilenameFull().find( module.getSourceFilename()) != std::string::npos);
 }
 
 TEST(Create, thenDetectKernelsPass )
@@ -54,17 +60,9 @@ TEST(Create, thenDetectKernelsPass )
   EXPECT_NO_THROW(CudaModule program(*deviceModule.get(), *deviceModule.get()));
   
   CudaModule module(*hostModule.get(), *deviceModule.get());
-
-  ASSERT_EQ( module.getDeviceModule().getName().compare( deviceModule.get()->getName()), 0);
-  ASSERT_EQ( module.getHostModule().getName().compare( hostModule.get()->getName()), 0);
-  ASSERT_EQ( module.getArch(), CudaArch::sm_52);
-  ASSERT_TRUE( module.is64bit());
-  ASSERT_FALSE( module.is32bit());
+  
   ASSERT_EQ( module.getKernels().size(), 0);
   ASSERT_EQ( module.getNumberOfKernels(), 0);
-  ASSERT_EQ( module.getSourceFilename().compare("2mm.cu"), 0);
-  ASSERT_EQ( module.getSourceFilename().compare(deviceModule.get()->getSourceFileName()), 0);
-  ASSERT_EQ( module.getSourceFilename().compare(hostModule.get()->getSourceFileName()), 0);
 
   legacy::PassManager PM;
   DetectKernelsPass *dkp = new DetectKernelsPass(module);
@@ -73,10 +71,4 @@ TEST(Create, thenDetectKernelsPass )
 
   ASSERT_EQ( module.getKernels().size(), 2);
   ASSERT_EQ( module.getNumberOfKernels(), 2);
-  ASSERT_TRUE( module.getSourceDirectory().find("2MM") != std::string::npos);
-  ASSERT_TRUE( module.getSourceFilenameFull().find("2MM/") != std::string::npos
-      && module.getSourceFilenameFull().find("2mm.cu") != std::string::npos);
-  ASSERT_TRUE( module.getSourceFilenameFull().find( module.getSourceDirectory()) != std::string::npos
-      && module.getSourceFilenameFull().find( "/") != std::string::npos
-      && module.getSourceFilenameFull().find( module.getSourceFilename()) != std::string::npos);
 }
