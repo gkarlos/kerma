@@ -23,8 +23,10 @@ CudaKernel::CudaKernel(llvm::Function &fn, CudaSide IRModuleSide)
   IRModuleSide_(IRModuleSide),
   mangledName_(fn.getName()),
   name_(demangleFnWithoutArgs(fn)),
-  lineStart_(0),
-  lineEnd_(0)
+  signatureLineStart_(0),
+  signatureLineEnd_(0),
+  bodyLineStart_(0),
+  bodyLineEnd_(0)
 {}
 
 /// Operators
@@ -86,35 +88,101 @@ CudaKernel::getMangledName()
 }
 
 void 
-CudaKernel::setLineStart(unsigned int line)
+CudaKernel::setSignatureLineStart(unsigned int line)
 {
-  lineStart_ = line;
+  signatureLineStart_ = line;
 }
 
 void 
-CudaKernel::setLineEnd(unsigned int line)
+CudaKernel::setSignatureLineEnd(unsigned int line)
 {
-  lineEnd_ = line;
+  signatureLineEnd_ = line;
 }
 
-int 
+void
+CudaKernel::setSignatureLines(unsigned int start, unsigned int end)
+{
+  signatureLineStart_ = start;
+  signatureLineEnd_ = end;
+}
+
+unsigned int 
+CudaKernel::getSignatureLineStart()
+{
+  return signatureLineStart_;
+}
+
+unsigned int 
+CudaKernel::getSignatureLineEnd()
+{
+  return signatureLineEnd_;
+}
+
+unsigned int
+CudaKernel::getSignatureNumLines()
+{
+  if ( signatureLineEnd_ <= signatureLineStart_)
+    return 0;
+  return signatureLineEnd_ - signatureLineStart_;
+}
+
+void
+CudaKernel::setBodyLineStart(unsigned int line)
+{
+  bodyLineStart_ = line;
+}
+
+void
+CudaKernel::setBodyLineEnd(unsigned int line)
+{
+  bodyLineEnd_ = line;
+}
+
+void
+CudaKernel::setBodyLines(unsigned int start, unsigned int end)
+{
+  bodyLineStart_ = start;
+  bodyLineEnd_ = end;
+}
+
+unsigned int
+CudaKernel::getBodyLineStart()
+{
+  return bodyLineStart_;
+}
+
+unsigned int
+CudaKernel::getBodyLineEnd()
+{
+  return bodyLineEnd_;
+}
+
+unsigned int
+CudaKernel::getBodyNumLines()
+{
+  if ( bodyLineEnd_ <= bodyLineStart_)
+    return 0;
+  return bodyLineEnd_ - bodyLineStart_;
+}
+
+unsigned int 
 CudaKernel::getLineStart()
 {
-  return lineStart_;
+  return signatureLineStart_;
 }
 
-int 
+unsigned int 
 CudaKernel::getLineEnd()
 {
-  return lineEnd_;
+  return bodyLineEnd_;
 }
 
-int CudaKernel::getNumLines()
+unsigned int 
+CudaKernel::getNumLines()
 {
-  if ( lineEnd_ <= lineStart_ )
+  if ( bodyLineEnd_ <= signatureLineStart_ )
     return 0;
-  
-  return lineEnd_ - lineStart_;
+  return bodyLineEnd_ - signatureLineStart_;
 }
 
 void 

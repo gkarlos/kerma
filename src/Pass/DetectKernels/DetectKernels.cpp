@@ -10,6 +10,7 @@
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/JSON.h"
 #include <llvm/Support/Debug.h>
+#include <llvm/IR/DebugLoc.h>
 
 #include <string>
 #include <map>
@@ -19,6 +20,7 @@
 #include <kerma/Cuda/CudaModule.h>
 #include <kerma/Pass/DetectKernels.h>
 #include <kerma/Support/LLVMStringUtils.h>
+#include <kerma/Support/LLVMFunctionShorthands.h>
 
 using namespace llvm;
 using namespace kerma;
@@ -94,9 +96,31 @@ DetectKernelsPass::runOnModule(Module &M) {
           // nvvm.annotation + function = kernel but lets be more robust
           mdOperand = node->getOperand(1).get();
           // Check if the MDNode operand is a string and has the value "kernel"
-          if (auto *mdStr = dyn_cast_or_null<MDString>(mdOperand))
-            if (mdStr->getString() == "kernel")
-              this->kernels_.insert(CudaKernel(*fun, getIRModuleSide(M)));
+          if (auto *mdStr = dyn_cast_or_null<MDString>(mdOperand)) {
+            if (mdStr->getString() == "kernel") {
+              CudaKernel kernel(*fun, getIRModuleSide(M));
+
+              // Get line numbers
+              if ( auto *DISub = kernel.getFn().getSubprogram() ) {
+                kernel.setSignatureLineStart(DISub->getLine());
+                kernel.setSignatureLineEnd(DISub->getScopeLine() - (DISub->getScopeLine() > DISub->getLine()? -1 : 0));
+                kernel.setBodyLineStart(DISub->getScopeLine());
+                
+                unsigned int lastInstructionSourceCodeLine = 0;
+
+                for ( auto &BB : kernel.getFn()) {
+                  for ( auto &I : BB) {
+                    if ( I.getDebugLoc() && I.getDebugLoc().getLine() > lastInstructionSourceCodeLine)
+                      lastInstructionSourceCodeLine = I.getDebugLoc().getLine();
+                  }
+                }
+
+                kernel.setBodyLineEnd(lastInstructionSourceCodeLine);
+              }
+
+              this->kernels_.insert(kernel);
+            }
+          }
         }
       }
     }
