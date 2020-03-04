@@ -15,9 +15,9 @@ std::string demangleFn(llvm::Function &f)
 {
 #if LLVM_VERSION_MAJOR < 9
   int status;
-  char *p = abi::__cxa_demangle( f->getName().str().c_str(), nullptr, nullptr, &status);
+  char *p = abi::__cxa_demangle( f.getName().str().c_str(), nullptr, nullptr, &status);
   if ( status != 0)
-    return std::string(f->getName().str().append("_(could not demangle)"));
+    return std::string(f.getName().str().append("_(could not demangle)"));
   std::string demangled(p);
   free(p);
   return demangled;
