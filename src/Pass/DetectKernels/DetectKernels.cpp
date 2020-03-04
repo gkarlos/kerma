@@ -1,4 +1,3 @@
-#include "kerma/Cuda/CudaProgram.h"
 #include <llvm/Pass.h>
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/ADT/StringRef.h"
@@ -17,6 +16,7 @@
 
 #include <kerma/Cuda/NVVM.h>
 #include <kerma/Cuda/CudaKernel.h>
+#include <kerma/Cuda/CudaModule.h>
 #include <kerma/Pass/DetectKernels.h>
 #include <kerma/Support/LLVMStringUtils.h>
 
@@ -29,16 +29,16 @@ namespace kerma {
 
 DetectKernelsPass::DetectKernelsPass() 
 : llvm::ModulePass(ID),
-  program_(nullptr)
+  cudaModule_(nullptr)
 {}
 
-DetectKernelsPass::DetectKernelsPass(CudaProgram &program)
+DetectKernelsPass::DetectKernelsPass(CudaModule &program)
 : llvm::ModulePass(ID),
-  program_(&program)
+  cudaModule_(&program)
 {}
 
 // void
-// DetectKernelsPass::attachProgram(CudaProgram *program)
+// DetectKernelsPass::attachProgram(CudaModule *program)
 // {
 //   this->program_ = program;
 //   // Try to populate the new program with kernels just in case the
@@ -55,8 +55,8 @@ DetectKernelsPass::doInitialization(Module &)
 {
   // Clear the kernels found, just in case the pass is re-run
   this->kernels_.clear();
-  if ( this->program_ != nullptr)
-    this->program_->getKernels().clear();
+  if ( this->cudaModule_ != nullptr)
+    this->cudaModule_->getKernels().clear();
   return false;
 }
 
@@ -64,9 +64,9 @@ bool
 DetectKernelsPass::doFinalization(Module& M)
 {
   // If there is a program attached to this pass, populate it with kernels
-  if ( this->program_ != nullptr) {
-    // for ( auto kernel : this->kernels_)
-    //   this->program_->addKernel(kernel)
+  if ( this->cudaModule_ != nullptr) {
+    for ( auto kernel : this->kernels_)
+      this->cudaModule_->addKernel(kernel);
   }
   return false;
 }
@@ -93,6 +93,7 @@ DetectKernelsPass::runOnModule(Module &M) {
         if (auto *fun = dyn_cast<Function>(v->getValue())) {
           // nvvm.annotation + function = kernel but lets be more robust
           mdOperand = node->getOperand(1).get();
+          // Check if the MDNode operand is a string and has the value "kernel"
           if (auto *mdStr = dyn_cast_or_null<MDString>(mdOperand))
             if (mdStr->getString() == "kernel")
               this->kernels_.insert(CudaKernel(*fun, getIRModuleSide(M)));
@@ -135,27 +136,27 @@ DetectKernelsPass::isKernel(llvm::Function &F)
 }
 
 bool
-DetectKernelsPass::hasCudaProgramAttached()
+DetectKernelsPass::hasCudaModuleAttached()
 {
-  return program_ != nullptr;
+  return cudaModule_ != nullptr;
 }
 
-CudaProgram *
-DetectKernelsPass::getCudaProgram()
+CudaModule *
+DetectKernelsPass::getCudaModule()
 {
-  return program_;
+  return cudaModule_;
 }
 
 bool
-DetectKernelsPass::attachCudaProgram(CudaProgram &program)
+DetectKernelsPass::attachCudaModule(CudaModule &program)
 {
-  if ( program_ != nullptr)
+  if ( cudaModule_ != nullptr)
     return false;
   
-  program_ = &program;
+  cudaModule_ = &program;
 
   for ( auto kernel : kernels_)
-    program_->addKernel(kernel);
+    cudaModule_->addKernel(kernel);
   
   return true;
 }

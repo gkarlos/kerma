@@ -3,8 +3,7 @@
 //
 
 #include "kerma/Cuda/Cuda.h"
-#include <kerma/Cuda/CudaProgram.h>
-
+#include <kerma/Cuda/CudaModule.h>
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Support/SourceMgr.h>
 
@@ -14,7 +13,7 @@ namespace kerma {
 
 
 
-CudaProgram::CudaProgram( llvm::Module &hostModule, llvm::Module &deviceModule)
+CudaModule::CudaModule( llvm::Module &hostModule, llvm::Module &deviceModule)
 : hostModule_(hostModule), deviceModule_(deviceModule)
 {
   if ( deviceModule.getTargetTriple().empty())
@@ -45,28 +44,50 @@ CudaProgram::CudaProgram( llvm::Module &hostModule, llvm::Module &deviceModule)
 }
 
 llvm::Module &
-CudaProgram::getHostModule() {
+CudaModule::getHostModule() {
   return hostModule_;
 }
 
 llvm::Module &
-CudaProgram::getDeviceModule() {
+CudaModule::getDeviceModule() {
   return deviceModule_;
 }
 
 CudaArch 
-CudaProgram::getArch() {
+CudaModule::getArch() {
   return arch_;
 }
 
 bool 
-CudaProgram::is64bit() {
+CudaModule::is64bit() {
   return is64bit_;
 }
 
 bool 
-CudaProgram::is32bit() {
+CudaModule::is32bit() {
   return is32bit_;
+}
+
+void 
+CudaModule::addKernel(CudaKernel &kernel) {
+  kernels_.insert(kernel);
+}
+
+unsigned int
+CudaModule::getNumberOfKernels()
+{
+  return kernels_.size();
+}
+
+std::set<CudaKernel> &
+CudaModule::getKernels() {
+  return kernels_;
+}
+
+std::string
+CudaModule::getSourceFilename()
+{
+  return deviceModule_.getSourceFileName();
 }
 
 }

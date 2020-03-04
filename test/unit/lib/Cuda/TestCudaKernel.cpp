@@ -2,7 +2,7 @@
 
 #include "kerma/Cuda/Cuda.h"
 #include "kerma/Cuda/CudaKernel.h"
-#include "kerma/Cuda/CudaProgram.h"
+#include "kerma/Cuda/CudaModule.h"
 #include "kerma/Pass/DetectKernels.h"
 #include "kerma/Support/Demangle.h"
 
@@ -11,7 +11,6 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <llvm/IR/LegacyPassManager.h>
-// #include <llvm/Support/SourceMgr.h>
 #include <llvm/IRReader/IRReader.h>
 #include <memory>
 #include <stdio.h>  // defines FILENAME_MAX
@@ -29,12 +28,12 @@ runDetectKernelsPass(const std::string& hostIR, const std::string& deviceIR)
   SMDiagnostic error;
   auto hostModule = llvm::parseIRFile(hostIR, error, context);
   auto deviceModule = llvm::parseIRFile(deviceIR, error, context);
-  CudaProgram program(*hostModule.get(), *deviceModule.get());
+  CudaModule module(*hostModule.get(), *deviceModule.get());
 
   legacy::PassManager PM;
-  DetectKernelsPass *dkp = new DetectKernelsPass(program);
+  DetectKernelsPass *dkp = new DetectKernelsPass(module);
   PM.add(dkp);
-  PM.run(program.getDeviceModule());
+  PM.run(module.getDeviceModule());
   return dkp;
 }
 
@@ -62,12 +61,12 @@ std::string GetCurrentWorkingDir()
 TEST(Constructor, Function)
 {
   std::string deviceIR = POLYBENCH + "2MM/2mm-cuda-nvptx64-nvidia-cuda-sm_52.ll";
-  std::string hostIR = POLYBENCH + "2MM/2m.ll";
+  std::string hostIR = POLYBENCH + "2MM/2mm.ll";
 
   LLVMContext context;
   SMDiagnostic error;
   auto deviceModule = parseIRFile(deviceIR, error, context);
-  CudaProgram program(*deviceModule.get(), *deviceModule.get());
+  CudaModule program(*deviceModule.get(), *deviceModule.get());
   legacy::PassManager PM;
   DetectKernelsPass *dkp = new DetectKernelsPass(program);
   PM.add(dkp);
@@ -93,11 +92,11 @@ TEST(Constructor, Function)
 TEST(Constructor, Function_CudaSide)
 {
   std::string deviceIR = POLYBENCH + "2MM/2mm-cuda-nvptx64-nvidia-cuda-sm_52.ll";
-  std::string hostIR = POLYBENCH + "2MM/2m.ll";
+  std::string hostIR = POLYBENCH + "2MM/2mm.ll";
   LLVMContext context;
   SMDiagnostic error;
   auto deviceModule = parseIRFile(deviceIR, error, context);
-  CudaProgram program(*deviceModule.get(), *deviceModule.get());
+  CudaModule program(*deviceModule.get(), *deviceModule.get());
 
   legacy::PassManager PM;
   DetectKernelsPass *dkp = new DetectKernelsPass(program);
@@ -134,7 +133,7 @@ TEST(Constructor, Function_CudaSide)
   // cleanupPass(&dkp);
 }
 
-TEST(LineNumber, all )
+TEST(LineNumber, All )
 {
   std::string deviceIR = POLYBENCH + "2MM/2mm-cuda-nvptx64-nvidia-cuda-sm_52.ll";
   LLVMContext context;

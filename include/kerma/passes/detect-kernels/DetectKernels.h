@@ -8,7 +8,7 @@
 #include <llvm/Pass.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/raw_ostream.h>
-#include <kerma/Cuda/CudaProgram.h>
+#include <kerma/Cuda/CudaModule.h>
 #include <kerma/Cuda/CudaKernel.h>
 
 #include <set>
@@ -18,7 +18,7 @@ namespace kerma {
 struct DetectKernelsPass : public llvm::ModulePass {
 public:
   static char ID;
-  explicit DetectKernelsPass(CudaProgram *program = nullptr)
+  explicit DetectKernelsPass(CudaModule *program = nullptr)
   : ModulePass(ID), program_(program)
   {}
 
@@ -26,12 +26,12 @@ public:
   bool doInitialization(llvm::Module& M) override;
   bool doFinalization(llvm::Module& M) override;
   virtual std::set<CudaKernel*>& getKernels();
-  virtual void attachProgram(CudaProgram *program);
+  virtual void attachProgram(CudaModule *program);
   void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
   void print(llvm::raw_ostream &OS, const llvm::Module *M) const override;
 
 private:
-  CudaProgram* program_;
+  CudaModule* program_;
   std::set<CudaKernel*> kernels_;
 };
 
