@@ -2,7 +2,7 @@
 #define KERMA_PASS_DETECT_KERNELS_H
 
 #include "kerma/Cuda/CudaKernel.h"
-#include "kerma/Cuda/CudaProgram.h"
+#include "kerma/Cuda/CudaModule.h"
 #include "kerma/Support/PrettyPrintable.h"
 
 #include "llvm/IR/Module.h"
@@ -13,7 +13,7 @@
 namespace kerma {
 
 /*
- * An LLVM Pass that detects the kernel functions in a CudaProgram 
+ * An LLVM Pass that detects the kernel functions in a CudaModule 
  * After running the pass users can retrieve a set of CudaKernel(s)
  * or query to check if an llvm::Function is a CUDA kernel definition.
  *
@@ -25,7 +25,7 @@ class DetectKernelsPass : public llvm::ModulePass
 public:
   static char ID;
   DetectKernelsPass();
-  explicit DetectKernelsPass(kerma::CudaProgram &program);
+  explicit DetectKernelsPass(kerma::CudaModule &cudaModule);
 
 public:
   bool runOnModule(llvm::Module &M) override;
@@ -53,45 +53,45 @@ public:
   bool isKernel(llvm::Function &F);
 
   /*
-   * @brief Check if a CudaProgram is attached to this pass
+   * @brief Check if a CudaModule is attached to this pass
    */
-  bool hasCudaProgramAttached();
+  bool hasCudaModuleAttached();
 
   /*
-   * @brief Retrieve the CudaProgram associated with the pass.
+   * @brief Retrieve the CudaModule associated with the pass.
    *        Return nullptr when no program is attached
    */
-  CudaProgram *getCudaProgram();
+  CudaModule *getCudaModule();
 
   /*
-   * @brief Attach a CudaProgram to this Pass
+   * @brief Attach a CudaModule to this Pass
    * 
-   * Once a CudaProgram is attached, subsequent calls are no-ops
+   * Once a CudaModule is attached, subsequent calls are no-ops
    *
-   * Attaching a CudaProgram will populate the program with the Kernels found
-   * by the pass (if any). It is up to the user to make sure that the CudaProgram 
+   * Attaching a CudaModule will populate the program with the Kernels found
+   * by the pass (if any). It is up to the user to make sure that the CudaModule 
    * passed corresponds to the same IR the pass was run on. 
-   * If in doubt, runOnModule() can be called after attaching the CudaProgram.
+   * If in doubt, runOnModule() can be called after attaching the CudaModule.
    *
    * The above is mostly relevant when the pass is run with opt.
-   * When run programmatically (through a PassManager) we can attach a CudaProgram
+   * When run programmatically (through a PassManager) we can attach a CudaModule
    * directly in the constructor:
    * <code>
-   *  CudaProgram program(...);
+   *  CudaModule program(...);
    *  legacy::PassManager PM;
    *  DetectKernelsPass *detectKernels = new DetectKernelsPass(&program);
    *  PM.add(detectKernels);
    *  PM.run( program.getDeviceModule() )
    * </code>
    *
-   * @param program - A CudaProgram
+   * @param cudaModule - A CudaModule
    * @return true  - program attached
    *         false - program not attached 
    */
-  bool attachCudaProgram(CudaProgram &program);
+  bool attachCudaModule(CudaModule &cudaModule);
 
 private:
-  CudaProgram *program_;
+  CudaModule *cudaModule_;
   std::set<CudaKernel> kernels_;
 };
 

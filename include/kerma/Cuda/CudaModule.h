@@ -20,20 +20,20 @@ namespace kerma {
 //   }
 // };
 
-class CudaProgram {
+class CudaModule {
 public:
 
-  CudaProgram ( llvm::Module &hostModule, llvm::Module &deviceModule);
+  CudaModule ( llvm::Module &hostModule, llvm::Module &deviceModule);
 
-  ~CudaProgram()=default;
+  ~CudaModule()=default;
 
   /*
-   * Retrieve the host-side Module for this program
+   * Retrieve the host-side LLVM Module for this program
    */
   llvm::Module &getHostModule();
 
   /*
-   * Retrieve the device-side Module for this program
+   * Retrieve the device-side LLVM Module for this program
    */
   llvm::Module &getDeviceModule();
 
@@ -42,25 +42,40 @@ public:
    */
   CudaArch getArch();
 
-
+  /*
+   * Check if the CudaModule (as defined by the host and device IR) targets 64-bit arch
+   */
   bool is64bit();
+
+  /*
+   * Check if the CudaModule (as defined by the host and device IR) targets 32-bit arch
+   */
   bool is32bit();
 
+  /*
+   * Attach a CudaKernel to this CudaModule
+   */
+  void addKernel(CudaKernel &kernel);
 
-  void addKernel(CudaKernel &kernel) {
-    this->kernels_.insert(kernel);
-  }
+  /*
+   * Retrieve the CudaKernel(s) attached to this CudaModule
+   */
+  std::set<CudaKernel> &getKernels();
 
-  std::set<CudaKernel> &getKernels() {
-    return this->kernels_;
-  }
+  /*
+   * Retrieve the number of kernels attached to this CudaModule
+   */
+  unsigned int getNumberOfKernels();
+
+  /*
+   * Retrieve the name of the source code file associated with this CudaModule
+   * (as defined by the host and device IR)
+   */
+  std::string getSourceFilename();
 
 private:
   llvm::Module &hostModule_;
   llvm::Module &deviceModule_;
-  // Use a custom comparator to insert in order to avoid duplicates, since the
-  // pass (DetectKernels) creates a new CudaKernel object for each kernel fn it
-  // detects and the pass could potentially run multiple times
   std::set<CudaKernel> kernels_;
   CudaArch arch_;
   bool is64bit_;
