@@ -2,6 +2,8 @@
 #include <kerma/Cuda/CudaKernel.h>
 #include <kerma/Support/LLVMFunctionShorthands.h>
 #include <kerma/Support/Demangle.h>
+#include <kerma/Support/SourceCode.h>
+
 #include <ostream>
 
 #include "llvm/IR/Argument.h"
@@ -23,10 +25,10 @@ CudaKernel::CudaKernel(llvm::Function &fn, CudaSide IRModuleSide)
   IRModuleSide_(IRModuleSide),
   mangledName_(fn.getName()),
   name_(demangleFnWithoutArgs(fn)),
-  signatureLineStart_(0),
-  signatureLineEnd_(0),
-  bodyLineStart_(0),
-  bodyLineEnd_(0)
+  signatureLineStart_(SRC_LINE_UNKNOWN),
+  signatureLineEnd_(SRC_LINE_UNKNOWN),
+  bodyLineStart_(SRC_LINE_UNKNOWN),
+  bodyLineEnd_(SRC_LINE_UNKNOWN)
 {}
 
 /// Operators
@@ -87,102 +89,140 @@ CudaKernel::getMangledName()
   return mangledName_;
 }
 
-void 
+void
 CudaKernel::setSignatureLineStart(unsigned int line)
 {
   signatureLineStart_ = line;
+  /// If the new start line is greater than old end line then
+  /// the old end line cannot be valid anymore
+  if ( signatureLineEnd_ != SRC_LINE_UNKNOWN && signatureLineStart_ > signatureLineEnd_)
+    signatureLineEnd_ = SRC_LINE_UNKNOWN;
+  
+  if ( line > bodyLineStart_ || line > bodyLineEnd_ ) {
+    bodyLineStart_ = SRC_LINE_UNKNOWN;
+    bodyLineEnd_ = SRC_LINE_UNKNOWN;
+  } 
 }
 
-void 
+void
 CudaKernel::setSignatureLineEnd(unsigned int line)
 {
   signatureLineEnd_ = line;
+
+  /// An end line less than the start line cannot be valid
+  if ( line < signatureLineStart_ )
+    signatureLineEnd_ = SRC_LINE_UNKNOWN;
+  
+  /// If body lines where set and signate end inteleaves with them,
+  /// then body lines get invalidated
+  if ( line > bodyLineStart_ || line > bodyLineEnd_ ) {
+    bodyLineStart_ = SRC_LINE_UNKNOWN;
+    bodyLineEnd_ = SRC_LINE_UNKNOWN;
+  } 
 }
 
 void
 CudaKernel::setSignatureLines(unsigned int start, unsigned int end)
 {
-  signatureLineStart_ = start;
-  signatureLineEnd_ = end;
+  setSignatureLineStart(start);
+  setSignatureLineEnd(end);
 }
 
-unsigned int 
+int 
 CudaKernel::getSignatureLineStart()
 {
   return signatureLineStart_;
 }
 
-unsigned int 
+int 
 CudaKernel::getSignatureLineEnd()
 {
   return signatureLineEnd_;
 }
 
-unsigned int
+int
 CudaKernel::getSignatureNumLines()
 {
-  if ( signatureLineEnd_ <= signatureLineStart_)
+  if ( signatureLineStart_ == SRC_LINE_UNKNOWN 
+    || signatureLineEnd_ == SRC_LINE_UNKNOWN 
+    || signatureLineEnd_ < signatureLineStart_ )
     return 0;
-  return signatureLineEnd_ - signatureLineStart_;
+  return 1 + signatureLineEnd_ - signatureLineStart_;
 }
 
 void
 CudaKernel::setBodyLineStart(unsigned int line)
 {
   bodyLineStart_ = line;
+
+  if ( signatureLineEnd_ != SRC_LINE_UNKNOWN && line < signatureLineEnd_)
+    bodyLineStart_ = SRC_LINE_UNKNOWN;
+
+  if ( bodyLineEnd_ != SRC_LINE_UNKNOWN && bodyLineStart_ > bodyLineEnd_)
+    bodyLineEnd_ = SRC_LINE_UNKNOWN;
 }
 
 void
 CudaKernel::setBodyLineEnd(unsigned int line)
 {
   bodyLineEnd_ = line;
+  
+  /// An end line less than the start line cannot be valid
+  if ( line < bodyLineStart_ )
+    bodyLineEnd_ = SRC_LINE_UNKNOWN;
 }
 
 void
 CudaKernel::setBodyLines(unsigned int start, unsigned int end)
 {
-  bodyLineStart_ = start;
-  bodyLineEnd_ = end;
+  setBodyLineStart(start);
+  setBodyLineEnd(end);
 }
 
-unsigned int
+int
 CudaKernel::getBodyLineStart()
 {
   return bodyLineStart_;
 }
 
-unsigned int
+int
 CudaKernel::getBodyLineEnd()
 {
   return bodyLineEnd_;
 }
 
-unsigned int
+int
 CudaKernel::getBodyNumLines()
-{
-  if ( bodyLineEnd_ <= bodyLineStart_)
+{ 
+  if ( bodyLineStart_ == SRC_LINE_UNKNOWN 
+    || bodyLineEnd_ == SRC_LINE_UNKNOWN 
+    || bodyLineEnd_ < bodyLineStart_)
     return 0;
-  return bodyLineEnd_ - bodyLineStart_;
+
+  return 1 + bodyLineEnd_ - bodyLineStart_;
 }
 
-unsigned int 
+int 
 CudaKernel::getLineStart()
 {
   return signatureLineStart_;
 }
 
-unsigned int 
+int 
 CudaKernel::getLineEnd()
 {
   return bodyLineEnd_;
 }
 
-unsigned int 
+int 
 CudaKernel::getNumLines()
 {
-  if ( bodyLineEnd_ <= signatureLineStart_ )
+  if ( signatureLineStart_ == SRC_LINE_UNKNOWN
+    || bodyLineEnd_ == SRC_LINE_UNKNOWN
+    || bodyLineEnd_ < signatureLineStart_ )
     return 0;
-  return bodyLineEnd_ - signatureLineStart_;
+
+  return 1 + bodyLineEnd_ - signatureLineStart_;
 }
 
 void 
