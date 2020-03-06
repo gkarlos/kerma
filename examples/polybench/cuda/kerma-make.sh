@@ -32,6 +32,7 @@ VERBOSE=false
 IR=false
 EXE=false
 HELP=false
+CLEAN=false
 
 for var in "$@"
 do
@@ -39,9 +40,24 @@ do
   [[ $var == '-ir' ]] && IR=true
   [[ $var == '-exe' ]] && EXE=true
   [[ $var == '-h' || $var == '--help' ]] && HELP=true
+  [[ $var == '-clean' ]] && CLEAN=true
 done
 
 $HELP && { print_help; exit 1; }
+
+$CLEAN && {
+  for d in *
+  do
+    if [ -d $d ]; then
+      cd $d
+      rm -f *.ll
+      cd ..
+    fi
+  done
+  $VERBOSE && echo "[i] Polybench .ll files removed"
+  exit
+}
+
 $IR || $EXE || { echo "Nothing to do. Try -h for available options. Exiting."; exit 1; }
 
 set -a
