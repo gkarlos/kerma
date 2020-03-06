@@ -41,6 +41,10 @@ do
   [[ $var == '-exe' ]] && EXE=true
   [[ $var == '-h' || $var == '--help' ]] && HELP=true
   [[ $var == '-clean' ]] && CLEAN=true
+  [[ $var == '-silent' ]] && {
+    SILENT=true
+    VERBOSE=false
+  }
 done
 
 $HELP && { print_help; exit 1; }
@@ -62,7 +66,7 @@ $IR || $EXE || { echo "Nothing to do. Try -h for available options. Exiting."; e
 
 set -a
 
-echo -ne "Compiling PolyBench GPU v1.0 ..."
+$SILENT || echo -ne "Compiling PolyBench GPU v1.0 ..."
 
 ## Setup CUDA location
 CU_HOME=/usr/local/cuda
@@ -118,4 +122,4 @@ done
 end=`date +%s`
 
 $VERBOSE && echo "[i] Finished after $((end - start)) second(s)"
-$VERBOSE && echo "[i] Clang output written at $(realpath ../$LOGFILE) " || echo " ok"
+$VERBOSE && echo "[i] Clang output written at $(realpath ../$LOGFILE) " || $SILENT || echo " ok"
