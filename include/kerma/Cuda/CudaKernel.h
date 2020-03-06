@@ -5,10 +5,21 @@
 #define KERMA_SUPPORT_CUDA_H
 
 #include "kerma/Support/PrettyPrintable.h"
+#include "kerma/Support/SourceCode.h"
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/Support/raw_ostream.h"
+
 #include <kerma/Cuda/Cuda.h>
+
+#if (__cplusplus >= 201703L) /// >= C++17
+  #include <optional>
+  #define OPTIONAL std::optional
+#else
+  #include <experimental/optional>
+  #define OPTIONAL std::experimental::optional
+#endif
 
 namespace kerma
 {
@@ -195,6 +206,13 @@ public:
   int getNumLines();
 };
 
+/*
+ * This class represents a Cuda kernel launch configuration
+ * It includes information about grid size, block size, amount of shared memory
+ * and the cuda stream the kernel is launched on.
+ *
+ * This class is meant to be used by CudaKudaKernelLaunch
+ */
 class CudaKernelLaunchConfiguration
 {
   CudaKernelLaunchConfiguration();
@@ -212,26 +230,112 @@ class CudaKernelLaunchConfiguration
   llvm::Value *getX(llvm::Value *dim3Value);
   llvm::Value *getY(llvm::Value *dim3Value);
   llvm::Value *getZ(llvm::Value *dim3Value);
-
 };
 
+
+/*
+ * This class represents a Cuda kernel launch
+ * It is meant to be populated by DetectKernelLaunchesPass
+ */
 class CudaKernelLaunch
 { 
-  CudaKernelLaunch(CudaKernel &kernel, int line = -1);
-  CudaKernelLaunch(CudaKernel &kernel, CudaKernelLaunchConfiguration &config, int line = -1);
-  ~CudaKernelLaunch() = default;
+public:
+  CudaKernelLaunch(CudaKernel &kernel, int line = SRC_LINE_UNKNOWN);
+  CudaKernelLaunch(CudaKernel &kernel, CudaKernelLaunchConfiguration *config, int line = SRC_LINE_UNKNOWN);
+  ~CudaKernelLaunch();
 
+/// API
+public:
+  /*
+   * @brief Retrieve the CudaKernel this launch is relevant to
+   */
+  CudaKernel & getKernel();
+
+  /*
+   * @brief Retrieve the launch configuration associated with this launch
+   */
   CudaKernelLaunchConfiguration *getLaunchConfigutation();
 
+  /*
+   * @brief Set a launch configuration for this launch
+   */
   void setLaunchConfiguration(CudaKernelLaunchConfiguration *config);
 
-  void setLine(int line);
+  /*
+   * @brief Set the CallInst for the cudaLaunchKernel() call associated with this launch
+   *
+   * https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__EXECUTION.html#group__CUDART__EXECUTION_1g5064cdf5d8e6741ace56fd8be951783c
+   */
+  void setCudaLaunchKernelCall(llvm::CallInst *kernelCall);
 
+  /*
+   * @brief Retrieve the CallInst for the cudaLaunchKernel() call associated with this launch
+   */
+  llvm::CallInst* getCudaLaunchKernelCall();
+
+  /*
+   * @brief Get the source code line where the kernel is launched
+   */
   int getLine();
 
-  bool inLoop();
+  /*
+   * @brief Get whether this launch is within a loop
+   */
+  OPTIONAL<bool> inLoop();
 
-  bool inBranch();
+  /*
+   * @brief Set whether this launch is within a loop
+   */
+  void setInLoop(bool inLoop);
+
+  /*
+   * @brief Clear the inLoop status of this launch.
+   * @post  The inLoop value is unknown (neither true nor false)
+   */
+  void unsetInLoop();
+
+  /*
+   * @brief Get whether this launch is within the 'then' branch of an if statement
+   */
+  OPTIONAL<bool> inThenBranch();
+
+  /*
+   * @brief Check whether this launch is within the 'else' branch of an if statemnt
+   */
+  OPTIONAL<bool> inElseBranch();
+
+  /*
+   * @brief Check whether this launch is within an if statement (i.e either in the 'then'
+   *    or the 'else' part of the if statement)
+   */
+  OPTIONAL<bool> inBranch();
+
+  /*
+   * @brief Set whether this launch is within the 'then' branch of an if statement
+   * @post  if inThenBranch == true then inElseBranch == false
+   */
+  void setInThenBranch(bool inThenBranch);
+
+  /*
+   * @brief Set whether this launch is within the 'else' branch of an if statement
+   * @post  if inElseBranch == true then inThenBranch == false
+   */
+  void setInElseBranch(bool inElseBranch);
+
+  /*
+   * @brief Clear the inBranch status of this launch.
+   * @post  inThenBranch, inElseBranch is unknown (neither true nor false)
+   */
+  void unsetInBranch();
+
+private:
+  CudaKernel &kernel_;
+  CudaKernelLaunchConfiguration launchConfiguration_;
+  llvm::CallInst *cudaLaunchKernelCall_;
+  OPTIONAL<bool> inLoop_;
+  OPTIONAL<bool> inThen_;
+  OPTIONAL<bool> inElse_;
+  int line_;
 };
 
 } /* NAMESPACE kerma */
