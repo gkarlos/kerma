@@ -87,6 +87,9 @@ DetectKernelsPass::print(llvm::raw_ostream &OS, const llvm::Module *M) const
 
 bool
 DetectKernelsPass::runOnModule(Module &M) {
+  if ( isHostModule(M)) 
+    return false;
+
   NamedMDNode *kernelMD = M.getNamedMetadata("nvvm.annotations");
   if ( kernelMD ) {
     for ( const llvm::MDNode *node : kernelMD->operands()) {
