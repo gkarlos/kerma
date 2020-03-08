@@ -13,4 +13,6 @@
 
 #define FATAL(msg) ERROR(msg, true)
 
+#define NOT_IMPLEMENTED_YET FATAL("not implemented yet")
+
 #endif /* KERMA_SUPPORT UTIL_H */
