@@ -9,9 +9,11 @@
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <kerma/Cuda/Cuda.h>
+#include <kerma/Cuda/CudaDim.h>
 
 #if (__cplusplus >= 201703L) /// >= C++17
   #include <optional>
@@ -206,30 +208,101 @@ public:
   int getNumLines();
 };
 
-/*
+/******************************************************************************
  * This class represents a Cuda kernel launch configuration
  * It includes information about grid size, block size, amount of shared memory
  * and the cuda stream the kernel is launched on.
  *
  * This class is meant to be used by CudaKudaKernelLaunch
- */
+ *
+ * TODO: In general, two launch configurations are equal if their 
+ *       grid_, block_, shMem_ and stream_ values are equal. 
+ *       This is what the '==' operator checks for. However there are
+ *       situations where this comparison can be erroneous. For instance:
+ *       @code{.cpp}
+ *       for ( ... ) {
+ *         A = ...;
+ *         kernel1<<<A,B,C,D>>>(...);
+ *       }
+ *       @endcode
+ *       
+ *       Here, when we perform analysis per-iteration there will be multiple
+ *       CudaKernelLaunchConfiguration instances (one per iteration). For all
+ *       of them the value of grid_ will be equal. However since A _may_ change
+ *       in the loop, this may not be true
+ *
+ ******************************************************************************/
 class CudaKernelLaunchConfiguration
 {
+public:
   CudaKernelLaunchConfiguration();
-  CudaKernelLaunchConfiguration(llvm::Value &grid,
-                                llvm::Value &block);
-  CudaKernelLaunchConfiguration(llvm::Value &grid,
-                                llvm::Value &block,
-                                llvm::Value &shMem);
+  CudaKernelLaunchConfiguration(llvm::Value *grid,
+                                llvm::Value *block);
+  CudaKernelLaunchConfiguration(llvm::Value *grid,
+                                llvm::Value *block,
+                                llvm::Value *shmem);
+  CudaKernelLaunchConfiguration(llvm::Value *grid,
+                                llvm::Value *block,
+                                llvm::Value *shmem,
+                                llvm::Value *stream);
+  CudaKernelLaunchConfiguration(CudaDim grid, CudaDim block, int shmem, int stream);
   ~CudaKernelLaunchConfiguration() = default;
 
-  llvm::Value *getGrid();
-  llvm::Value *getBlock();
-  llvm::Value *getSharedMemory();
+public:
+  void operator=(const CudaKernelLaunchConfiguration &other);
+  bool operator==(const CudaKernelLaunchConfiguration &other);
 
-  llvm::Value *getX(llvm::Value *dim3Value);
-  llvm::Value *getY(llvm::Value *dim3Value);
-  llvm::Value *getZ(llvm::Value *dim3Value);
+public:
+  /// Grid stuff
+  void setGridIR(llvm::Value *grid);
+  llvm::Value *getGridIR();
+  llvm::Value *getGridIR(unsigned int dim);
+
+  void setGrid(CudaDim &grid);
+  void setGrid(unsigned int dim, unsigned int value);
+  void setGrid(unsigned int x,
+               unsigned int y,
+               unsigned int z);
+  CudaDim & getGrid();
+  int getGrid(unsigned int dim);
+
+  /// Block Stuff
+  void setBlockIR(llvm::Value *block);
+  llvm::Value *getBlockIR();
+  llvm::Value *getBlockIR(unsigned int dim);
+
+  void setBlock(CudaDim &block);
+  void setBlock(unsigned int dim, unsigned int value);
+  void setBlock(unsigned int x,
+                unsigned int y,
+                unsigned int z);
+  CudaDim & getBlock();
+  int getBlock(unsigned int dim);
+
+
+  void setSharedMemoryIR(llvm::Value *sharedMemory);
+  llvm::Value *getSharedMemoryIR();
+  void setSharedMemory(unsigned int value);
+  int getSharedMemory();
+
+  void setStreamIR(llvm::Value *stream);
+  llvm::Value *getStreamIR();
+  void setStream(unsigned int value);
+  int getStream();
+
+public:
+  llvm::Value *gridIR_;
+  llvm::Value *blockIR_;
+  llvm::Value *shmemIR_;
+  llvm::Value *streamIR_;
+  /* The following are meant to be filled by tracing the kernel
+   * launch static analysis when it can be proven that the values
+   * can be statically computed
+   */
+  CudaDim gridReal_;
+  CudaDim blockReal_;
+  int shmemReal_;
+  int streamReal_;
 };
 
 
@@ -241,7 +314,6 @@ class CudaKernelLaunch
 { 
 public:
   CudaKernelLaunch(CudaKernel &kernel, int line = SRC_LINE_UNKNOWN);
-  CudaKernelLaunch(CudaKernel &kernel, CudaKernelLaunchConfiguration *config, int line = SRC_LINE_UNKNOWN);
   ~CudaKernelLaunch();
 
 /// API
@@ -254,12 +326,12 @@ public:
   /*
    * @brief Retrieve the launch configuration associated with this launch
    */
-  CudaKernelLaunchConfiguration *getLaunchConfigutation();
+  CudaKernelLaunchConfiguration &getLaunchConfigutation();
 
   /*
    * @brief Set a launch configuration for this launch
    */
-  void setLaunchConfiguration(CudaKernelLaunchConfiguration *config);
+  void setLaunchConfiguration(CudaKernelLaunchConfiguration &config);
 
   /*
    * @brief Set the CallInst for the cudaLaunchKernel() call associated with this launch
