@@ -16,13 +16,18 @@ include_directories(${KERMA_INCLUDE_DIRS})
 
 add_subdirectory(src)
 
+
 if(ENABLE_TESTS)
     set(BUILD_EXAMPLES ON)
-    message(STATUS "Building Tests")
-    enable_testing()
-    add_subdirectory(test)
 endif()
 
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
+
+if(ENABLE_TESTS)
+    message(STATUS "Building Tests")
+    enable_testing()
+    add_subdirectory(test)
+endif()
+
