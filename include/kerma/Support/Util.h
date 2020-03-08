@@ -5,7 +5,7 @@
 
 #define ERROR(msg, fatal) \
   do { \
-      std::cerr << "ERROR" + ((fatal)? " (fatal)" : "") + " at " << __FILE__ << ":" << __LINE__ << ", function " << __func__ << "():\n    "; \
+      std::cerr << "ERROR" << ((fatal)? " (fatal)" : "") << " at " << __FILE__ << ":" << __LINE__ << ", function " << __func__ << "():\n    "; \
       std::cerr << msg << std::endl; \
       if ( fatal) \
         abort(); \
