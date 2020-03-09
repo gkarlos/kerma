@@ -297,7 +297,7 @@ public:
   void setStream(unsigned int value);
   int getStream();
 
-public:
+private:
   llvm::Value *gridIR_;
   llvm::Value *blockIR_;
   llvm::Value *shmemIR_;

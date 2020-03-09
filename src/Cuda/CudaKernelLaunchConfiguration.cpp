@@ -1,5 +1,10 @@
 #include "kerma/Cuda/CudaDim.h"
 #include "llvm/IR/Value.h"
+#include "llvm/IR/Argument.h"
+#include "llvm/IR/Constant.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/IR/Value.h"
 #include <kerma/Cuda/CudaKernel.h>
 #include <kerma/Support/Util.h>
 
@@ -28,13 +33,44 @@ CudaKernelLaunchConfiguration::CudaKernelLaunchConfiguration(llvm::Value *grid,
 : gridIR_(grid),
   blockIR_(block),
   shmemIR_(shmem),
-  streamIR_(stream)
+  streamIR_(stream),
+  shmemReal_(0),
+  streamReal_(0)
 {}
 
 static int _X_ = 0;
 static int _Y_ = 1;
 static int _Z_ = 2;
 static int _UNKNOWN_ = -1;
+
+void
+CudaKernelLaunchConfiguration::operator=(const CudaKernelLaunchConfiguration &other)
+{
+  gridIR_ = other.gridIR_;
+  blockIR_ = other.blockIR_;
+  shmemIR_ = other.shmemIR_;
+  streamIR_ = other.streamIR_;
+  gridReal_ = other.gridReal_;
+  blockReal_ = other.blockReal_;
+  shmemReal_ = other.shmemReal_;
+  streamReal_ = other.streamReal_;
+}
+
+#define BOTH_NULL_OR_NON_NULL(a,b) ((a == nullptr && b == nullptr) || (a != nullptr && b != nullptr))
+
+bool
+CudaKernelLaunchConfiguration::operator==(const CudaKernelLaunchConfiguration &other)
+{
+  
+  return gridIR_ == other.gridIR_ 
+      && blockIR_ == other.blockIR_
+      && shmemIR_ == other.shmemIR_
+      && streamIR_ == other.streamIR_
+      && gridReal_ == other.gridReal_
+      && blockReal_ == other.blockReal_
+      && shmemReal_ == other.shmemReal_
+      && streamReal_ == other.streamReal_;
+}
 
 // Grid Stuff
 

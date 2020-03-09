@@ -20,7 +20,7 @@ public:
   unsigned int z;
 
   void operator=(const CudaDim &other);
-  bool operator==(const CudaDim &other);
+  bool operator==(const CudaDim &other) const;
 };
 
 enum CudaDimError : int

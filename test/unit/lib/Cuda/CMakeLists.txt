@@ -35,3 +35,11 @@ target_link_libraries(TestCudaKernel gtest gtest_main
 set_target_properties(TestCudaKernel PROPERTIES COMPILE_FLAGS "-fno-rtti")
 target_compile_options(TestCudaKernel PUBLIC "-fPIC")
 add_test(NAME libKermaCuda.CudaKernel COMMAND TestCudaKernel)
+
+### TestCudaKernelLaunchConfiguration
+add_executable(TestCudaKernelLaunchConfiguration TestCudaKernelLaunchConfiguration.cpp)
+llvm_map_components_to_libnames(TestCudaKernelLaunchConfiguration_LLVM_COMPONENTS Support)
+target_link_libraries(TestCudaKernelLaunchConfiguration gtest gtest_main KermaCuda KermaSupport ${TestCudaKernelLaunchConfiguration_LLVM_COMPONENTS})
+set_target_properties(TestCudaKernelLaunchConfiguration PROPERTIES COMPILE_FLAGS "-fno-rtti")
+target_compile_options(TestCudaKernelLaunchConfiguration PUBLIC "-fPIC")
+add_test(NAME libKermaCuda.CudaKernelLaunchConfiguration COMMAND TestCudaDim)
