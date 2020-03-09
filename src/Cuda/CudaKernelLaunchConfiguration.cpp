@@ -36,7 +36,7 @@ static int _Y_ = 1;
 static int _Z_ = 2;
 static int _UNKNOWN_ = -1;
 
-/// Grid Stuff
+// Grid Stuff
 
 void
 CudaKernelLaunchConfiguration::setGridIR(llvm::Value *grid) { gridIR_ = grid; }
@@ -44,6 +44,7 @@ CudaKernelLaunchConfiguration::setGridIR(llvm::Value *grid) { gridIR_ = grid; }
 llvm::Value *
 CudaKernelLaunchConfiguration::getGridIR() { return gridIR_; }
 
+/// TODO @todo Return an llvm::Value for the dim-th dimension of the Grid
 llvm::Value *
 CudaKernelLaunchConfiguration::getGridIR(unsigned int dim)
 {
@@ -52,7 +53,6 @@ CudaKernelLaunchConfiguration::getGridIR(unsigned int dim)
   if ( dim > _Z_ )
     return nullptr;
   else {
-    //TODO: Return an llvm::Value for the dim-th dimension of the Grid
     return nullptr;
   }
 }
@@ -95,7 +95,7 @@ CudaKernelLaunchConfiguration::getGrid(unsigned int dim)
     return _UNKNOWN_;
 }
 
-/// Block Stuff
+// Block Stuff
 
 void
 CudaKernelLaunchConfiguration::setBlockIR(llvm::Value *block) { blockIR_ = block; }
@@ -103,6 +103,7 @@ CudaKernelLaunchConfiguration::setBlockIR(llvm::Value *block) { blockIR_ = block
 llvm::Value *
 CudaKernelLaunchConfiguration::getBlockIR() { return blockIR_; }
 
+/// TODO @todo Return an llvm::Value for the dim-th dimension of the Block
 llvm::Value *
 CudaKernelLaunchConfiguration::getBlockIR(unsigned int dim)
 {
@@ -111,7 +112,6 @@ CudaKernelLaunchConfiguration::getBlockIR(unsigned int dim)
   if ( dim > _Z_ )
     return nullptr;
   else {
-    //TODO: Return an llvm::Value for the dim-th dimension of the Block
     return nullptr;
   }
 }

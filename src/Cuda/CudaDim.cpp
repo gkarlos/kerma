@@ -33,11 +33,11 @@ valiadateGrid(CudaDim &dim)
   return -1;
 }
 
+/// TODO @todo Implement me
 int
 validateBlock(CudaDim &dim)
 {
   NOT_IMPLEMENTED_YET;
-  /// TODO Implement me
   return -1;
 }
 

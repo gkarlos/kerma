@@ -3,8 +3,9 @@
 
 namespace kerma
 {
-
+//! Unknown source line
 const int SRC_LINE_UNKNOWN = -1;
+//! Unknown source column
 const int SRC_COL_UNKNOWN = -1;
 
 }
