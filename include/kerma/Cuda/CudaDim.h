@@ -1,6 +1,8 @@
 #ifndef KERMA_CUDA_CUDA_DIM_H
 #define KERMA_CUDA_CUDA_DIM_H
 
+#include <kerma/Cuda/Cuda.h>
+
 namespace kerma
 {
 
@@ -11,6 +13,8 @@ public:
   CudaDim(unsigned int x,
           unsigned int y,
           unsigned int z);
+  CudaDim(const CudaDim &other);
+
   unsigned int x;
   unsigned int y;
   unsigned int z;
@@ -19,9 +23,24 @@ public:
   bool operator==(CudaDim &other);
 };
 
-int validateGrid(CudaDim &dim);
+enum CudaDimError : int
+{
+  UnknownCompute = -6, 
+  InvalidDimX,
+  InvalidDimY,
+  InvalidDimZ,
+  UnsupportedDimZ,
+  Failure,
+  Success
+};
 
-int validateBlock(CudaDim &dim);
+CudaDimError validateGrid(CudaDim &dim);
+
+CudaDimError validateGrid(CudaCompute &compute, CudaDim &dim);
+
+CudaDimError validateBlock(CudaDim &dim);
+
+CudaDimError validateBlock(CudaCompute &compute, CudaDim &dim);
 
 
 } /* NAMESPACE kerma */

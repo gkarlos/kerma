@@ -32,7 +32,7 @@ enum class CudaSide : unsigned char
 /// Nvidia GPU Architectures
 enum class CudaArch : unsigned char
 {
-  sm_10, sm_11, sm_12, sm_13, // Tesla
+  sm_10 = 10, sm_11, sm_12, sm_13, // Tesla
   sm_20, sm_21,        // Fermi
   sm_30, sm_32,        // Kepler
   sm_35,
@@ -47,7 +47,7 @@ enum class CudaArch : unsigned char
 /// Cuda Compute Capabilities
 enum class CudaCompute : unsigned char
 {
-  cc_10, cc_11, cc_12, cc_13, // Tesla
+  cc_10 = 10, cc_11, cc_12, cc_13, // Tesla
   cc_20, cc_21,        // Fermi
   cc_30, cc_32,        // Kepler
   cc_35,
