@@ -1,5 +1,12 @@
-/*
- * @file: include/Cuda/CudaKernel.h
+/*!
+ * @file include/Cuda/CudaKernel.h
+ * 
+ * This file contains the CudaKernel
+ * as well as related abstractions
+ * relevant to kernel launching
+ *
+ * @author George Karlos
+ * @bug No known bugs
  */
 #ifndef KERMA_SUPPORT_CUDA_H
 #define KERMA_SUPPORT_CUDA_H
@@ -58,37 +65,37 @@ public:
   virtual void pp(std::ostream& os);
 
 public:
-  /*
-   * Get a pointer to the llvm::Function for this kernel
+  /*!
+   * @brief Get a pointer to the llvm::Function for this kernel
    */
   llvm::Function &getFn();
 
-  /*
-   * Set the side of the LLVM IR file that this kernel was detected in (host or device)
+  /*!
+   * @brief Set the side of the LLVM IR file that this kernel was detected in (host or device)
    */
   void setIRModuleSide(CudaSide IRModuleSide);
 
-  /*
-   * Retrieve the side of the LLVM IR file this kernel was detected at
+  /*!
+   * @brief Retrieve the side of the LLVM IR file this kernel was detected at
    */
   CudaSide getIRModuleSide();
 
-  /*
-   * Retrieve the number of arguments of this kernel
+  /*!
+   * @brief Retrieve the number of arguments of this kernel
    */
   int getNumArgs();
 
-  /*
-   * Retrieve the name of this kernel
+  /*!
+   * @brief Retrieve the name of this kernel
    */
   std::string& getName();
 
-  /*
-   * Retrieve the mangled name of this kernel
+  /*!
+   * @brief Retrieve the mangled name of this kernel
    */
   std::string& getMangledName();
 
-  /*
+  /*!
    * @brief Set the line number at which the signature of this CudaKernel's definition starts
    * 
    * if @p line > @pre #signatureLineEnd_, then @post #signatureLineEnd_ is set to #SRC_LINE_UNKNOWN
@@ -97,7 +104,7 @@ public:
    */
   void setSignatureLineStart(unsigned int line);
 
-  /*
+  /*!
    * @brief Set the line number at which the signature of this CudaKernel's definition ends
    *
    * if @p line < @pre #signatureLineStart_, then @post #signatureLineEnd_ is set to #SRC_LINE_UNKNOWN
@@ -106,25 +113,25 @@ public:
    */
   void setSignatureLineEnd(unsigned int line);
 
-  /*
+  /*!
    * @brief Set the start line and end line of this CudaKernel's signature in source code
    *        Equivalent to calling #setSignatureLineStart() followed by #setSignatureLineEnd()
    */
   void setSignatureLines(unsigned int start, unsigned int end);
 
-  /*
+  /*!
    * @brief Retrieve the start line of this CudaKernel's signature in source code
    * @return An integer >= 0 or SRC_LINE_UNKNOWN
    */
   int getSignatureLineStart();
 
-  /*
+  /*!
    * @brief Retrieve the end line of this CudaKernel's signature in source code
    * @return An integer >= 0 or SRC_LINE_UNKNOWN
    */
   int getSignatureLineEnd();
 
-  /*
+  /*!
    * @brief Retrieve the number of lines this CudaKernel's signature spans over (inclusive)
    * 
    * The number of lines is calculated as <code> 1 + #signatureLineEnd_ - #signatureLineStart_ </code>
@@ -136,7 +143,7 @@ public:
    */
   int getSignatureNumLines();
 
-  /*
+  /*!
    * @brief Set the line number of which the body of this CudaKernel's definition starts
    *
    * if @p line < @pre #signatureLineEnd_, then @post #bodyLineStart_ is set to #SRC_LINE_UNKNOWN
@@ -148,56 +155,56 @@ public:
    */
   void setBodyLineStart(unsigned int line);
 
-  /*
+  /*!
    * @brief Set the line number of which the body of this CudaKernel's definition ends
    */
   void setBodyLineEnd(unsigned int line);
 
-  /*
+  /*!
    * @brief Set the start line and end line of this CudaKernel's body in source code
    *        Equivalent to calling #setBodyLineStart() followed by #setBodyLineEnd()
    */
   void setBodyLines(unsigned int start, unsigned int end);
 
-  /*
+  /*!
    * @brief Retrieve the start line of this CudaKernel's body in source code
    * @return An integer >= 0 or SRC_LINE_UNKNOWN
    */
   int getBodyLineStart();
 
-  /*
+  /*!
    * @brief Retrieve the end line of this CudaKernel's body in source code
    * @return An integer >= 0 or SRC_LINE_UNKNOWN
    */
   int getBodyLineEnd();
 
-  /*
+  /*!
    * @brief Retrieve the number of lines this CudaKernel's body spans over (inclusive)
    * 
-   * The number of lines is calculated as <code> 1 + #bodyLineEnd_ - #bodyLineStart_ </code>
+   * The number of lines is calculated as <code> 1 + <body_line_end> - <body_line_start></code>
    *
-   * If any of #bodyLineStart_ or #signatureLbodyLineEnd have the value #SRC_LINE_UNKNOWN, then the
+   * If any of bodyLineStart_ or signatureLbodyLineEnd_ have the value #SRC_LINE_UNKNOWN, then the
    * number of lines cannot be calculated and 0 is returned.
    * 
    * @return A positive integer or 0
    */
   int getBodyNumLines();
 
-  /*
+  /*!
    * @brief Retrieve the first (source code) line of the kernel's definition
    * 
    * Equivalent to #getSignatureLineStart() 
    */
   int getLineStart();
   
-  /*
+  /*!
    * @brief Retrieve the last (source code) line of the kernel's definition
    *
    * Equivalent to #getBodyLineEnd()
    */
   int getLineEnd();
 
-  /*
+  /*!
    * @brief Retrieve the number of source code this kernel function spans
    *
    * If any of #signatureLineStart_ or bodyLineEnd_ == #SRC_LINE_UNKNOWN, then the number
@@ -253,7 +260,7 @@ public:
   bool operator==(const CudaKernelLaunchConfiguration &other);
 
 public:
-  /// Grid stuff
+  // Grid stuff
   void setGridIR(llvm::Value *grid);
   llvm::Value *getGridIR();
   llvm::Value *getGridIR(unsigned int dim);
@@ -266,7 +273,7 @@ public:
   CudaDim & getGrid();
   int getGrid(unsigned int dim);
 
-  /// Block Stuff
+  // Block Stuff
   void setBlockIR(llvm::Value *block);
   llvm::Value *getBlockIR();
   llvm::Value *getBlockIR(unsigned int dim);
@@ -316,7 +323,7 @@ public:
   CudaKernelLaunch(CudaKernel &kernel, int line = SRC_LINE_UNKNOWN);
   ~CudaKernelLaunch();
 
-/// API
+// API
 public:
   /*
    * @brief Retrieve the CudaKernel this launch is relevant to

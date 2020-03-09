@@ -14,7 +14,7 @@
 namespace kerma
 {
 
-/// Constructors
+// Constructors
 
 CudaKernel::CudaKernel(llvm::Function &fn) 
 : CudaKernel(fn, CudaSide::Unknown)
@@ -31,7 +31,7 @@ CudaKernel::CudaKernel(llvm::Function &fn, CudaSide IRModuleSide)
   bodyLineEnd_(SRC_LINE_UNKNOWN)
 {}
 
-/// Operators
+// Operators
 
 bool
 CudaKernel::operator==(const CudaKernel &other) const
@@ -51,7 +51,7 @@ CudaKernel::operator>(const CudaKernel &other) const
   return static_cast<llvm::Value*>(&fn_) > static_cast<llvm::Value*>(&(other.fn_));
 }
 
-/// API
+// API
 
 llvm::Function &
 CudaKernel::getFn()
@@ -93,8 +93,8 @@ void
 CudaKernel::setSignatureLineStart(unsigned int line)
 {
   signatureLineStart_ = line;
-  /// If the new start line is greater than old end line then
-  /// the old end line cannot be valid anymore
+  // If the new start line is greater than old end line then
+  // the old end line cannot be valid anymore
   if ( signatureLineEnd_ != SRC_LINE_UNKNOWN && signatureLineStart_ > signatureLineEnd_)
     signatureLineEnd_ = SRC_LINE_UNKNOWN;
   
