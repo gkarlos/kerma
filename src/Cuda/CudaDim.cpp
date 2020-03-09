@@ -25,7 +25,7 @@ CudaDim::operator=(const CudaDim &other)
 }
 
 bool
-CudaDim::operator==(const CudaDim &other)
+CudaDim::operator==(const CudaDim &other) const
 {
   return x == other.x && y == other.y && z == other.z;
 }
