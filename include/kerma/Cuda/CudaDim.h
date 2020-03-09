@@ -19,8 +19,8 @@ public:
   unsigned int y;
   unsigned int z;
 
-  void operator=(CudaDim &other);
-  bool operator==(CudaDim &other);
+  void operator=(const CudaDim &other);
+  bool operator==(const CudaDim &other);
 };
 
 enum CudaDimError : int
