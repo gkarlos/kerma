@@ -42,7 +42,7 @@ CudaDimError validateGrid(CudaDim &dim);
  * @param dim [in] a CudaDim for the grid
  * @return CudaDimError indicating status
  */
-CudaDimError validateGrid(CudaCompute &compute, CudaDim &dim);
+CudaDimError validateGrid(CudaCompute compute, CudaDim &dim);
 
 CudaDimError validateBlock(CudaDim &dim);
 
@@ -52,7 +52,7 @@ CudaDimError validateBlock(CudaDim &dim);
  * @param dim [in] a CudaDim for the blocks
  * @return CudaDimError indicating status
  */
-CudaDimError validateBlock(CudaCompute &compute, CudaDim &dim);
+CudaDimError validateBlock(CudaCompute compute, CudaDim &dim);
 
 
 } /* NAMESPACE kerma */

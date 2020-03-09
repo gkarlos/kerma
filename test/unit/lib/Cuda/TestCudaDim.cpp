@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <kerma/Cuda/Cuda.h>
 #include <kerma/Cuda/CudaDim.h>
+
+using namespace kerma;
 
 TEST( Constructor, Default)
 {
@@ -81,4 +84,57 @@ TEST( Operator, Compare)
   dim1 = dim2;
 
   ASSERT_TRUE(dim1 == dim2);
+}
+
+TEST( ValidateGrid, CudaDim)
+{
+  // TODO Implement me when validateGrid(CudaDim &dim) gets implemented
+}
+
+TEST( ValidateGrid, CudaCompute_CudaDim)
+{
+  
+  CudaDim grid(1,2,1);
+  
+  ASSERT_EQ( validateGrid(CudaCompute::Unknown, grid), CudaDimError::UnknownCompute);
+  
+  ASSERT_EQ( validateGrid(CudaCompute::cc_10, grid), CudaDimError::Success);
+  ASSERT_EQ( validateGrid(CudaCompute::cc_20, grid), CudaDimError::Success);
+  ASSERT_EQ( validateGrid(CudaCompute::cc_30, grid), CudaDimError::Success);
+  ASSERT_EQ( validateGrid(CudaCompute::cc_50, grid), CudaDimError::Success);
+
+  grid.x = 100000;
+  ASSERT_EQ( validateGrid(CudaCompute::cc_10, grid), CudaDimError::InvalidDimX);
+  ASSERT_EQ( validateGrid(CudaCompute::cc_20, grid), CudaDimError::InvalidDimX);
+  ASSERT_EQ( validateGrid(CudaCompute::cc_30, grid), CudaDimError::Success);
+
+  grid.x = 2;
+  grid.y = 100000;
+  ASSERT_EQ( validateGrid(CudaCompute::cc_10, grid), CudaDimError::InvalidDimY);
+  ASSERT_EQ( validateGrid(CudaCompute::cc_20, grid), CudaDimError::InvalidDimY);
+  ASSERT_EQ( validateGrid(CudaCompute::cc_30, grid), CudaDimError::InvalidDimY);
+  grid.y = 5;
+  grid.z = 100000;
+  ASSERT_EQ( validateGrid(CudaCompute::cc_52, grid), CudaDimError::InvalidDimZ);
+
+  grid.y = 2;
+  grid.z = 10;
+  ASSERT_EQ( validateGrid(CudaCompute::cc_10, grid), CudaDimError::UnsupportedDimZ);
+  ASSERT_EQ( validateGrid(CudaCompute::cc_20, grid), CudaDimError::Success);
+  ASSERT_EQ( validateGrid(CudaCompute::cc_50, grid), CudaDimError::Success);
+
+
+
+  
+
+}
+
+TEST( ValidateBlock, CudaDim)
+{
+  // TODO Implement me when validateGrid(CudaDim &dim) gets implemented
+}
+
+TEST( ValidateBlock, CudaCompute_CudaDim)
+{
+
 }
