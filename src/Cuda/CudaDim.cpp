@@ -17,7 +17,7 @@ CudaDim::CudaDim(const CudaDim &other)
 {}
 
 void
-CudaDim::operator=(CudaDim &other) 
+CudaDim::operator=(const CudaDim &other) 
 {
   x = other.x;
   y = other.y;
@@ -25,7 +25,7 @@ CudaDim::operator=(CudaDim &other)
 }
 
 bool
-CudaDim::operator==(CudaDim &other)
+CudaDim::operator==(const CudaDim &other)
 {
   return x == other.x && y == other.y && z == other.z;
 }
