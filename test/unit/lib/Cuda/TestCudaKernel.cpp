@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "kerma/Cuda/Cuda.h"
+#include "kerma/Cuda/CudaDim.h"
 #include "kerma/Cuda/CudaKernel.h"
 #include "kerma/Cuda/CudaModule.h"
 #include "kerma/Pass/DetectKernels.h"
@@ -381,7 +382,5 @@ TEST( LineNumbers, BodyInconsistencies )
     ASSERT_EQ( C.getSignatureLineStart(), 123);
     ASSERT_EQ( C.getSignatureLineEnd(), 123);
     ASSERT_EQ( C.getSignatureNumLines(), 1);
-
-
   }
 }

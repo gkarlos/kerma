@@ -39,7 +39,7 @@ validateGrid(CudaDim &dim)
 }
 
 CudaDimError
-vallidateGrid(CudaCompute &compute, CudaDim &dim)
+validateGrid(CudaCompute compute, CudaDim &dim)
 {
   if ( compute == CudaCompute::Unknown )
     return CudaDimError::UnknownCompute;
@@ -74,7 +74,7 @@ validateBlock(CudaDim &dim)
 }
 
 CudaDimError
-validateBlock(CudaCompute &compute, CudaDim &dim)
+validateBlock(CudaCompute compute, CudaDim &dim)
 {
   if ( compute == CudaCompute::Unknown )
     return CudaDimError::UnknownCompute;
