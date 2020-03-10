@@ -344,8 +344,10 @@ public:
    * @brief Set the CallInst for the cudaLaunchKernel() call associated with this launch
    *
    * https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__EXECUTION.html#group__CUDART__EXECUTION_1g5064cdf5d8e6741ace56fd8be951783c
+   *
+   * @return The previous value for the launch call (may be nullptr)
    */
-  void setCudaLaunchKernelCall(llvm::CallInst *kernelCall);
+  llvm::CallInst * setCudaLaunchKernelCall(llvm::CallInst *kernelCall);
 
   /*
    * @brief Retrieve the CallInst for the cudaLaunchKernel() call associated with this launch
@@ -355,7 +357,14 @@ public:
   /*
    * @brief Get the source code line where the kernel is launched
    */
-  int getLine();
+  unsigned int getLine();
+
+  /*
+   * @brief Set the source code line where the kernel is launched
+   * @param line [in] A source line number
+   * @return the previous value of line
+   */
+  unsigned int setLine(unsigned int line);
 
   /*
    * @brief Get whether this launch is within a loop
@@ -364,14 +373,16 @@ public:
 
   /*
    * @brief Set whether this launch is within a loop
+   * @return The previous value for inLoop
    */
-  void setInLoop(bool inLoop);
+  OPTIONAL<bool> setInLoop(bool inLoop);
 
   /*
    * @brief Clear the inLoop status of this launch.
    * @post  The inLoop value is unknown (neither true nor false)
+   * @return The previous value of inLoop
    */
-  void unsetInLoop();
+  OPTIONAL<bool> unsetInLoop();
 
   /*
    * @brief Get whether this launch is within the 'then' branch of an if statement
@@ -391,21 +402,21 @@ public:
 
   /*
    * @brief Set whether this launch is within the 'then' branch of an if statement
-   * @post  if inThenBranch == true then inElseBranch == false
+   * @post  if inThenBranch == true then inElseBranch = false
    */
-  void setInThenBranch(bool inThenBranch);
+  OPTIONAL<bool> setInThenBranch(bool inThenBranch);
 
   /*
    * @brief Set whether this launch is within the 'else' branch of an if statement
-   * @post  if inElseBranch == true then inThenBranch == false
+   * @post  if inElseBranch == true then inThenBranch = false
    */
-  void setInElseBranch(bool inElseBranch);
+  OPTIONAL<bool> setInElseBranch(bool inElseBranch);
 
   /*
    * @brief Clear the inBranch status of this launch.
    * @post  inThenBranch, inElseBranch is unknown (neither true nor false)
    */
-  void unsetInBranch();
+  OPTIONAL<bool> unsetInBranch();
 
 private:
   CudaKernel &kernel_;
