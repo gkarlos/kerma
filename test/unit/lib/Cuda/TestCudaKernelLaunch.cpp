@@ -1,6 +1,8 @@
 #include "kerma/Cuda/Cuda.h"
 #include "kerma/Support/SourceCode.h"
 #include "llvm/ADT/Twine.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Type.h"
 #include <gtest/gtest.h>
 
 
@@ -26,13 +28,13 @@ TEST( Constructor, CudaKernel_int)
   auto deviceModule = parseIRFile(deviceIR, error, context);
   CudaModule module(*deviceModule.get(), *deviceModule.get());
 
-
-  llvm::Function *f = Function::Create( (FunctionType *) nullptr,
+  llvm::FunctionType *ty = FunctionType::get(Type::getVoidTy(context), false);
+  llvm::Twine twine("hello");
+  llvm::Function *f = Function::Create( ty,
                                         GlobalValue::InternalLinkage,
-                                        "hello",
-                                        deviceModule.get()
-                                      );
-  
+                                        twine,
+                                        deviceModule.get());
+
   CudaKernel kernel(*f, CudaSide::DEVICE);
   CudaKernelLaunch launch(kernel);
   CudaKernelLaunchConfiguration emptyConfig;
@@ -40,12 +42,11 @@ TEST( Constructor, CudaKernel_int)
   ASSERT_EQ(launch.getLine(), SRC_LINE_UNKNOWN);
   ASSERT_EQ(launch.getLaunchConfigutation(), emptyConfig);
   ASSERT_EQ(launch.getKernel(), kernel);
-  ASSERT_EQ(launch.inLoop(), false);
-  ASSERT_EQ(launch.inBranch(), false);
-  ASSERT_EQ(launch.inThenBranch(), false);
-  ASSERT_EQ(launch.inElseBranch(), false);
-
+  ASSERT_EQ((bool) launch.inLoop(), false);
+  ASSERT_EQ((bool) launch.inBranch(), false);
+  ASSERT_EQ((bool) launch.inThenBranch(), false);
+  ASSERT_EQ((bool) launch.inElseBranch(), false);
 
   CudaKernelLaunch launch2(kernel, 152);
-  ASSERT_EQ(launch.getLine(), 152);
+  ASSERT_EQ(launch2.getLine(), 152);
 }

@@ -257,7 +257,7 @@ public:
 
 public:
   void operator=(const CudaKernelLaunchConfiguration &other);
-  bool operator==(const CudaKernelLaunchConfiguration &other);
+  bool operator==(const CudaKernelLaunchConfiguration &other) const;
 
 public:
   // Grid stuff

@@ -1,5 +1,7 @@
 #include "kerma/Cuda/CudaDim.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
 #include <gtest/gtest.h>
 
@@ -31,9 +33,11 @@ TEST( Constructor, Default )
   ASSERT_EQ( config.getStream(), 0);
 }
 
-TEST( Constructor, GridBlockShmemStream )
+TEST( Constructor, Grid_Block_Shmem_Stream )
 {
-  llvm::LoadInst dummy((llvm::Type *) nullptr, (llvm::Value *) nullptr);
+  llvm::LLVMContext context;
+  llvm::Type *ty = llvm::Type::getFloatTy(context);
+  llvm::LoadInst dummy(ty, nullptr);
 
   CudaKernelLaunchConfiguration config(&dummy, &dummy, &dummy, &dummy);
 
@@ -46,8 +50,10 @@ TEST( Constructor, GridBlockShmemStream )
 TEST( IRValues, Set)
 {
   CudaKernelLaunchConfiguration config;
-  llvm::LoadInst dummy((llvm::Type *) nullptr, (llvm::Value *) nullptr);
-  llvm::LoadInst dummy2((llvm::Type *) nullptr, (llvm::Value *) nullptr);
+  llvm::LLVMContext context;
+  llvm::Type *ty = llvm::Type::getFloatTy(context);
+  llvm::LoadInst dummy( ty, (llvm::Value *) nullptr);
+  llvm::LoadInst dummy2( ty, (llvm::Value *) nullptr);
 
   config.setGridIR(&dummy);
   ASSERT_EQ(&dummy, config.getGridIR());
@@ -81,9 +87,9 @@ TEST( RealValues, SetGet)
   ASSERT_EQ(nonemptyDim, config.getGrid());
   config.setGrid(0, 10);
   ASSERT_EQ(config.getGrid(0), 10);
-  config.setGrid(0, 20);
+  config.setGrid(1, 20);
   ASSERT_EQ(config.getGrid(1), 20);
-  config.setGrid(0, 30);
+  config.setGrid(2, 30);
   ASSERT_EQ(config.getGrid(2), 30);
 
 
@@ -93,9 +99,9 @@ TEST( RealValues, SetGet)
   ASSERT_EQ(nonemptyDim, config.getBlock());
   config.setBlock(0, 10);
   ASSERT_EQ(config.getBlock(0), 10);
-  config.setBlock(0, 20);
+  config.setBlock(1, 20);
   ASSERT_EQ(config.getBlock(1), 20);
-  config.setBlock(0, 30);
+  config.setBlock(2, 30);
   ASSERT_EQ(config.getBlock(2), 30);
 
   config.setSharedMemory(1024);

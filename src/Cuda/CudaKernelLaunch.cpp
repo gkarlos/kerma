@@ -7,8 +7,8 @@ namespace kerma
 
 CudaKernelLaunch::CudaKernelLaunch(CudaKernel &kernel, int line)
 : kernel_(kernel),
-  line_(line),
-  cudaLaunchKernelCall_(nullptr)
+  cudaLaunchKernelCall_(nullptr),
+  line_(line)
 {}
 
 CudaKernelLaunch::~CudaKernelLaunch() = default;
@@ -98,8 +98,9 @@ CudaKernelLaunch::inElseBranch()
 static OPTIONAL<bool>
 __optionalOR(OPTIONAL<bool> _l, OPTIONAL<bool> _r)
 {
-  OPTIONAL<bool> res = _l && _l.value() || 
-                       _r && _r.value();
+  OPTIONAL<bool> res;
+  if ( _l && _r )
+    res = _l.value() || _r.value();
   return res;
 }
 

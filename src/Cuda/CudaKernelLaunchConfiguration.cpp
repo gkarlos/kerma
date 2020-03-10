@@ -59,7 +59,7 @@ CudaKernelLaunchConfiguration::operator=(const CudaKernelLaunchConfiguration &ot
 #define BOTH_NULL_OR_NON_NULL(a,b) ((a == nullptr && b == nullptr) || (a != nullptr && b != nullptr))
 
 bool
-CudaKernelLaunchConfiguration::operator==(const CudaKernelLaunchConfiguration &other)
+CudaKernelLaunchConfiguration::operator==(const CudaKernelLaunchConfiguration &other) const
 {
   
   return gridIR_ == other.gridIR_ 
