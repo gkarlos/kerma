@@ -1,0 +1,8 @@
+#ifndef _KERMA_VERSION_H_
+#define _KERMA_VERSION_H_
+
+#define KERMA_MAJOR_VERSION "0"
+#define KERMA_MINOR_VERSION "1"
+#define KERMA_VERSION "0.1"
+
+#endif /* _KERMA_VERSION_H_ */
