@@ -1,6 +1,7 @@
 #ifndef _KERMA_CONFIG_H_
 #define _KERMA_CONFIG_H_
 
-#cmakedefine KERMA_TESTS_ENABLED
+#cmakedefine01 KERMA_TESTS_ENABLED
+#cmakedefine01 KERMA_EXAMPLES_ENABLED
 
 #endif /* _KERMA_CONFIG_H_ */
