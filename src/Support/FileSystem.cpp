@@ -2,12 +2,17 @@
 // Created by gkarlos on 21-01-20.
 //
 
+#include "boost/filesystem/directory.hpp"
 #include <llvm/Support/FileSystem.h>
 #include <sstream>
 #include <string>
 #include <unistd.h>
 #include <cstdlib>
 #include <fstream>
+
+#include <boost/filesystem.hpp>
+
+using namespace boost::filesystem;
 
 namespace kerma {
 
@@ -48,8 +53,12 @@ get_realpath(const std::string& relpath)
 }
 
 bool fileExists(const std::string& name) {
-    std::ifstream f(name.c_str());
-    return f.good();
+  return exists(name) && is_regular_file(name);
+}
+
+bool directoryExists(const std::string &name)
+{
+  return exists(name) && is_directory(name);
 }
 
 } /// NAMESPACE kerma
