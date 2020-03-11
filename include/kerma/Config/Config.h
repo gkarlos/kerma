@@ -21,14 +21,14 @@ namespace ver
     return (*str ? stou(str + 1, (*str - '0') + val * 10) : val);
   }
 
-  static constexpr float iconcat(const unsigned int a, const unsigned int b) {
+  static constexpr float uconcat(const unsigned int a, const unsigned int b) {
     return a + b / 100.0;
   }
 
   
   constexpr unsigned int maj = stou(KERMA_MAJOR_VERSION);
   constexpr unsigned int min = stou(KERMA_MINOR_VERSION);
-  constexpr float full = iconcat(maj, min);
+  constexpr float val = uconcat(maj, min);
 } /* NAMESPACE ver    */
   
 // Tests
