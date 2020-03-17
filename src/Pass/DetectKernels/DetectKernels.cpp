@@ -14,7 +14,9 @@
 
 #include <string>
 #include <map>
+#include <typeinfo>
 
+#include <kerma/Support/Debug.h>
 #include <kerma/Cuda/NVVM.h>
 #include <kerma/Cuda/CudaKernel.h>
 #include <kerma/Cuda/CudaModule.h>
@@ -26,6 +28,23 @@ using namespace llvm;
 using namespace kerma;
 
 namespace kerma {
+
+namespace cl {
+  /// Category for pass-specific cl options
+  static llvm::cl::OptionCategory DKOptions("Detect Kernels Pass Options");
+
+  /// \todo Write detected kernels to a json file
+  static llvm::cl::opt<bool> DKJson("dkp-json", 
+        llvm::cl::desc("Write kernels to a json file"), llvm::cl::cat(DKOptions), llvm::cl::init(false));
+  /// \todo Do not include kernels that are only defined but never used
+  static llvm::cl::opt<bool> DKIgnoreUnused("dkp-ignore-unused", 
+        llvm::cl::desc("Ignore unused kernels"), llvm::cl::cat(DKOptions), llvm::cl::init(false));
+  /// \todo Report source code info for the detected kernels
+  static llvm::cl::opt<bool> DKSourceInfo("dkp-src-info", 
+        llvm::cl::desc("Report source info for a kernel"), llvm::cl::cat(DKOptions), llvm::cl::init(false));
+}
+
+
 //  cl::opt<bool> Json("kerma-json", cl::desc("Write results to a json file"));
   // https://github.com/trailofbits/KRFAnalysis/blob/master/KRFAnalysisPass/KRF.cpp
 
@@ -73,7 +92,6 @@ DetectKernelsPass::doFinalization(Module& M)
   return false;
 }
 
-
 void
 DetectKernelsPass::print(llvm::raw_ostream &OS, const llvm::Module *M) const
 {
@@ -87,24 +105,39 @@ DetectKernelsPass::print(llvm::raw_ostream &OS, const llvm::Module *M) const
 
 bool
 DetectKernelsPass::runOnModule(Module &M) {
-  if ( isHostModule(M)) 
-    return false;
+  KERMA_DEBUG(llvm::errs() << "[debug] " << this->getPassName() 
+                           << " (" << __CLASS_NAME__ << ") started\n");
 
-  NamedMDNode *kernelMD = M.getNamedMetadata("nvvm.annotations");
-  if ( kernelMD ) {
-    for ( const llvm::MDNode *node : kernelMD->operands()) {
+  if ( isHostModule(M)) {
+    KERMA_DEBUG( llvm::errs() << "[debug] Stopped. Reason: Host-side IR '" 
+                              << M.getSourceFileName() << "'\n" );
+    return false;
+  }
+    
+
+  NamedMDNode *nvvmMD = M.getNamedMetadata("nvvm.annotations");
+
+  if ( nvvmMD ) {
+    KERMA_DEBUG( llvm::errs() << "[debug] Looking for functions in nvvm.annotations:\n");
+
+    for ( const llvm::MDNode *node : nvvmMD->operands()) {
       Metadata *mdOperand = node->getOperand(0).get();
       if ( auto *v = dyn_cast_or_null<ValueAsMetadata>(mdOperand)) {
         if (auto *fun = dyn_cast<Function>(v->getValue())) {
+          KERMA_DEBUG( llvm::errs() << "[debug] .  " << fun->getName() << " -> ");
           // nvvm.annotation + function = kernel but lets be more robust
           mdOperand = node->getOperand(1).get();
           // Check if the MDNode operand is a string and has the value "kernel"
           if (auto *mdStr = dyn_cast_or_null<MDString>(mdOperand)) {
             if (mdStr->getString() == "kernel") {
+              KERMA_DEBUG( llvm::errs() << "yes");
+
               CudaKernel kernel(*fun, getIRModuleSide(M));
 
               // Get line numbers
               if ( auto *DISub = kernel.getFn().getSubprogram() ) {
+                KERMA_DEBUG(llvm::errs() << ", src info");
+
                 kernel.setSignatureLineStart(DISub->getLine());
                 kernel.setSignatureLineEnd(DISub->getScopeLine() - (DISub->getScopeLine() > DISub->getLine()? -1 : 0));
                 kernel.setBodyLineStart(DISub->getScopeLine());
@@ -122,11 +155,16 @@ DetectKernelsPass::runOnModule(Module &M) {
               }
 
               this->kernels_.insert(kernel);
+              KERMA_DEBUG(llvm::errs() << "\n");
+            } else {
+              KERMA_DEBUG(llvm::errs() << "no\n");
             }
           }
         }
       }
     }
+  } else {
+    KERMA_DEBUG( llvm::errs() << "[debug] No nvvm.annotations found\n");
   }
   return false;
 }
