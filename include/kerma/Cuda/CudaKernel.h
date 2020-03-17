@@ -256,6 +256,7 @@ public:
   ~CudaKernelLaunchConfiguration() = default;
 
 public:
+  bool operator<(const CudaKernelLaunchConfiguration &other);
   void operator=(const CudaKernelLaunchConfiguration &other);
   bool operator==(const CudaKernelLaunchConfiguration &other) const;
 
@@ -302,10 +303,9 @@ private:
   llvm::Value *blockIR_;
   llvm::Value *shmemIR_;
   llvm::Value *streamIR_;
-  /* The following are meant to be filled by tracing the kernel
-   * launch static analysis when it can be proven that the values
-   * can be statically computed
-   */
+  // The following are meant to be filled by:
+  //  * tracing the kernel launch 
+  //  * subsequent static analysis that can prove that the values can be statically computed
   CudaDim gridReal_;
   CudaDim blockReal_;
   int shmemReal_;

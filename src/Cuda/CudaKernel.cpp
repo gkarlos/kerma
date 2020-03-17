@@ -229,7 +229,7 @@ void
 CudaKernel::pp(llvm::raw_ostream& os) {
   std::string demangled = demangleFn(fn_);
   os << demangled
-     << " " << u8"└" << " In " << getCudaSideStr(IRModuleSide_) << "\n";
+     << " (" << getCudaSideStr(IRModuleSide_) << " ir)\n";
     //  << "-side module:" << (fn_.getParent())->getName() << "\n";
 }
 
@@ -238,7 +238,7 @@ CudaKernel::pp(std::ostream& os) {
   std::string demangled = demangleFn(fn_);
 
   os << demangled
-     << " " << u8"└" << " In " << getCudaSideStr(IRModuleSide_) << "\n";
+     << " (" << getCudaSideStr(IRModuleSide_) << " ir)\n";
     //  << "-side module:" << (fn_.getParent())->getName() << "\n";
 }
 
