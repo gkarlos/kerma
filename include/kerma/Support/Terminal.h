@@ -11,7 +11,6 @@ namespace kerma
 namespace term
 {
 
-
 #define RED "\x1B[31m"
 #define GRN "\x1B[32m"
 #define YEL "\x1B[33m"
@@ -24,6 +23,15 @@ namespace term
 #define BOLD "\x1B[1m"
 #define UNDL "\x1B[4m"
 
+
+/// @brief Check if the terminal supports colors
+const bool termHasColor();
+
+/// @brief Check if the terminal is xterm
+const bool termIsXterm();
+
+/// @brief Check if terminal launched in Tmux
+const bool termInTmux();
 
 namespace detail
 {
