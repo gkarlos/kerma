@@ -6,4 +6,5 @@ set_target_properties(KermaCuda PROPERTIES COMPILE_FLAGS "-fno-rtti")
 target_compile_options(KermaCuda PUBLIC "-fPIC")
 
 # Kerma LLVM Module Sources
-set(Cuda_LLVM_SRC ${KERMA_LIB_CUDA_SOURCES} PARENT_SCOPE)
+set(Cuda_LLVM_Sources ${KERMA_LIB_CUDA_SOURCES} PARENT_SCOPE)
+set(Cuda_LLVM_Components Support PARENT_SCOPE)
