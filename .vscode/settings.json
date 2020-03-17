@@ -7,8 +7,10 @@
   "clangd.path": "/home/gkarlos/s/llvm/10/bin/clangd",
   "clangd.arguments": [ 
     "-compile-commands-dir=build/",
+    "-completion-style=detailed",
+    "-header-insertion=iwyu",
     "-background-index",
-    "-log=verbose",
+    "-log=error",
     "-pretty"
   ]
 }
