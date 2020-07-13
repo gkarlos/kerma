@@ -1,5 +1,0 @@
-set(DG_WRITER_SOURCES DotNode.cpp DotEdge.cpp Dot.cpp DotWriter.cpp)
-add_library(KermaDG ${DG_WRITER_SOURCES})
-# set_target_properties(KermaDG PROPERTIES COMPILE_FLAGS "-fno-rtti")
-target_link_libraries(KermaDG KermaSupport)
-target_compile_options(KermaDG PUBLIC "-fPIC")

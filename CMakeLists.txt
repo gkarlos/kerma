@@ -38,7 +38,7 @@ configure_file(
 
 include_directories(${KERMA_INCLUDE_DIR})
 
-add_subdirectory(src)
+add_subdirectory(lib)
 add_subdirectory(tools)
 
 if(BUILD_EXAMPLES)

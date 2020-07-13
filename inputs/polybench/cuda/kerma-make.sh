@@ -77,9 +77,9 @@ CU_INC=$CU_HOME/include
 ## Setup CLANG location
 CC=clang++
 [[ -z "$LLVM_HOME" ]] || CC=$LLVM_HOME/bin/clang++
-CC_FLAGS="-O1 -x cuda -L$CUDA_LIB --cuda-gpu-arch=$GPU_ARCH"
+CC_FLAGS="-x cuda -L$CUDA_LIB --cuda-gpu-arch=$GPU_ARCH"
 CC_LIBS="-lcudart_static -ldl -lrt -lm -pthread"
-CC_FLAGS_IR="-Xclang -disable-llvm-passes -g -S -emit-llvm"
+CC_FLAGS_IR="-O1 -g -S -emit-llvm"
 
 
 if $VERBOSE; then

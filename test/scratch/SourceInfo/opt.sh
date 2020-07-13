@@ -1,0 +1,1 @@
+$LLVM_BIN/opt -S $@ $1

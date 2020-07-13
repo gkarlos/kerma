@@ -12,5 +12,6 @@
     "-background-index",
     "-log=error",
     "-pretty"
-  ]
+  ],
+  "cmake.configureOnOpen": false
 }
