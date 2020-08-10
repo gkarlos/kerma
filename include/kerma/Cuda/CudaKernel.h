@@ -19,8 +19,8 @@
 #include "llvm/IR/Value.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <kerma/Cuda/Cuda.h>
-#include <kerma/Cuda/CudaDim.h>
+#include "kerma/Cuda/Cuda.h"
+#include "kerma/Cuda/CuDim.h"
 
 #if (__cplusplus >= 201703L) /// >= C++17
   #include <optional>
@@ -252,7 +252,7 @@ public:
                                 llvm::Value *block,
                                 llvm::Value *shmem,
                                 llvm::Value *stream);
-  CudaKernelLaunchConfiguration(CudaDim grid, CudaDim block, int shmem, int stream);
+  CudaKernelLaunchConfiguration(CuDim grid, CuDim block, int shmem, int stream);
   ~CudaKernelLaunchConfiguration() = default;
 
 public:
@@ -266,12 +266,12 @@ public:
   llvm::Value *getGridIR();
   llvm::Value *getGridIR(unsigned int dim);
 
-  void setGrid(CudaDim &grid);
+  void setGrid(CuDim &grid);
   void setGrid(unsigned int dim, unsigned int value);
   void setGrid(unsigned int x,
                unsigned int y,
                unsigned int z);
-  CudaDim & getGrid();
+  CuDim & getGrid();
   int getGrid(unsigned int dim);
 
   // Block Stuff
@@ -279,12 +279,12 @@ public:
   llvm::Value *getBlockIR();
   llvm::Value *getBlockIR(unsigned int dim);
 
-  void setBlock(CudaDim &block);
+  void setBlock(CuDim &block);
   void setBlock(unsigned int dim, unsigned int value);
   void setBlock(unsigned int x,
                 unsigned int y,
                 unsigned int z);
-  CudaDim & getBlock();
+  CuDim & getBlock();
   int getBlock(unsigned int dim);
 
 
@@ -306,8 +306,8 @@ private:
   // The following are meant to be filled by:
   //  * tracing the kernel launch 
   //  * subsequent static analysis that can prove that the values can be statically computed
-  CudaDim gridReal_;
-  CudaDim blockReal_;
+  CuDim gridReal_;
+  CuDim blockReal_;
   int shmemReal_;
   int streamReal_;
 };

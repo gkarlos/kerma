@@ -13,5 +13,6 @@
     "-log=error",
     "-pretty"
   ],
-  "cmake.configureOnOpen": false
+  "cmake.configureOnOpen": false,
+  "editor.snippetSuggestions": "inline"
 }

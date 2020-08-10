@@ -9,7 +9,7 @@
             "cStandard": "c99",
             "compilerArgs": [],
             "cppStandard": "c++11",
-            "intelliSenseMode": "gcc-x64",
+            "intelliSenseMode": "clang-x64",
             "compilerPath": "${env:LLVM_HOME}/bin/clang++"
         }
     ],

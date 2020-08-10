@@ -16,6 +16,10 @@ include(cmake/llvm.cmake)
 include(cmake/boost.cmake)
 include(cmake/gtest.cmake)
 
+
+# SET (CMAKE_C_COMPILER ${LLVM_BIN}/clang)
+# SET (CMAKE_CXX_COMPILER ${LLVM_BIN}/clang++)
+
 ## Config
 ## TODO Move to separete .cmake file
 if(${ENABLE_TESTS})

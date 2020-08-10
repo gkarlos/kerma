@@ -13,4 +13,4 @@ public:
   bool runOnFunction(llvm::Function &F) override;
 };
 
-} // namespace kerma end
+} // namespace kerma
