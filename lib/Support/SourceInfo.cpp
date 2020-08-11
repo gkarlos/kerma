@@ -1,11 +1,12 @@
 #include "kerma/Support/SourceInfo.h"
 
-#include "clang/Basic/SourceLocation.h"
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/RecursiveASTVisitor.h"
-#include "clang/Tooling/Tooling.h"
+#include "clang/Basic/SourceLocation.h"
 #include "clang/Frontend/FrontendAction.h"
 #include "clang/Frontend/CompilerInstance.h"
+#include "clang/Tooling/ArgumentsAdjusters.h"
+#include "clang/Tooling/Tooling.h"
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
@@ -70,7 +71,7 @@ public:
 std::string SourceInfo::COMPILEDB_READ_ERR_MSG("Failed to read compilation database file");
 
 SourceInfo::SourceInfo(llvm::Module *M, tooling::CompilationDatabase *compileDB) 
-  : M(M) 
+  : M(M), CompileDB(compileDB)
 {
   init();
 }
@@ -115,9 +116,16 @@ SourceInfo::getFunctionRange(const char *) {
   files.push_back(this->getFullPath());
   ArrayRef<std::string> filesArr(files);
 
+  errs() << files.size() << "\n";
+  errs() << this->CompileDB->getAllFiles().at(0) << "\n";
+
   tooling::ClangTool tool(*(this->CompileDB), filesArr);
 
-  tool.run(tooling::newFrontendActionFactory<FunctionRangeAction>().get());
+  auto x = tooling::newFrontendActionFactory<FunctionRangeAction>();
+
+  tool.appendArgumentsAdjuster(tooling::getInsertArgumentAdjuster("-I/home/gkarlos/s/llvm/10/lib/clang/10.0.0/include", tooling::ArgumentInsertPosition::BEGIN));
+  
+  tool.run(x.get());
   return SourceRange();
 }
 

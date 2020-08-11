@@ -32,7 +32,7 @@ public:
   SourceInfo(llvm::Module *M, std::string &&CompileDBFilePath)
   : SourceInfo(M, clang::tooling::JSONCompilationDatabase::loadFromFile(CompileDBFilePath, 
                                                                         SourceInfo::COMPILEDB_READ_ERR_MSG,
-                                                                        clang::tooling::JSONCommandLineSyntax::AutoDetect).get())
+                                                                        clang::tooling::JSONCommandLineSyntax::AutoDetect).release())
   {}
 
   SourceInfo(llvm::Module *M, clang::tooling::CompilationDatabase *compileDB);

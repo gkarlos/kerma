@@ -5,9 +5,6 @@
 #include "llvm/IRReader/IRReader.h"
 
 int main(int argc, const char** argv) {
-
-  try {
-
     llvm::LLVMContext ctx;
     llvm::SMDiagnostic err;
     auto ir = llvm::parseIRFile(std::string(argv[1]), err, ctx);
@@ -17,10 +14,13 @@ int main(int argc, const char** argv) {
     // llvm::errs() << SI.getDirectory() << "\n";
     // llvm::errs() << SI.getFilename() << "\n";
     SI.getFunctionRange("asd");
+  // try {
 
-  } catch(const std::exception &e) {
-    llvm::errs() << e.what();
-  }
+
+
+  // } catch(const std::exception &e) {
+  //   llvm::errs() << e.what();
+  // }
   
   return 0;
 }
