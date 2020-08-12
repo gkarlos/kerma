@@ -13,9 +13,17 @@ set(MaterializeBlockThread_Sources MaterializeBlockThread.cpp)
 add_library(MaterializeBlockThread SHARED ${MaterializeBlockThread_Sources})
 set_target_properties(MaterializeBlockThread PROPERTIES COMPILE_FLAGS "-fno-rtti")
 
+# LoopInfoTestPass
+set(LoopInfoTestPass_Sources LoopInfoTestPass.cpp)
+add_library(LoopInfoTestPass SHARED ${LoopInfoTestPass_Sources})
+set_target_properties(LoopInfoTestPass PROPERTIES COMPILE_FLAGS "-fno-rtti")
+target_compile_options(LoopInfoTestPass PUBLIC "-fPIC")
 
+#
+# Build libPass
+# 
 
-# file(GLOB_RECURSE KermaLibPassSources "*.cpp")
+file(GLOB_RECURSE LibPassSources "*.cpp")
 
 # llvm_map_components_to_libnames(mbt_llvm_deps Demangle)
 

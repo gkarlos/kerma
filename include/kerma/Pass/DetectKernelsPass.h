@@ -16,7 +16,8 @@ public:
 public:
   bool runOnModule(llvm::Module &M) override;
   virtual void print(llvm::raw_ostream &O, const llvm::Module *M) const override;
-  
+  void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
+
 public:
   /// Get a vector containing all the kernel functions
   /// found in the module. The returned vector is a copy
@@ -26,7 +27,7 @@ public:
 
   /// Get the kernel function found in the use-provided
   /// container.
-  void getKernels(std::vector<llvm::Function *> Kernels);
+  void getKernels(std::vector<llvm::Function*> Kernels);
 
 private:
   std::vector<llvm::Function*> Kernels;

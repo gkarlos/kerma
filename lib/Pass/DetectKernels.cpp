@@ -14,20 +14,18 @@ DetectKernelsPass::DetectKernelsPass()
 : llvm::ModulePass(ID)
 {}
 
-std::vector<Function*>
-DetectKernelsPass::getKernels() {
+std::vector<Function*> DetectKernelsPass::getKernels() {
   std::vector<Function*> res(this->Kernels);
   return res;
 }
 
-void
-DetectKernelsPass::getKernels(std::vector<Function*> Kernels) {
+void DetectKernelsPass::getKernels(std::vector<Function*> Kernels) {
   for ( auto *F : this->Kernels)
     Kernels.push_back(F);
 }
 
-bool
-DetectKernelsPass::runOnModule(llvm::Module &M) {
+bool DetectKernelsPass::runOnModule(llvm::Module &M) {
+  //TODO if host module do nothing
   if ( NamedMDNode *NVVMMD = M.getNamedMetadata("nvvm.annotations")) {
     for ( const MDNode *node : NVVMMD->operands()) {
       if ( ValueAsMetadata *VAM = dyn_cast_or_null<ValueAsMetadata>(node->getOperand(0).get())) {
@@ -46,8 +44,9 @@ DetectKernelsPass::runOnModule(llvm::Module &M) {
   return false;
 }
 
-void 
-DetectKernelsPass::print(llvm::raw_ostream &O, const Module *M) const {
+/// This method is invoked when the pass is run in
+/// opt with the -analyze flag passed
+void DetectKernelsPass::print(llvm::raw_ostream &O, const Module *M) const {
   O << "Found " << this->Kernels.size() << (this->Kernels.size() > 1? " kernels" : "kernel");
   if ( this->Kernels.size()) {
     O << ":\n";
@@ -56,6 +55,10 @@ DetectKernelsPass::print(llvm::raw_ostream &O, const Module *M) const {
   } else {
     O << "\n";
   }
+}
+
+void DetectKernelsPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
+  AU.setPreservesAll();
 }
 
 
