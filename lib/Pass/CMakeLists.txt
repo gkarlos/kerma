@@ -1,10 +1,27 @@
-set(DETECT_KERNELS_PASS_SOURCES DetectKernels.cpp)
+#
+# Build individual libraries for each pass so that
+# we can easily run a specific pass with opt
+# 
 
-llvm_map_components_to_libnames(mbt_llvm_deps Demangle)
+# DetectKernels
+set(DetectKernelsPass_Sources DetectKernels.cpp)
+add_library(DetectKernelsPass SHARED ${DetectKernelsPass_Sources})
+set_target_properties(DetectKernelsPass PROPERTIES COMPILE_FLAGS "-fno-rtti")
 
-add_library(mbt SHARED MaterializeBlockThread.cpp)
-target_link_libraries(mbt ${mbt_llvm_deps})
-set_target_properties(mbt PROPERTIES COMPILE_FLAGS "-fno-rtti")
+# MeterializeBlockThread
+set(MaterializeBlockThread_Sources MaterializeBlockThread.cpp)
+add_library(MaterializeBlockThread SHARED ${MaterializeBlockThread_Sources})
+set_target_properties(MaterializeBlockThread PROPERTIES COMPILE_FLAGS "-fno-rtti")
+
+
+
+# file(GLOB_RECURSE KermaLibPassSources "*.cpp")
+
+# llvm_map_components_to_libnames(mbt_llvm_deps Demangle)
+
+# add_library(mbt SHARED MaterializeBlockThread.cpp)
+# target_link_libraries(mbt ${mbt_llvm_deps})
+# set_target_properties(mbt PROPERTIES COMPILE_FLAGS "-fno-rtti")
 
 
 # target_link_libraries(KermaDetectKernelsPass KermaCuda KermaSupport)
