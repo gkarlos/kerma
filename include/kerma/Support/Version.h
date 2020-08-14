@@ -20,6 +20,9 @@ std::string getVersionMinor();
 /// Retrieve a string representing the kerma patch
 std::string getVersionPatch();
 
+/// Retrieve an LLVM version string of the form major.minor.patch
+std::string getLLVMVersion();
+
 }
 
 #endif

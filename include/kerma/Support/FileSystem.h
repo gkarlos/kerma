@@ -24,5 +24,7 @@ bool fileExists(const std::string& name);
 
 bool directoryExists(const std::string& name);
 
+bool isEmpty(const std::string& p);
+
 }
 #endif // KERMA_STATIC_ANALYSIS_FILESYSTEM_H

@@ -19,6 +19,9 @@ include(cmake/gtest.cmake)
 
 SET (CMAKE_C_COMPILER ${LLVM_BIN}/clang)
 SET (CMAKE_CXX_COMPILER ${LLVM_BIN}/clang++)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 ## Config
 ## TODO Move to separete .cmake file

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef KERMA_SUPPORT_SOURCEINFO_H
+#define KERMA_SUPPORT_SOURCEINFO_H
 
 #include "clang/Basic/SourceLocation.h"
 #include "clang/Tooling/CompilationDatabase.h"
@@ -84,3 +85,5 @@ private:
 };
  
 } // namespace kerma
+
+#endif

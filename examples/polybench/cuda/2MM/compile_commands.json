@@ -1,0 +1,14 @@
+[
+    {
+        "arguments": [
+            "nvcc", 
+            "-c", 
+            "-O3", 
+            "-o", 
+            "2mm.exe", 
+            "2mm.cu"
+        ], 
+        "directory": "/home/gkarlos/Projects/kerma/examples/polybench/cuda/2MM", 
+        "file": "2mm.cu"
+    }
+]

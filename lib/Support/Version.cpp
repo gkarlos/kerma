@@ -9,6 +9,8 @@
 //===----------------------------------------------------------------------===//
 
 #include "kerma/Support/Version.h"
+#include "llvm/Config/llvm-config.h"
+#include <string>
 
 namespace kerma {
 
@@ -42,6 +44,12 @@ std::string getVersion() {
   return getVersionMajor() 
     + (minor.size() > 0 ? "." + minor : "")
     + (patch.size() > 0 ? "." + patch : "");
+}
+
+std::string getLLVMVersion() {
+  return std::to_string(LLVM_VERSION_MAJOR) + "." +
+         std::to_string(LLVM_VERSION_MINOR) + "." +
+         std::to_string(LLVM_VERSION_PATCH);
 }
 
 } // end namespace kerma
