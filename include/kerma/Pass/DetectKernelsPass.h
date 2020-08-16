@@ -33,6 +33,9 @@ private:
   std::vector<llvm::Function*> Kernels;
 };
 
+
+std::unique_ptr<DetectKernelsPass> createDetectKernelsPass();
+
 } // end namespace kerma
 
 #endif

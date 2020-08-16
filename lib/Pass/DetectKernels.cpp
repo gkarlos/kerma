@@ -2,6 +2,7 @@
 #include "llvm/IR/Metadata.h"
 #include "llvm/Pass.h"
 #include "llvm/PassSupport.h"
+#include <memory>
 #include <vector>
 
 namespace kerma {
@@ -59,6 +60,11 @@ void DetectKernelsPass::print(llvm::raw_ostream &O, const Module *M) const {
 
 void DetectKernelsPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
   AU.setPreservesAll();
+}
+
+std::unique_ptr<DetectKernelsPass>
+createDetectKernelsPass() {
+  return std::make_unique<DetectKernelsPass>();
 }
 
 
