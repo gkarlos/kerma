@@ -13,4 +13,6 @@ if(NOT googletest_POPULATED)
   add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
 endif()
 
+set(GTEST_INCLUDE_DIR ${googletest_SOURCE_DIR}/googletest/include)
+include_directories(${GTEST_INCLUDE_DIR})
 message(STATUS "Configuring Googletest - done")
