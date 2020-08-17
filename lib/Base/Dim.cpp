@@ -7,19 +7,8 @@
 
 using namespace kerma;
 
-static void checkDims(unsigned int x, unsigned int y, unsigned int z) {
-  if ( x < 1)
-    throw std::runtime_error("x must be positive");
-  if ( y < 1)
-    throw std::runtime_error("y must be positive");
-  if ( z < 1)
-    throw std::runtime_error("z must be positive");
-}
-
-Dim::Dim(unsigned int x, unsigned int y, unsigned int z) 
-: x( x < 1? throw::std::runtime_error("x must be positive") : x), 
-  y( y < 1? throw::std::runtime_error("y must be positive") : y), 
-  z( z < 1? throw::std::runtime_error("z must be positive") : z)
+Dim::Dim(unsigned int x, unsigned int y, unsigned int z)
+: x(x), y(y), z(z)
 {}
 
 Dim::Dim(const Dim &other) 
@@ -59,7 +48,7 @@ bool Dim::operator>=(const Dim &other) {
 }
 
 Dim::operator bool() const {
-  return *this != Dim::None;
+  return this->x > 0 && this->y > 0 && this->z > 0;
 }
 
 unsigned int Dim::operator[](unsigned int idx) {
@@ -80,29 +69,29 @@ unsigned long long Dim::size() {
   return this->x * this->y *this->z;
 }
 
-bool Dim::is1D() {
+bool Dim::is1D() const {
   return this->y == 1 && this->z == 1;
 }
 
-bool Dim::is2D() {
+bool Dim::is2D() const {
   return this->y > 1 && this->z  == 1;
 }
 
-bool Dim::is3D() {
+bool Dim::is3D() const {
   return this->z > 1;
 }
 
-bool Dim::isEffective1D() {
+bool Dim::isEffective1D() const {
   return this->is1D()
-    ||  (this->x == 1 && (this->y == 1 && this->z > 1 || this->y > 1 && this->z == 1))
-    ||  (this->y == 1 && (this->x == 1 && this->z > 1 || this->x > 1 && this->z == 1))
-    ||  (this->z == 1 && (this->x == 1 && this->y > 1 || this->x > 1 && this->y == 1));
+    ||  (this->x == 1 && this->y == 1 && this->z  > 1)
+    ||  (this->x == 1 && this->y  > 1 && this->z == 1)
+    ||  (this->x  > 1 && this->y == 1 && this->z == 1);
 }
 
-bool Dim::isEffective2D() {
-  return (this->x > 1 && this->y > 1)
-      || (this->x > 1 && this->z > 1)
-      || (this->y > 1 && this->z > 1);
+bool Dim::isEffective2D() const {
+  return (this->x > 1 && this->y > 1 && this->z == 1)
+      || (this->x > 1 && this->z > 1 && this->y == 1)
+      || (this->y > 1 && this->z > 1 && this->x == 1);
 }
 
 bool Dim::hasIndex(const Index& idx) {
@@ -117,24 +106,18 @@ bool Dim::hasLinearIndex(unsigned int idx) {
   return idx < this->size();
 }
 
-Dim& Dim::inc(unsigned int x, unsigned int y, unsigned int z) {
-  this->x += x;  
-  this->y += y;
-  this->z += z;
-  return *this;
+Dim Dim::inc(unsigned int x, unsigned int y, unsigned int z) {
+  return Dim(this->x + x, this->y + y, this->z + z);
 }
 
-Dim& Dim::dec(unsigned int x, unsigned int y, unsigned int z) {
+Dim Dim::dec(unsigned int x, unsigned int y, unsigned int z) {
   unsigned int dx = this->x - x;
   unsigned int dy = this->y - y;
   unsigned int dz = this->z - z;
   if ( dx < 1 || /*overflow*/ dx > x || dy < 1 || /*overflow*/ dy > x ||
        dz < 1 || /*overflow*/ dz > x)
-    return Dim::None;
-  this->x = dx;
-  this->y = dy;
-  this->z = dz;
-  return *this;
+    return Dim(0,0,0);
+  return Dim(dx, dy, dz);
 }
 
 Index Dim::getMinIndex() {
@@ -144,7 +127,7 @@ Index Dim::getMinIndex() {
 
 Index Dim::getMaxIndex() {
   if ( this->isUnknown())
-    return Index::None;
+    return Index::Zero;
   return Index(this->x - 1, this->y - 1, this->z - 1);
 }
 
@@ -156,3 +139,10 @@ unsigned long long Dim::getMaxLinearIndex() {
   return this->size() - 1;
 }
 
+Dim Dim::of(unsigned int x, unsigned int y, unsigned int z) {
+  return Dim(x, y, z);
+}
+
+const Dim Dim::None = Dim(0,0,0);
+const Dim Dim::Unit = Dim(1,1,1);
+const Dim Dim::Linear256 = Dim(256,1,1);

@@ -10,9 +10,10 @@ public:
  Index(unsigned int z, unsigned int y, unsigned int x);
  Index(unsigned int y, unsigned int x);
  Index(unsigned int x);
+ Index();
  Index(const Index &other);
  Index(const Index &&other);
- virtual ~Index();
+ virtual ~Index()=default;
 
 public:
   static unsigned int linearize(const Index &idx, const Dim &dim);
@@ -24,7 +25,7 @@ public:
   unsigned int y;
   unsigned int z;
 
-  static Index None;
+  static const Index Zero;
 };
 
 } // namespace kerma
