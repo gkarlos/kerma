@@ -20,3 +20,5 @@ cmake-build-debug/
 
 *.log
 
+*.old/
+*.b/
