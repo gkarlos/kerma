@@ -16,6 +16,19 @@ public:
  virtual ~Index()=default;
 
 public:
+  ///
+  virtual bool operator==(const Index& other) const;
+
+public:
+  virtual Index& inc(unsigned int x);
+  virtual Index& inc(unsigned int y, unsigned int x);
+  virtual Index& inc(unsigned int z, unsigned int y, unsigned int x);
+
+  virtual Index& dec(unsigned int x);
+  virtual Index& dec(unsigned int y, unsigned int x);
+  virtual Index& dec(unsigned int z, unsigned int y, unsigned int x);
+
+public:
   static unsigned int linearize(const Index &idx, const Dim &dim);
 
   static Index delinearize(unsigned int idx, const Dim &dim);
