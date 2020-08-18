@@ -1,7 +1,9 @@
 #ifndef KERMA_BASE_DIM_H
 #define KERMA_BASE_DIM_H
 
+#include "llvm/Support/raw_os_ostream.h"
 #include <memory>
+#include <ostream>
 
 namespace kerma {
 
@@ -13,39 +15,51 @@ class Index;
 class Dim {
 public:
   Dim(unsigned int x=1, unsigned int y=1, unsigned int z=1);
-  explicit Dim(const Dim &other);
-  explicit Dim(const Dim &&other);
+  Dim(const Dim &other);
+  Dim(const Dim &&other);
   virtual ~Dim()=default;
 
 public:
-  /// Compare two dims for equality
-  /// Two dims are equals when all their components (x,y,z) are equal
-  virtual bool operator==(const Dim &other);
-  ///
-  virtual bool operator!=(const Dim &other);
-  /// lexicographic comparison. equivalent to comparing linear indices
-  virtual bool operator<(const Dim &other);
-  ///
-  virtual bool operator<=(const Dim &other) ;
-  ///
-  virtual bool operator>(const Dim &other);
-  ///
-  virtual bool operator>=(const Dim &other);
-  ///
-  virtual operator bool() const;
+  virtual Dim& operator=(const Dim &other);
+
+  //===-------
+  // Equality comparison operators
+  //===-------
+  virtual bool operator==(const Dim &other) const;
+  virtual bool operator!=(const Dim &other) const;
+  
+  //===-------
+  // Size comparison operators
+  //===-------
+  virtual bool operator<(const Dim &other) const;
+  virtual bool operator<=(const Dim &other) const;
+  virtual bool operator>(const Dim &other) const;
+  virtual bool operator>=(const Dim &other) const;
+  
+  //===-------
+  // Conversion operators
+  //===-------
+  explicit virtual operator bool() const;
+  explicit virtual operator unsigned int() const;
 
   /// Index into this Dim. Index 0 refers to the x-dimension,
   /// 1 to the y-dimension and 2 to the z-dimension. On error,
   /// (e.g index out of range) 0 is returned
-  virtual unsigned int operator[](unsigned int idx);
+  virtual unsigned int operator[](unsigned int idx) const;
+
+  ///
+  friend llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Dim& dim);
+
+  ///
+  friend std::ostream& operator<<(std::ostream& os, const Dim& dim);
 
 public:
 
   /// Check if unknown
-  bool isUnknown();
+  bool isUnknown() const;
 
   /// Retrieve the size of this dim
-  unsigned long long size(); 
+  unsigned long long size() const; 
 
   /// Check if the dim is 1-dimensional, 
   /// i.e spans only in the x-dimension
@@ -80,43 +94,35 @@ public:
   /// Check if an index is valid index for this dim
   bool hasIndex(const Index& idx);
 
-  bool hasIndex(unsigned int linearIdx);
+  bool hasIndex(unsigned int linearIdx) const;
 
   /// Check if a linear index is valid index for this dim
   /// The index is first delinearized based on the dim's
   /// values.
-  bool hasLinearIndex(unsigned int idx);
-
-  /// Create a new Dim that is the result of incrementing
-  /// the dimensions of this by some amount
-  virtual Dim inc(unsigned int x, unsigned int y, unsigned int z);
-
-  /// Create a new Dim that is the result decrementing the
-  /// dimensions of this by some amount
-  virtual Dim dec(unsigned int x, unsigned int y, unsigned int z);
+  bool hasLinearIndex(unsigned int idx) const;
 
   /// Get the minimum index for this dim
   /// (0,0,0) unless overriden
   virtual Index getMinIndex();
 
-  /// Get the maximum index for this dim
+  /// Get the maximum index for this dim (inclusive).
   /// (Z-1,Y-1,X-1) unless overriden
   virtual Index getMaxIndex();
 
   /// Get the mimimum linear index for this dim
   /// 0 unless overriden
-  virtual unsigned long long getMinLinearIndex();
+  virtual unsigned long long getMinLinearIndex() const;
 
   /// Get the maximum linear index for this dim
-  virtual unsigned long long getMaxLinearIndex();
+  virtual unsigned long long getMaxLinearIndex() const;
   
 public:
   /// size of the x-dimension
-  const unsigned int x; 
+  unsigned int x;
   /// size of the y-dimension
-  const unsigned int y;
+  unsigned int y;
   /// size of the z-dimension
-  const unsigned int z;
+  unsigned int z;
 
 public:
   static Dim of(unsigned int x, unsigned int y, unsigned int z);
@@ -125,24 +131,47 @@ public:
   /// unknown dim
   static const Dim None;
   
+  /// The unit dim
   static const Dim Unit;
 
+  ///
+  static const Dim Linear1;
+  static const Dim Linear2;
+  static const Dim Linear4;
+  static const Dim Linear8;
+  static const Dim Linear16;
+  static const Dim Linear32;
+  static const Dim Linear64;
+  static const Dim Linear128;
   static const Dim Linear256;
-  // static Dim Linear512();
-  // static Dim Linear1024();
-  // static Dim Square256x256();
-  // static Dim Square512x512();
-  // static Dim Square1024x1024();
+  static const Dim Linear512;
+  static const Dim Linear1024;
+
+  static const Dim Square1;
+  static const Dim Square2;
+  static const Dim Square4;
+  static const Dim Square8;
+  static const Dim Square16;
+  static const Dim Square32;
+  static const Dim Square64;
+  static const Dim Square128;
+  static const Dim Square256;
+  static const Dim Square512;
+  static const Dim Square1024;
+  // static Dim Rect512x256();
   // static Dim Rect256x512();
   // static Dim Rect256x1024();
-  // static Dim Rect512x256();
   // static Dim Rect512x1024();
   // static Dim Rect1024x256();
   // static Dim Rect1024x512();
 
+  static const Dim& Cube1;
+  static const Dim Cube2;
+  static const Dim Cube4;
+  static const Dim Cube8;
+
 
 };
-
 
 } // namespace kerma
 
