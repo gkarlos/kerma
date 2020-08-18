@@ -28,3 +28,6 @@
 
 #### Clang Flags
 - `-fno-discard-value-names`
+
+#### Passes to check
+- https://llvm.org/doxygen/TargetLibraryInfo_8h_source.html
