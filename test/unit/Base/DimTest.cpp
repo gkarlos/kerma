@@ -238,6 +238,10 @@ TEST(DimTest, operatorBool) {
   Dim dim;
   EXPECT_TRUE(dim);
   EXPECT_FALSE(Dim::None);
+
+  EXPECT_FALSE(Dim(0,1,0));
+  EXPECT_FALSE(Dim(1,1,0));
+  EXPECT_FALSE(Dim(1,0,1));
 }
 
 TEST(DimTest, operatorIndexBrackets) {
