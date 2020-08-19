@@ -38,7 +38,6 @@ public:
   // Conversion operators
   //===-------
   explicit virtual operator bool() const;
-  explicit virtual operator unsigned int() const;
 
   //===-------
   // Other operators

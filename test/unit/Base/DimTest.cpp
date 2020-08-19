@@ -240,12 +240,6 @@ TEST(DimTest, operatorBool) {
   EXPECT_FALSE(Dim::None);
 }
 
-TEST(DimTest, operatorUnsignedInt) {
-  EXPECT_EQ((unsigned int) Dim::None, 0);
-  EXPECT_EQ((unsigned int) Dim::Linear1024, 1024);
-  EXPECT_EQ((unsigned int) Dim::Square128, 128 * 128);
-}
-
 TEST(DimTest, operatorIndexBrackets) {
   Dim dim;
   EXPECT_EQ(dim[0], 1);

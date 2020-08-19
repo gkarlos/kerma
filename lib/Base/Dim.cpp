@@ -58,11 +58,6 @@ bool Dim::operator>=(const Dim &other) const {
 //===-------
 // Conversion operators
 //===-------
-
-Dim::operator unsigned int() const {
-  return this->size();
-}
-
 Dim::operator bool() const {
   return this->x > 0 && this->y > 0 && this->z > 0;
 }
