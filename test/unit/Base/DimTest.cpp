@@ -246,7 +246,7 @@ TEST(DimTest, operatorUnsignedInt) {
   EXPECT_EQ((unsigned int) Dim::Square128, 128 * 128);
 }
 
-TEST(DimTest, operatorIndex) {
+TEST(DimTest, operatorIndexBrackets) {
   Dim dim;
   EXPECT_EQ(dim[0], 1);
   EXPECT_EQ(dim[1], 1);
@@ -256,6 +256,20 @@ TEST(DimTest, operatorIndex) {
   EXPECT_EQ(Dim::Square1024[0], 1024);
   EXPECT_EQ(Dim::Square1024[1], 1024);
   EXPECT_EQ(Dim::Square1024[2], 1);
+  EXPECT_THROW(Dim::Square1024[3], std::out_of_range);
+}
+
+TEST(DimTest, operatorIndexParen) {
+  Dim dim;
+  EXPECT_EQ(dim(0), 1);
+  EXPECT_EQ(dim(1), 1);
+  EXPECT_EQ(dim(2), 1);
+  EXPECT_THROW(dim(15), std::out_of_range);
+
+  EXPECT_EQ(Dim::Square1024(0), 1024);
+  EXPECT_EQ(Dim::Square1024(1), 1024);
+  EXPECT_EQ(Dim::Square1024(2), 1);
+  EXPECT_THROW(Dim::Square1024(3), std::out_of_range);
 }
 
 };
