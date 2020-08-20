@@ -159,6 +159,30 @@ unsigned long long Dim::getMaxLinearIndex() const {
   return this->size() - 1;
 }
 
+unsigned int Dim::cols() const { 
+  return this->x;
+}
+
+unsigned int Dim::rows() const {
+  return this->y;
+}
+
+unsigned int Dim::layers() const {
+  return this->z;
+}
+
+unsigned int Dim::width() const {
+  return this->x;
+}
+
+unsigned int Dim::height() const {
+  return this->y;
+}
+
+unsigned int Dim::depth() const {
+  return this->z;
+}
+
 Dim Dim::of(unsigned int x, unsigned int y, unsigned int z) {
   return Dim(x, y, z);
 }

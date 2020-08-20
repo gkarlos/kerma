@@ -108,6 +108,14 @@ public:
 
   // Get the maximum linear index for this dim
   virtual unsigned long long getMaxLinearIndex() const;
+
+  virtual unsigned int cols() const;
+  virtual unsigned int rows() const;
+  virtual unsigned int layers() const;
+  
+  virtual unsigned int width() const;
+  virtual unsigned int height() const;
+  virtual unsigned int depth() const;
   
 public:
   unsigned int x,y,z;
