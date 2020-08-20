@@ -27,17 +27,9 @@ public:
   virtual bool operator!=(const Dim &other) const;
   
   //===-------
-  // Size comparison operators
-  //===-------
-  virtual bool operator<(const Dim &other) const;
-  virtual bool operator<=(const Dim &other) const;
-  virtual bool operator>(const Dim &other) const;
-  virtual bool operator>=(const Dim &other) const;
-  
-  //===-------
   // Conversion operators
   //===-------
-  explicit virtual operator bool() const;
+  virtual operator unsigned long long() const;
 
   //===-------
   // Other operators

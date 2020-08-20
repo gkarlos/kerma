@@ -36,30 +36,10 @@ bool Dim::operator!=(const Dim &other) const {
 }
 
 //===-------
-// Size comparison operators
-//===-------
-
-bool Dim::operator<(const Dim &other) const {
-  return this->size() < other.size();
-}
-
-bool Dim::operator<=(const Dim &other) const {
-  return (*this == other) || (*this < other);
-}
-
-bool Dim::operator>(const Dim &other) const {
-  return !(*this <= other);
-}
-
-bool Dim::operator>=(const Dim &other) const {
-  return (*this == other) || !(*this < other);
-}
-
-//===-------
 // Conversion operators
 //===-------
-Dim::operator bool() const {
-  return this->x > 0 && this->y > 0 && this->z > 0;
+Dim::operator unsigned long long() const {
+  return this->size();
 }
 
 //===-------

@@ -180,24 +180,20 @@ TEST(DimTest, getMinLinearIndex) {
   EXPECT_EQ(Dim::Cube8.getMinLinearIndex(), 0);
 }
 
-TEST(DimTest, operatorEqual) {
+TEST(DimTest, operatorUnsignedLongLong) {
   Dim dim;
   EXPECT_TRUE(dim == dim);
   EXPECT_TRUE(dim == Dim(1,1,1));
   
-  Dim dimA(10,10);
-  Dim dimB(10,10);
-  EXPECT_TRUE(dimA == dimB);
-}
+  Dim dim1(10,10);
+  Dim dim2(10,10);
+  EXPECT_TRUE(dim1 == dim2);
 
-TEST(DimTest, operatorNotEqual) {
-  Dim dimA(10,10);
-  Dim dimB(10,11);
-  EXPECT_TRUE(dimA != dimB);
-  EXPECT_FALSE(dimA != dimA);
-}
+  Dim dim3(10,10);
+  Dim dim4(10,11);
+  EXPECT_TRUE(dim3 != dim4);
+  EXPECT_FALSE(dim3 != dim3);
 
-TEST(DimTest, operatorLess) {
   Dim dimA(10,10);
   Dim dimB(10,11);
   Dim dimC(11,11);
@@ -216,32 +212,16 @@ TEST(DimTest, operatorLess) {
   Dim dimH(1,100);
   EXPECT_FALSE(dimG < dimH);
   EXPECT_FALSE(dimH < dimG);
-}
 
-TEST(DimTest, operatorLessEqual) {
   EXPECT_TRUE(Dim::Cube1 <= Dim::Cube1);
   EXPECT_TRUE(Dim::Cube1 <= Dim::Cube2);
   EXPECT_FALSE(Dim::Cube4 <= Dim::Cube2);
-}
 
-TEST(DimTest, operatorGreater) {
   EXPECT_TRUE(Dim::Cube1 < Dim::Cube2);
   EXPECT_TRUE(Dim::Cube2 > Dim::Cube1);
-}
 
-TEST(DimTest, operatorGreaterEqual) {
   EXPECT_TRUE(Dim::Cube2 >= Dim::Cube2);
   EXPECT_TRUE(Dim::Cube2 >= Dim::Cube1);
-}
-
-TEST(DimTest, operatorBool) {
-  Dim dim;
-  EXPECT_TRUE(dim);
-  EXPECT_FALSE(Dim::None);
-
-  EXPECT_FALSE(Dim(0,1,0));
-  EXPECT_FALSE(Dim(1,1,0));
-  EXPECT_FALSE(Dim(1,0,1));
 }
 
 TEST(DimTest, operatorIndexBrackets) {
