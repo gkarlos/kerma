@@ -1,7 +1,7 @@
 #ifndef KERMA_BASE_DIM_H
 #define KERMA_BASE_DIM_H
 
-#include "llvm/Support/raw_os_ostream.h"
+#include "llvm/Support/raw_ostream.h"
 #include <memory>
 #include <ostream>
 

@@ -1,6 +1,6 @@
 #include "kerma/Base/Dim.h"
 #include "kerma/Base/Index.h"
-#include "llvm/Support/raw_os_ostream.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <algorithm> 
 #include <memory>
@@ -85,7 +85,7 @@ std::ostream& operator<<(std::ostream& os, const Dim& dim) {
   return os;
 }
 
-llvm::raw_os_ostream& operator<<(llvm::raw_os_ostream& os, const Dim& dim) {
+llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Dim& dim) {
   if ( dim.is1D())
     os << "<" << dim.x << ">";
   else if ( dim.is2D())
