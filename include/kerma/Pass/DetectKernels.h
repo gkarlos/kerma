@@ -1,5 +1,5 @@
-#ifndef KERMA_PASS_DETECT_KERNELS_PASS
-#define KERMA_PASS_DETECT_KERNELS_PASS
+#ifndef KERMA_PASS_DETECT_KERNELS_H
+#define KERMA_PASS_DETECT_KERNELS_H
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Module.h"
