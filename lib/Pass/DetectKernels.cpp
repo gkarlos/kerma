@@ -1,9 +1,11 @@
-#include "kerma/Pass/DetectKernelsPass.h"
+#include "kerma/Pass/DetectKernels.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/Pass.h"
 #include "llvm/PassSupport.h"
+#include "llvm/Support/CommandLine.h"
 #include <memory>
 #include <vector>
+
 
 namespace kerma {
 
@@ -67,13 +69,13 @@ createDetectKernelsPass() {
   return std::make_unique<DetectKernelsPass>();
 }
 
+} // end namespace kerma
 
 namespace {
 
-static RegisterPass<DetectKernelsPass> RegisterDetectKernelsPass(/* pass arg  */    "kerma-detect-kernels", 
+static llvm::RegisterPass<kerma::DetectKernelsPass> RegisterDetectKernelsPass(/* pass arg  */    "kerma-detect-kernels", 
                                                                  /* pass name */    "Detect kernel functions", 
                                                                  /* modifies CFG */ false, 
                                                                  /* analysis pass*/ true);
 }
 
-} // end namespace kerma
