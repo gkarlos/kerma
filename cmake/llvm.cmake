@@ -42,6 +42,8 @@ else()
     ${LLVM_HOME}/share/llvm/cmake/
   )
 
+  list(APPEND CMAKE_PREFIX_PATH "${LLVM_HOME}/lib/cmake/llvm")
+
   find_package(LLVM REQUIRED CONFIG PATHS ${LLVM_SEARCH_PATHS} NO_DEFAULT_PATH)
   
   message("   [-] Vers: ${LLVM_PACKAGE_VERSION}")
@@ -49,8 +51,9 @@ else()
 
   add_definitions(${LLVM_DEFINITIONS})
 
-  include_directories(${LLVM_INC})
-  link_directories(${LLVM_LIB})
+  include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
+  link_directories(${LLVM_LIBRARY_DIRS})
+  add_definitions(${LLVM_DEFINITIONS})
 
   set(LLVM_RUNTIME_OUTPUT_INTDIR "${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INT_DIR}")
   set(LLVM_LIBRARY_OUTPUT_INTDIR "${CMAKE_BINARY_DIR}/lib/${CMAKE_CFG_INT_DIR}")
