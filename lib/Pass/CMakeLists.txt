@@ -1,39 +1,48 @@
-#
-# Build individual libraries for each pass so that
-# we can easily run a specific pass with opt
-# 
+##===--------------------------------------------------------------------------
+## Build standalone Opt plugins for each pass so that
+## we can easily test a specific pass in opt
+## 
+## It is important that these libraries are not linked with any LLVM
+## libraries to avoid duplicate cmdline opts errors as Opt is already
+## linked with LLVM
+##===--------------------------------------------------------------------------
 
 # DetectKernels
-set(DetectKernelsPass_Sources DetectKernels.cpp)
-add_library(DetectKernelsPass SHARED ${DetectKernelsPass_Sources})
-set_target_properties(DetectKernelsPass PROPERTIES COMPILE_FLAGS "-fno-rtti")
+set(DetectKernelsPlugin_SOURCES DetectKernels.cpp)
+add_library(DetectKernelsPlugin SHARED ${DetectKernelsPlugin_SOURCES})
+target_include_directories(DetectKernelsPlugin PRIVATE ${KERMA_INCLUDE_DIR})
+target_link_libraries(DetectKernelsPlugin KermaSupportOpt)
+set_target_properties(DetectKernelsPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
+# set_property(TARGET DetectKernelsPlugin PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-# MeterializeBlockThread
-set(MaterializeBlockThread_Sources MaterializeBlockThread.cpp)
-add_library(MaterializeBlockThread SHARED ${MaterializeBlockThread_Sources})
-set_target_properties(MaterializeBlockThread PROPERTIES COMPILE_FLAGS "-fno-rtti")
+#MaterializeGrid
+set(MaterializeGridPlugin_Sources MaterializeGrid.cpp DetectKernels.cpp)
+add_library(MaterializeGridPlugin SHARED ${MaterializeGridPlugin_Sources})
+target_compile_definitions(MaterializeGridPlugin PUBLIC -DLLVM_ENABLE_STATS KERMA_OPT_PLUGIN)
+target_include_directories(MaterializeGridPlugin PRIVATE ${KERMA_INCLUDE_DIR})
+target_link_libraries(MaterializeGridPlugin KermaBaseOpt KermaSupportOpt)
+set_target_properties(MaterializeGridPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
+# set_property(TARGET MaterializeGridPlugin PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-# LoopInfoTestPass
-set(LoopInfoTestPass_Sources LoopInfoTestPass.cpp)
-add_library(LoopInfoTestPass SHARED ${LoopInfoTestPass_Sources})
-set_target_properties(LoopInfoTestPass PROPERTIES COMPILE_FLAGS "-fno-rtti")
-target_compile_options(LoopInfoTestPass PUBLIC "-fPIC")
+##===--------------------------------------------------------------------------
+## Build libPassOpt
+## Contains all the Kerma passes and can be loaded in opt
+##===--------------------------------------------------------------------------
 
-#
-# Build libPass
-# 
+# file(GLOB_RECURSE KermaPassOpt_Sources "*.cpp")
+# add_library(KermaPassOpt SHARED ${KermaPassOpt_Sources})
+# target_link_libraries(KermaPassOpt PRIVATE KermaBaseOpt)
+# set_target_properties(KermaPass PROPERTIES COMPILE_FLAGS "-fno-rtti")
 
-file(GLOB_RECURSE LibPassSources "*.cpp")
+##===--------------------------------------------------------------------------
+## Build libPass                                                               
+## Contains all the Kerma passes                                               
+## This is the library that is meant to be linked by the Kerma tools           
+##===--------------------------------------------------------------------------
 
-# llvm_map_components_to_libnames(mbt_llvm_deps Demangle)
-
-# add_library(mbt SHARED MaterializeBlockThread.cpp)
-# target_link_libraries(mbt ${mbt_llvm_deps})
-# set_target_properties(mbt PROPERTIES COMPILE_FLAGS "-fno-rtti")
-
-
-# target_link_libraries(KermaDetectKernelsPass KermaCuda KermaSupport)
-
-# set(DetectKernels_LLVM_Sources
-#         ${CMAKE_CURRENT_SOURCE_DIR}/DetectKernels.cpp
-#         PARENT_SCOPE)
+set(MaterializeGrid_Sources MaterializeGrid.cpp DetectKernels.cpp)
+add_library(MaterializeGrid SHARED ${MaterializeGrid_Sources})
+# target_compile_definitions(MaterializeGrid PUBLIC KERMA_OPT_PLUGIN)
+target_include_directories(MaterializeGrid PRIVATE ${KERMA_INCLUDE_DIR})
+target_link_libraries(MaterializeGrid KermaBaseOpt KermaSupportOpt)
+set_target_properties(MaterializeGrid PROPERTIES COMPILE_FLAGS "-fno-rtti")
