@@ -11,7 +11,7 @@
 namespace kerma {
 
 /// 
-class MaterializeGridPass : public llvm::FunctionPass {
+class MaterializeDimsPass : public llvm::FunctionPass {
 
 public:
   static char ID;
@@ -20,17 +20,17 @@ public:
   // the command line flags passed in opt. If no flags are
   // passed a passed created with this constructor will do
   // nothing
-  MaterializeGridPass();
+  MaterializeDimsPass();
 
-  MaterializeGridPass(const Dim& Grid, const Dim& Block);
-  MaterializeGridPass(const Dim& Grid, const Dim& Block, llvm::Function &Kernel);
-  MaterializeGridPass(const Dim& Grid, const Dim& Block, const char *KernelName);
+  MaterializeDimsPass(const Dim& Grid, const Dim& Block);
+  MaterializeDimsPass(const Dim& Grid, const Dim& Block, llvm::Function &Kernel);
+  MaterializeDimsPass(const Dim& Grid, const Dim& Block, const char *KernelName);
 
 public:
   bool doInitialization(llvm::Module &M) override;
   bool doFinalization(llvm::Module &M) override;
   bool runOnFunction(llvm::Function &F) override;
-  virtual void print(llvm::raw_ostream &O, const llvm::Module *M) const override;
+  // virtual void print(llvm::raw_ostream &O, const llvm::Module *M) const override;
   void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
   bool isTargeted();
 
@@ -38,23 +38,24 @@ private:
   bool analyzeKernel(llvm::Function &F) const;
   bool isKernel(llvm::Function &F);
   bool hasWork() const;
+  bool hasTargetKernel() const;
 
 private:
   std::vector<llvm::Function*> Kernels;
   llvm::Function *TargetKernelFun;
-  char *TargetKernelName;
+  const char *TargetKernelName;
   Dim Grid;
   Dim Block;
 };
 
-std::unique_ptr<MaterializeGridPass>
-createMaterializeGridPass();
+std::unique_ptr<MaterializeDimsPass>
+createMaterializeDimsPass();
 
-std::unique_ptr<MaterializeGridPass>
-createMaterializeGridPass(const Dim& Grid, const Dim& Block);
+std::unique_ptr<MaterializeDimsPass>
+createMaterializeDimsPass(const Dim& Grid, const Dim& Block);
 
-std::unique_ptr<MaterializeGridPass>
-createMaterializeGridPass(const Dim& Grid, const Dim& Block, llvm::Function &F);
+std::unique_ptr<MaterializeDimsPass>
+createMaterializeDimsPass(const Dim& Grid, const Dim& Block, llvm::Function &F);
 
 } // namespace kerma
 

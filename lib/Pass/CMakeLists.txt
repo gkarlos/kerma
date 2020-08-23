@@ -15,14 +15,16 @@ target_link_libraries(DetectKernelsPlugin KermaSupportOpt)
 set_target_properties(DetectKernelsPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
 # set_property(TARGET DetectKernelsPlugin PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-#MaterializeGrid
-set(MaterializeGridPlugin_Sources MaterializeGrid.cpp DetectKernels.cpp)
-add_library(MaterializeGridPlugin SHARED ${MaterializeGridPlugin_Sources})
-target_compile_definitions(MaterializeGridPlugin PUBLIC -DLLVM_ENABLE_STATS KERMA_OPT_PLUGIN)
-target_include_directories(MaterializeGridPlugin PRIVATE ${KERMA_INCLUDE_DIR})
-target_link_libraries(MaterializeGridPlugin KermaBaseOpt KermaSupportOpt)
-set_target_properties(MaterializeGridPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
-# set_property(TARGET MaterializeGridPlugin PROPERTY POSITION_INDEPENDENT_CODE ON)
+#MaterializeDims
+set(MaterializeDimsPlugin_Sources MaterializeDims.cpp DetectKernels.cpp)
+add_library(MaterializeDimsPlugin SHARED ${MaterializeDimsPlugin_Sources})
+target_compile_definitions(MaterializeDimsPlugin PUBLIC -DLLVM_ENABLE_STATS KERMA_OPT_PLUGIN)
+target_include_directories(MaterializeDimsPlugin PUBLIC ${KERMA_INCLUDE_DIR})
+target_link_libraries(MaterializeDimsPlugin KermaNVVMOpt KermaBaseOpt 
+                                            KermaSupportOpt 
+                                            )
+set_target_properties(MaterializeDimsPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
+# set_property(TARGET MaterializeDimsPlugin PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 ##===--------------------------------------------------------------------------
 ## Build libPassOpt
@@ -40,9 +42,9 @@ set_target_properties(MaterializeGridPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti"
 ## This is the library that is meant to be linked by the Kerma tools           
 ##===--------------------------------------------------------------------------
 
-set(MaterializeGrid_Sources MaterializeGrid.cpp DetectKernels.cpp)
-add_library(MaterializeGrid SHARED ${MaterializeGrid_Sources})
-# target_compile_definitions(MaterializeGrid PUBLIC KERMA_OPT_PLUGIN)
-target_include_directories(MaterializeGrid PRIVATE ${KERMA_INCLUDE_DIR})
-target_link_libraries(MaterializeGrid KermaBaseOpt KermaSupportOpt)
-set_target_properties(MaterializeGrid PROPERTIES COMPILE_FLAGS "-fno-rtti")
+set(MaterializeDims_Sources MaterializeDims.cpp DetectKernels.cpp)
+add_library(MaterializeDims SHARED ${MaterializeDims_Sources})
+# target_compile_definitions(MaterializeDims PUBLIC KERMA_OPT_PLUGIN)
+target_include_directories(MaterializeDims PRIVATE ${KERMA_INCLUDE_DIR})
+target_link_libraries(MaterializeDims KermaBaseOpt KermaSupportOpt)
+set_target_properties(MaterializeDims PROPERTIES COMPILE_FLAGS "-fno-rtti")
