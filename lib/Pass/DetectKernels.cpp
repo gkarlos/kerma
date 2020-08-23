@@ -22,7 +22,7 @@ std::vector<Function*> DetectKernelsPass::getKernels() {
   return res;
 }
 
-void DetectKernelsPass::getKernels(std::vector<Function*> Kernels) {
+void DetectKernelsPass::getKernels(std::vector<Function*> &Kernels) {
   for ( auto *F : this->Kernels)
     Kernels.push_back(F);
 }

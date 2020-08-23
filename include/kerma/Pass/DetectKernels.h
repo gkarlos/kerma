@@ -27,7 +27,7 @@ public:
 
   /// Get the kernel function found in the use-provided
   /// container.
-  void getKernels(std::vector<llvm::Function*> Kernels);
+  void getKernels(std::vector<llvm::Function*> &Kernels);
 
 private:
   std::vector<llvm::Function*> Kernels;
