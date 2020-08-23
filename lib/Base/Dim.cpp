@@ -86,12 +86,7 @@ std::ostream& operator<<(std::ostream& os, const Dim& dim) {
 }
 
 llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Dim& dim) {
-  if ( dim.is1D())
-    os << "<" << dim.x << ">";
-  else if ( dim.is2D())
-    os << "<" << dim.x << "," << dim.y << ">";
-  else
-    os << "<" << dim.x << "," << dim.y << "," << dim.z << ">";
+  os << "<" << dim.x << "," << dim.y << "," << dim.z << ">";
   return os;
 }
 
