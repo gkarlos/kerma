@@ -1,5 +1,5 @@
-#ifndef KERMA_PASS_MATERIALIZE_COMPUTE_UNIT_H
-#define KERMA_PASS_MATERIALIZE_COMPUTE_UNIT_H
+#ifndef KERMA_PASS_MATERIALIZE_DIMS_H
+#define KERMA_PASS_MATERIALIZE_DIMS_H
 
 #include "llvm/IR/Function.h"
 #include "llvm/Pass.h"
@@ -10,16 +10,20 @@
 
 namespace kerma {
 
-/// 
+/// This pass will go through the kernels and for each
+/// kernel it will replace the gridDim.{x,y,z} and
+/// blockDim.{x,y,z} values it encounters with concrete
+/// values. These values as given as command line args
+/// when the pass is run in Opt or passed as arguments
+/// in the constructor. 
+/// This is a transformation pass meaning the it _may_
+/// modify the IR as a result.
 class MaterializeDimsPass : public llvm::FunctionPass {
 
 public:
   static char ID;
-  // This constructor is only meant to be used when the pass
-  // is run with opt. i.e the values are retrieved through
-  // the command line flags passed in opt. If no flags are
-  // passed a passed created with this constructor will do
-  // nothing
+  // When the pass is run in Opt this is the 
+  // only constructor that is used
   MaterializeDimsPass();
 
   MaterializeDimsPass(const Dim& Grid, const Dim& Block);
@@ -30,7 +34,6 @@ public:
   bool doInitialization(llvm::Module &M) override;
   bool doFinalization(llvm::Module &M) override;
   bool runOnFunction(llvm::Function &F) override;
-  // virtual void print(llvm::raw_ostream &O, const llvm::Module *M) const override;
   void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
   bool isTargeted();
 
@@ -59,4 +62,4 @@ createMaterializeDimsPass(const Dim& Grid, const Dim& Block, llvm::Function &F);
 
 } // namespace kerma
 
-#endif
+#endif // KERMA_PASS_MATERIALIZE_DIMS_H
