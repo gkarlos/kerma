@@ -1,10 +1,10 @@
 #ifndef KERMA_PASS_MATERIALIZE_DIMS_H
 #define KERMA_PASS_MATERIALIZE_DIMS_H
 
+#include "kerma/Base/Dim.h"
+
 #include "llvm/IR/Function.h"
 #include "llvm/Pass.h"
-
-#include "kerma/Base/Dim.h"
 
 #include <memory>
 
@@ -13,11 +13,12 @@ namespace kerma {
 /// This pass will go through the kernels and for each
 /// kernel it will replace the gridDim.{x,y,z} and
 /// blockDim.{x,y,z} values it encounters with concrete
-/// values. These values as given as command line args
+/// values. These values are given as command line args
 /// when the pass is run in Opt or passed as arguments
 /// in the constructor. 
 /// This is a transformation pass meaning the it _may_
 /// modify the IR as a result.
+/// This pass should have no effect on non-Cuda modules!
 class MaterializeDimsPass : public llvm::FunctionPass {
 
 public:
@@ -59,6 +60,9 @@ createMaterializeDimsPass(const Dim& Grid, const Dim& Block);
 
 std::unique_ptr<MaterializeDimsPass>
 createMaterializeDimsPass(const Dim& Grid, const Dim& Block, llvm::Function &F);
+
+std::unique_ptr<MaterializeDimsPass>
+createMaterializeDimsPass(const Dim& Grid, const Dim& Block, const char *KernelName);
 
 } // namespace kerma
 
