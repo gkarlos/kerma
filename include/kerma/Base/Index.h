@@ -1,7 +1,7 @@
 #ifndef KERMA_BASE_INDEX_H
 #define KERMA_BASE_INDEX_H
 
-#include "llvm/Support/raw_os_ostream.h"
+#include "llvm/Support/raw_ostream.h"
 
 namespace kerma {
 
@@ -21,6 +21,10 @@ public:
   virtual ~Index()=default;
 
 public:
+  //===-------
+  // Conversion operators
+  //===-------
+  virtual operator bool() const;
   //===-------
   // Comparison operators (Legicographic comparison. Order (z,y,x))
   //===-------
@@ -46,7 +50,7 @@ public:
   virtual Index& operator-=(const Index& other);
 
   friend std::ostream& operator<<(std::ostream& os, const Index& idx);
-  friend llvm::raw_os_ostream& operator<<(llvm::raw_os_ostream& os, const Index& idx);
+  friend llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Index& idx);
 
 public:
   virtual Index& inc(unsigned int x);
@@ -62,6 +66,8 @@ public:
   virtual unsigned int layer() const;
 
   virtual unsigned long long getLinear(const Dim& dim) const;
+
+  virtual bool isUnknown() const;
 
 public:
   unsigned int x;
