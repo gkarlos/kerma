@@ -53,6 +53,8 @@ program.cu                                                                      
                                            +----+---+------+
 ```
 
+TODO: Add flags for each step
+
 ### Notes
 
 #### Clang Flags
