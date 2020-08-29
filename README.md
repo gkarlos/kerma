@@ -24,6 +24,35 @@
 
 * * * 
 
+### Cuda Instrumentation pipeline
+
+```
+                     +---------------+
+                     |   Device IR   |
+                     |Instrumentation|
+                     +----+----+-----+
+                          ^    |
+                          |    |
+                          |    |
+                          |    |
+            clang         +    v     llc                  ptxas             fatbinary
+       +---------------> device.bc +-------> device.ptx +-------> device.o +---------> device.fatbin
+       |                                                                                  +
+       +                                                                                  |
+program.cu                                                                                |
+       +                                                                                  |
+       |    clang                      clang             clang                            |
+       +---------------> host.cu.inc +-------> host.bc +-------> host.o +---------------->+ clang (link)
+                         (host src w.           +   ^                                     |
+                          Cuda wrappers)        |   |                                     |
+                                                |   |                                     v
+                                                |   |                                  program.exe
+                                                v   |
+                                           +----+---+------+
+                                           |    Host IR    |
+                                           +----+---+------+
+```
+
 ### Notes
 
 #### Clang Flags
