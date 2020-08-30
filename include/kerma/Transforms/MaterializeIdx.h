@@ -28,8 +28,8 @@ public:
   MaterializeIdxPass();
 
   MaterializeIdxPass(const Index& Block, const Index& Thread);
-  MaterializeIdxPass(const Index& Grid, const Index& Block, llvm::Function &Kernel);
-  MaterializeIdxPass(const Index& Grid, const Index& Block, const char *KernelName);
+  MaterializeIdxPass(const Index& Block, const Index& Thread, llvm::Function &Kernel);
+  MaterializeIdxPass(const Index& Block, const Index& Thread, const char *KernelName);
 
 public:
   bool doInitialization(llvm::Module &M) override;
