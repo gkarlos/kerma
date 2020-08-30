@@ -1,4 +1,4 @@
-#include "kerma/Pass/DetectKernels.h"
+#include "kerma/Analysis/DetectKernels.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/Pass.h"
 #include "llvm/PassSupport.h"

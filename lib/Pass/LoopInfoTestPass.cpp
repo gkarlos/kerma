@@ -1,5 +1,5 @@
 #include "kerma/Pass/LoopInfoTestPass.h"
-#include "kerma/Pass/DetectKernelsPass.h"
+#include "kerma/Pass/DetectKernels.h"
 
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Analysis/LoopInfo.h"

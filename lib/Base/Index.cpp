@@ -28,6 +28,13 @@ Index::Index(const Index &&other) : x(other.x), y(other.y), z(other.z)
 {}
 
 //===-------
+// Conversion operators
+//===-------
+Index::operator bool() const {
+  return !this->isUnknown();
+}
+
+//===-------
 // Comparison operators
 //===-------
 bool Index::operator==(const Index &other) const {
@@ -117,9 +124,13 @@ std::ostream& operator<<(std::ostream& os, const Index& idx) {
   return os;
 }
 
-llvm::raw_os_ostream& operator<<(llvm::raw_os_ostream& os, const Index& idx) {
+llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Index& idx) {
   os << "(" << idx.z << "," << idx.y << "," << idx.x << ")";
   return os;
+}
+
+bool Index::isUnknown() const {
+  return *this == Index::Unknown;
 }
 
 inline Index& Index::inc(unsigned int x) {

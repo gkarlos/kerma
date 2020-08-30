@@ -1,12 +1,11 @@
-#include <llvm/Support/Casting.h>
 #define DEBUG_TYPE "MaterializeIdxPass"
 
-#include "kerma/Pass/MaterializeIdx.h"
+#include "kerma/Transforms/MaterializeIdx.h"
 
+#include "kerma/Analysis/DetectKernels.h"
 #include "kerma/Base/Index.h"
 #include "kerma/NVVM/NVVM.h"
 #include "kerma/NVVM/NVVMUtilities.h"
-#include "kerma/Pass/DetectKernels.h"
 #include "kerma/Support/Demangle.h"
 
 #include <llvm/IR/Constants.h>

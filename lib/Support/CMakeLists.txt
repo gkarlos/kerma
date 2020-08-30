@@ -1,5 +1,3 @@
-file(GLOB_RECURSE SupportSources "*.cpp")
-
 # add_library(KermaSupport SHARED ${SupportSources})
 
 # set_target_properties(KermaSupport PROPERTIES COMPILE_FLAGS "-fno-rtti")
@@ -44,8 +42,15 @@ file(GLOB_RECURSE SupportSources "*.cpp")
 #     stdc++fs
 # )
 
-add_library(KermaSupportOpt SHARED Demangle.cpp FileSystem.cpp Version.cpp)
+set(Support_SOURCES Demangle.cpp
+                    FileSystem.cpp
+                    Version.cpp )
+
+add_library(KermaSupportOpt SHARED ${Support_SOURCES})
 set_target_properties(KermaSupportOpt PROPERTIES COMPILE_FLAGS "-fno-rtti")
-# set_property(TARGET KermaSupportOpt PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(KermaSupportOpt LLVMDemangle)
+
+add_library(KermaSupport SHARED ${Support_SOURCES})
+set_target_properties(KermaSupportOpt PROPERTIES COMPILE_FLAGS "-fno-rtti")
 target_link_libraries(KermaSupportOpt LLVMDemangle)
 
