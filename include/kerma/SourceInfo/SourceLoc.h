@@ -38,6 +38,8 @@ public:
   friend std::ostream & operator<<(std::ostream &os, const SourceLoc &loc);
   friend llvm::raw_ostream & operator<<(llvm::raw_ostream &os, SourceLoc &loc);
 
+  static const SourceLoc Unknown;
+
 };
 
 }

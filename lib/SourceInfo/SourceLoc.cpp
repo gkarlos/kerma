@@ -7,6 +7,8 @@ namespace kerma {
 static int INVALID_LINE = -1;
 static int INVALID_COL = -1;
 
+const SourceLoc SourceLoc::Unknown(INVALID_LINE, INVALID_COL);
+
 SourceLoc::SourceLoc(int line, int col)
 : line(line), col(col)
 {}

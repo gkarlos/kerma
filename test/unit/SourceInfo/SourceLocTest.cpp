@@ -87,3 +87,8 @@ TEST(SourceLocTest, OperatorGTE) {
   ASSERT_TRUE(loc2 >= loc1);
   ASSERT_TRUE(loc1 >= loc1);
 }
+
+TEST(SourceLocTest, Unknown) {
+  ASSERT_FALSE(SourceLoc::Unknown.isValid());
+  ASSERT_FALSE(SourceLoc::Unknown);
+}
