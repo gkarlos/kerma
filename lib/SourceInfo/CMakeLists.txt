@@ -1,4 +1,5 @@
-set(SourceInfo_SOURCES SourceLoc.cpp)
+set(SourceInfo_SOURCES SourceLoc.cpp
+                       SourceRange.cpp)
 add_library(KermaSourceInfo ${SourceInfo_SOURCES})
 set_target_properties(KermaSourceInfo PROPERTIES COMPILE_FLAGS "-fno-rtti")
 target_link_libraries(KermaSourceInfo LLVMSupport)

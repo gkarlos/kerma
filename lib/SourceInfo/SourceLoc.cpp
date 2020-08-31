@@ -4,59 +4,79 @@
 
 namespace kerma {
 
-static int INVALID_LINE = -1;
-static int INVALID_COL = -1;
+static unsigned int InvalidVal = std::numeric_limits<int>::max();
 
-const SourceLoc SourceLoc::Unknown(INVALID_LINE, INVALID_COL);
+const SourceLoc SourceLoc::Unknown( InvalidVal, InvalidVal);
 
-SourceLoc::SourceLoc(int line, int col)
-: line(line), col(col)
+SourceLoc::SourceLoc(unsigned int line, unsigned int col)
+: L(line), C(col)
 {}
 
 SourceLoc::SourceLoc(const SourceLoc& other) 
-: line(other.line), col(other.col)
+: L(other.L), C(other.C)
 {}
 
 SourceLoc::SourceLoc(SourceLoc&& other)
-: line(std::move(other.line)), col(std::move(other.col))
+: L(std::move(other.L)), C(std::move(other.C))
 {}
 
-int SourceLoc::getCol() const { return this->col; }
+unsigned int SourceLoc::getCol() const { return C; }
 
-int SourceLoc::getLine() const { return this->line; }
+unsigned int SourceLoc::getLine() const { return L; }
 
-SourceLoc& SourceLoc::setLine(int line) {
-  this->line = line;
+SourceLoc& SourceLoc::setLine(unsigned int line) {
+  L = line;
+  if ( L == InvalidVal)
+    C = L;
   return *this;
 }
 
-SourceLoc& SourceLoc::setCol(int col) {
-  this->col = col;
+SourceLoc& SourceLoc::setCol(unsigned int col) {
+  C = col;
+  if ( C == InvalidVal)
+    L = C;
   return *this;
 }
 
-SourceLoc& SourceLoc::set(int line, int col) {
-  this->line = line;
-  this->col = col;
+SourceLoc& SourceLoc::set(unsigned int line, unsigned int col) {
+  L = line;
+  C = col;
+  if ( L == InvalidVal || C == InvalidVal)
+    L = C = InvalidVal;
   return *this;
 }
 
 SourceLoc& SourceLoc::invalidate() {
-  this->line = INVALID_LINE;
-  this->col = INVALID_COL;
+  L = InvalidVal;
+  C = InvalidVal;
   return *this;
 }
 
 bool SourceLoc::isValid() const {
-  return this->line >= 0 && this->col >= 0;
+  // dont need to check C too. By construction they
+  // are either both invalid or none is.
+  return L != InvalidVal; 
+}
+
+bool SourceLoc::isInvalid() const {
+  return !isValid();
 }
 
 SourceLoc::operator bool() const {
-  return this->isValid();
+  return isValid();
 }
 
+SourceLoc& SourceLoc::operator=(const SourceLoc& other) {
+  L = other.L;
+  C = other.C;
+  if ( L == InvalidVal || C == InvalidVal)
+    L = C = InvalidVal;
+  return *this;
+}
+
+
 bool SourceLoc::operator==(const SourceLoc &other) const {
-  return this->line == other.line && this->col == other.col;
+  return L == other.L && C == other.C;
 }
 
 bool SourceLoc::operator!=(const SourceLoc &other) const {
@@ -64,31 +84,29 @@ bool SourceLoc::operator!=(const SourceLoc &other) const {
 }
 
 bool SourceLoc::operator<(const SourceLoc &other) const {
-  return this->line == other.line? this->col < other.col : this->line < other.line;
+  return L == other.L? C < other.C : L < other.L;
 }
 
 bool SourceLoc::operator<=(const SourceLoc &other) const {
-  return (*this < other) || (*this == other);
+  return L == other.L? C <= other.C : L <= other.L;
 }
 
 bool SourceLoc::operator>(const SourceLoc &other) const {
-  return this->line == other.line? this->col > other.col : this->line > other.line;
+  return L == other.L? C > other.C : L > other.L;
 }
 
 bool SourceLoc::operator>=(const SourceLoc &other) const {
-  return (*this > other) || (*this == other);
+  return L == other.L? C >= other.C : L >= other.L;
 }
 
 std::ostream& operator<<(std::ostream& os, const SourceLoc& loc) {
-  os << loc.line << ',' << loc.col;
+  os << loc.L << ':' << loc.C;
   return os;
 }
 
 llvm::raw_ostream& operator<<(llvm::raw_ostream& os, SourceLoc& loc) {
-  os << loc.line << ',' << loc.col;
+  os << loc.L << ':' << loc.C;
   return os;
 }
-
-
 
 } // namespace kerma

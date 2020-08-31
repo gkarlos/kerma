@@ -1,4 +1,3 @@
-#include "kerma/SourceInfo/SourceInfo.h"
 #include "kerma/SourceInfo/SourceLoc.h"
 
 #include "gtest/gtest.h"
@@ -34,13 +33,27 @@ TEST(SourceLocTest, Validation) {
   SourceLoc loc;
   ASSERT_TRUE(loc.isValid());
   ASSERT_FALSE(loc.invalidate().isValid());
+  SourceLoc loc1(10);
+  ASSERT_TRUE(loc1.isValid());
+  SourceLoc loc2(10,10);
+  ASSERT_TRUE(loc2.isValid());
 }
 
 TEST(SourceLocTest, OperatorBool) {
   SourceLoc loc;
   ASSERT_TRUE(loc);
   ASSERT_FALSE(loc.invalidate());
-  ASSERT_FALSE(loc);
+  SourceLoc loc1(10);
+  ASSERT_TRUE(loc1);
+  SourceLoc loc2(10,10);
+  ASSERT_TRUE(loc2);
+}
+
+TEST(SourceLocTest, OperatorAssign) {
+  SourceLoc loc(10,10);
+  SourceLoc loc2 = loc;
+  ASSERT_TRUE(&loc != &loc2);
+  ASSERT_TRUE(loc == loc2);
 }
 
 TEST(SourceLocTest, OperatorEquals) {
