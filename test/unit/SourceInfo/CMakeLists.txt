@@ -1,0 +1,3 @@
+add_executable(SourceLocTest SourceLocTest.cpp)
+target_link_libraries(SourceLocTest gtest gtest_main KermaSourceInfo)
+add_test(NAME SourceInfo.SourceLoc COMMAND SourceLocTest)
