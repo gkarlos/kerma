@@ -1,172 +1,64 @@
-#include "kerma/Support/SourceInfo.h"
+#include "kerma/SourceInfo/SourceInfo.h"
+#include "kerma/SourceInfo/SourceRange.h"
 
-#include "clang/AST/ASTConsumer.h"
-#include "clang/AST/RecursiveASTVisitor.h"
-#include "clang/Basic/SourceLocation.h"
-#include "clang/Frontend/FrontendAction.h"
-#include "clang/Frontend/CompilerInstance.h"
-#include "clang/Tooling/ArgumentsAdjusters.h"
-#include "clang/Tooling/Tooling.h"
+#include "llvm/Support/Path.h"
 
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/ADT/StringRef.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Metadata.h"
-#include "llvm/IRReader/IRReader.h"
-#include "llvm/IR/DebugInfoMetadata.h"
+namespace kerma {
 
-#include <exception>
-#include <fstream>
-#include <iterator>
-#include <memory>
-#include <stdexcept>
+SourceInfo::SourceInfo() : SourceInfo("", SourceRange::Unknown, "")
+{}
 
-
-static std::string readFileContents(const char *file) {
-  std::ifstream ifs(file);
-  if (!ifs.good())
-    throw std::runtime_error(std::string("Cannot read file ") + file);
-  return std::string(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
-}
-
-//https://opensource.apple.com/source/clang/clang-425.0.24/src/tools/clang/docs/RAVFrontendAction.html
-
-namespace kerma { 
-
-using namespace llvm;
-using namespace clang;
-
-class FunctionRangeVisitor : public RecursiveASTVisitor<FunctionRangeVisitor> {
-public:
-  explicit FunctionRangeVisitor(CompilerInstance *CI) 
-  : Context(&(CI->getASTContext())) 
-  {}
-private:
-  ASTContext *Context;
-};
-
-class FunctionRangeConsumer : public ASTConsumer {
-public:
-  explicit FunctionRangeConsumer(CompilerInstance *CI)
-  : Visitor(std::make_unique<FunctionRangeVisitor>(CI))
-  {}
-private:
-  std::unique_ptr<FunctionRangeVisitor> Visitor;
-};
-
-class FunctionRangeAction : public ASTFrontendAction {
-public:
-  virtual std::unique_ptr<ASTConsumer> 
-  CreateASTConsumer( CompilerInstance &CI, StringRef file) override {
-    errs() << "Creating ASTConsumer for FILE:\n\n" << file.str() << "\nDONE";
-    return std::unique_ptr<ASTConsumer>(new FunctionRangeConsumer(&CI));
-  }
-};
-
-//https://github.com/anirudhSK/libclang-samples/blob/master/src/util.cc
-
-std::string SourceInfo::COMPILEDB_READ_ERR_MSG("Failed to read compilation database file");
-
-SourceInfo::SourceInfo(llvm::Module *M, tooling::CompilationDatabase *compileDB) 
-  : M(M), CompileDB(compileDB)
+SourceInfo::SourceInfo( const std::string& path, 
+                        const SourceRange& range, 
+                        const std::string& text)
+: Path(path), Range(range), Text(text)
 {
-  init();
+  splitPath();
 }
 
-void 
-SourceInfo::init() {
-  SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
-  for ( auto &namedMD : this->M->getNamedMDList()) {
-    if (  auto *compileUnitMD = dyn_cast<DICompileUnit>(namedMD.getOperand(0)) ) {
-      this->CompileUnitMD = compileUnitMD;
-      break;
-    }
-  }
+std::string SourceInfo::getFilename() const { return Filename; }
 
-  std::string fullPath(this->getDirectory() + "/" + this->getFilename());
-  this->Src = readFileContents(fullPath.c_str());
+std::string SourceInfo::getDirectory() const { return Directory; }
+
+std::string SourceInfo::getPath() const { return Path; }
+
+SourceInfo& SourceInfo::setPath(std::string &path) { 
+  Path = path;
+  splitPath();
+  return *this;
 }
 
-std::string
-SourceInfo::getFilename() {
-  return this->CompileUnitMD->getFilename().str();
+SourceInfo& SourceInfo::setPath(const char *path) {
+  Path = path;
+  splitPath();
+  return *this;
 }
 
-std::string
-SourceInfo::getDirectory() {
-  return this->CompileUnitMD->getDirectory().str();
+SourceRange SourceInfo::getRange() const { return Range; }
+
+std::string& SourceInfo::getText() { return Text; }
+
+SourceInfo& SourceInfo::setText(std::string &text) {
+  Text = text;
+  return *this;
 }
 
-std::string
-SourceInfo::getFullPath() {
-  return this->getDirectory() + "/" + this->getFilename();
+SourceInfo& SourceInfo::setText(const char *text) {
+  Text = text;
+  return *this;
 }
 
-std::string
-SourceInfo::getSource() { 
-  return this->Src;
+bool SourceInfo::operator==(const SourceInfo &other) const {
+  return Path == other.Path && Range == other.Range && Text == other.Text;
 }
 
-SourceRange 
-SourceInfo::getFunctionRange(const char *) {
-  SmallVector<std::string, 4> files;
-  files.push_back(this->getFullPath());
-  ArrayRef<std::string> filesArr(files);
-
-  errs() << files.size() << "\n";
-  errs() << this->CompileDB->getAllFiles().at(0) << "\n";
-
-  tooling::ClangTool tool(*(this->CompileDB), filesArr);
-
-  auto x = tooling::newFrontendActionFactory<FunctionRangeAction>();
-
-  tool.appendArgumentsAdjuster(tooling::getInsertArgumentAdjuster("-I/home/gkarlos/s/llvm/10/lib/clang/10.0.0/include", tooling::ArgumentInsertPosition::BEGIN));
-  
-  tool.run(x.get());
-  return SourceRange();
+bool SourceInfo::operator!=(const SourceInfo &other) const {
+  return !(*this == other);
 }
 
-// StringRef getFile() 
-// {
-
-// }
-
-
-
-// SourceRange
-// getFunctionDeclRange(Function *F) 
-// {
-
-// }
-
-// SourceRange
-// getInstructionStmtRange(Instruction *I) 
-// {
-
-// }
-
-// SourceRange
-// getStoreLhsRange(StoreInst *SI) 
-// {
-
-// }
-
-// SourceRange
-// getStoreRhsRange(StoreInst *SI) 
-// {
-
-// }
-
-
-// unsigned int
-// getNumStatementsAtline(unsigned int lineno) 
-// {
-
-// }
-
-
+void SourceInfo::splitPath() {
+  Filename = llvm::sys::path::filename(Path);
+  Directory = llvm::sys::path::parent_path(Path);
+}
 
 } // namespace kerma
