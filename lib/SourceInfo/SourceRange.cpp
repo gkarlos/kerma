@@ -10,7 +10,7 @@ SourceRange::SourceRange(SourceLoc start)
 {}
 
 SourceRange::SourceRange(SourceLoc start, SourceLoc end)
-: S(start), E(end)
+: S(start), E(end < start? start : end)
 {}
 
 SourceLoc & SourceRange::getStart() { return S; }
@@ -20,6 +20,8 @@ SourceLoc & SourceRange::getEnd() { return E; }
 bool SourceRange::isValid() const { return S.isValid(); }
 
 bool SourceRange::isInvalid() const { return S.isInvalid(); }
+
+bool SourceRange::isEmpty() const { return S == E; }
 
 bool SourceRange::operator==(const SourceRange &other) const {
   return  S == other.S && E == other.E;
@@ -38,5 +40,7 @@ llvm::raw_ostream & operator<<(llvm::raw_ostream &os, SourceRange &loc) {
   os << loc.S << "," << loc.E;
   return os;
 }
+
+const SourceRange SourceRange::Unknown(SourceLoc::Unknown);
 
 } // namespace kerma

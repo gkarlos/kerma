@@ -24,11 +24,17 @@ public:
   bool isValid() const;
   bool isInvalid() const;
 
+  /// Returns true if the end of the range is 
+  /// strictly greater than the start
+  bool isEmpty() const;
+
   bool operator==(const SourceRange& other) const;
   bool operator!=(const SourceRange& other) const;
 
   friend std::ostream & operator<<(std::ostream &os, const SourceRange &loc);
   friend llvm::raw_ostream & operator<<(llvm::raw_ostream &os, SourceRange &loc);
+
+  static const SourceRange Unknown;
 };
 
 } // kerma
