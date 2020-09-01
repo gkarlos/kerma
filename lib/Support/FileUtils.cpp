@@ -4,7 +4,7 @@
 
 namespace kerma {
 
-std::string readFileContents(const char *path) {
+std::string readTextFile(const char *path) {
   std::ifstream ifs(path);
   if (!ifs.good())
     throw std::runtime_error(std::string("Cannot read file ") + path);
