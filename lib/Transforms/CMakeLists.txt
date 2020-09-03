@@ -1,5 +1,5 @@
 set(MaterializeDims_SOURCES MaterializeDims.cpp)
-set(MaterializeIdx_SOURCES MaterializeDims.cpp)
+set(MaterializeIdx_SOURCES MaterializeIdx.cpp)
 
 ##===--------------------------------------------------------------------------
 ## Build standalone Opt plugins for each pass so tha we can easily test a 
@@ -34,7 +34,20 @@ target_link_libraries(MaterializeIdxPlugin DetectKernelsPlugin
                                            )
 
 ##===--------------------------------------------------------------------------
-## libAnalysis
+## TransformPlugin
+##===--------------------------------------------------------------------------
+add_library(TranformPlugin SHARED ${MaterializeDims_SOURCES} ${MaterializeIdx_SOURCES})
+target_compile_definitions(TranformPlugin PUBLIC -DLLVM_ENABLE_STATS KERMA_OPT_PLUGIN)
+target_include_directories(TranformPlugin PUBLIC ${KERMA_INCLUDE_DIR})
+set_target_properties(TranformPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
+target_link_libraries(TranformPlugin DetectKernelsPlugin
+                                     KermaNVVMOpt 
+                                     KermaBaseOpt 
+                                     KermaSupportOpt 
+                                     )
+
+##===--------------------------------------------------------------------------
+## libTransform
 ##===--------------------------------------------------------------------------
 add_library(Analysis SHARED ${MaterializeDims_SOURCES} ${MaterializeIdx_SOURCES})
 target_include_directories(Analysis PUBLIC ${KERMA_INCLUDE_DIR})
