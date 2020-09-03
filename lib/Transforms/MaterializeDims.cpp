@@ -144,9 +144,11 @@ bool isGridDimBuiltin(llvm::Function &F) {
   return llvm::demangle(F.getName()).find(nvvm::GridDim) != std::string::npos;
 }
 
-ConstantInt *createUnsignedInt(LLVMContext &context, unsigned int value) {
-  auto *ty = IntegerType::get(context, 32);
-  return ConstantInt::get(ty, value, false);
+namespace {
+  ConstantInt *createUnsignedInt(LLVMContext &context, unsigned int value) {
+    auto *ty = IntegerType::get(context, 32);
+    return ConstantInt::get(ty, value, false);
+  }
 }
 
 bool MaterializeDimsPass::analyzeKernel(llvm::Function &F) const {
@@ -163,13 +165,17 @@ bool MaterializeDimsPass::analyzeKernel(llvm::Function &F) const {
         
         auto *Callee = CI->getCalledFunction();
         auto DemangledCalleeName = llvm::demangle(Callee->getName());
-        
+
         if ( !isBlockDimBuiltin(*Callee) && !isGridDimBuiltin(*Callee))
           continue;
 
 #ifdef KERMA_OPT_PLUGIN
-        llvm::errs() << (isGridDimBuiltin(*Callee)? "  -grid.dim" : "  -block.dim") 
-                     << " call at line " << CI->getDebugLoc().getLine();
+        if ( CI->getDebugLoc())
+          llvm::errs() << (isGridDimBuiltin(*Callee)? "  -grid.dim" : "  -block.dim") 
+                    << " call at line " << CI->getDebugLoc().getLine();
+        else
+          llvm::errs() << (isGridDimBuiltin(*Callee)? "  -grid.dim" : "  -block.dim")
+                    << " call: " << *CI; 
 #endif
 
         if ( nvvm::GridDim.x == DemangledCalleeName ) {
