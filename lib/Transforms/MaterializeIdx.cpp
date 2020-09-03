@@ -161,6 +161,7 @@ bool MaterializeIdxPass::analyzeKernel(llvm::Function &F) const {
   for ( auto &BB : F) {
     for ( auto &I : BB) {
       if ( auto *CI = dyn_cast<CallInst>(&I)) {
+        
         auto *Callee = CI->getCalledFunction();
         auto DemangledCalleeName = llvm::demangle(Callee->getName());
 
@@ -168,9 +169,14 @@ bool MaterializeIdxPass::analyzeKernel(llvm::Function &F) const {
           continue;
 
 #ifdef KERMA_OPT_PLUGIN
-        llvm::errs() << (isBlockIdxBuiltin(*Callee)? "  -blockIdx" : "  -threadIdx") 
-                     << " call at line " << CI->getDebugLoc().getLine();
-#endif  
+        if ( CI->getDebugLoc())
+          llvm::errs() << (isBlockIdxBuiltin(*Callee)? "  -block.idx" : "  -thread.dim") 
+                    << " call at line " << CI->getDebugLoc().getLine();
+        else
+          llvm::errs() << (isBlockIdxBuiltin(*Callee)? "  -block.idx" : "  -thread.dim")
+                    << " call: " << *CI; 
+#endif
+
         if ( nvvm::BlockIdx.x == DemangledCalleeName ) {
           I.replaceAllUsesWith(createUnsignedInt(F.getContext(), this->Block.x));
         }
