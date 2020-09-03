@@ -13,6 +13,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/Pass.h>
 #include <llvm/Support/Error.h>
+#include <llvm/Support/CommandLine.h>
 #include <llvm/Demangle/Demangle.h>
 #include <iostream>
 #include <sstream>
@@ -142,9 +143,11 @@ bool isThreadIdxBuiltin(llvm::Function &F) {
   return llvm::demangle(F.getName()).find(nvvm::ThreadIdx) != std::string::npos;
 }
 
-ConstantInt *createUnsignedInt(LLVMContext &context, unsigned int value) {
-  auto *ty = IntegerType::get(context, 32);
-  return ConstantInt::get(ty, value, false);
+namespace {
+  ConstantInt *createUnsignedInt(LLVMContext &context, unsigned int value) {
+    auto *ty = IntegerType::get(context, 32);
+    return ConstantInt::get(ty, value, false);
+  }
 }
 
 bool MaterializeIdxPass::analyzeKernel(llvm::Function &F) const {
