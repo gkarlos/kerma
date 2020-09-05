@@ -1,4 +1,4 @@
-set(KermaCompile_SOURCES CompileDBAdjuster.cpp)
+set(KermaCompile_SOURCES CompilationAdjuster.cpp)
 
 add_library(KermaCompile SHARED ${KermaCompile_SOURCES})
 
