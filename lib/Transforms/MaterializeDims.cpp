@@ -154,6 +154,7 @@ namespace {
 bool MaterializeDimsPass::analyzeKernel(llvm::Function &F) const {
 
 #ifdef KERMA_OPT_PLUGIN
+  llvm::errs() << "Kerma-MaterializeDims: G:" << Grid << ", B:" << Block << "\n";
   llvm::errs() << "--Analyzing: " << llvm::demangle(F.getName()) << '\n';
 #endif
 
@@ -206,6 +207,9 @@ bool MaterializeDimsPass::analyzeKernel(llvm::Function &F) const {
     }
   }
 
+#ifdef KERMA_OPT_PLUGIN
+  llvm::errs() << "\n";
+#endif 
   return changes;
 }
 

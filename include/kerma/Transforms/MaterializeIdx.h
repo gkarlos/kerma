@@ -35,7 +35,7 @@ public:
   bool doInitialization(llvm::Module &M) override;
   bool doFinalization(llvm::Module &M) override;
   bool runOnFunction(llvm::Function &F) override;
-  void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
+  // void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
 
 public:
   bool hasTargetKernel() const;

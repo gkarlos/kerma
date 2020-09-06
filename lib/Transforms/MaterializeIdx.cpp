@@ -153,6 +153,7 @@ namespace {
 bool MaterializeIdxPass::analyzeKernel(llvm::Function &F) const {
 
 #ifdef KERMA_OPT_PLUGIN
+  llvm::errs() << "Kerma-MaterializeIdx: B:" << Block << ", T:" << Thread << "\n";
   llvm::errs() << "--Analyzing: " << llvm::demangle(F.getName()) << '\n';
 #endif
 
@@ -165,15 +166,15 @@ bool MaterializeIdxPass::analyzeKernel(llvm::Function &F) const {
         auto *Callee = CI->getCalledFunction();
         auto DemangledCalleeName = llvm::demangle(Callee->getName());
 
-        if ( !isBlockIdxBuiltin(*Callee) || !isThreadIdxBuiltin(*Callee))
+        if ( !isBlockIdxBuiltin(*Callee) && !isThreadIdxBuiltin(*Callee))
           continue;
 
 #ifdef KERMA_OPT_PLUGIN
         if ( CI->getDebugLoc())
-          llvm::errs() << (isBlockIdxBuiltin(*Callee)? "  -block.idx" : "  -thread.dim") 
+          llvm::errs() << (isBlockIdxBuiltin(*Callee)? "  -block.idx" : "  -thread.idx") 
                     << " call at line " << CI->getDebugLoc().getLine();
         else
-          llvm::errs() << (isBlockIdxBuiltin(*Callee)? "  -block.idx" : "  -thread.dim")
+          llvm::errs() << (isBlockIdxBuiltin(*Callee)? "  -block.idx" : "  -thread.idx")
                     << " call: " << *CI; 
 #endif
 
@@ -204,6 +205,9 @@ bool MaterializeIdxPass::analyzeKernel(llvm::Function &F) const {
     }
   }
 
+#ifdef KERMA_OPT_PLUGIN
+  llvm::errs() << "\n";
+#endif 
   return changes;
 }
 
