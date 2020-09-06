@@ -1,5 +1,5 @@
-#ifndef KERMA_COMPILE_COMPILE_DB_ADJUSTER_H
-#define KERMA_COMPILE_COMPILE_DB_ADJUSTER_H
+#ifndef KERMA_COMPILE_COMPILATION_ADJUSTER_H
+#define KERMA_COMPILE_COMPILATION_ADJUSTER_H
 
 #include "clang/Tooling/ArgumentsAdjusters.h"
 #include "clang/Tooling/Tooling.h"
