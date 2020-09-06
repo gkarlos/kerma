@@ -3,7 +3,8 @@
 
 namespace kerma {
 
-SourceRange::SourceRange()=default;
+SourceRange::SourceRange() : S(0), E(0)
+{}
 
 SourceRange::SourceRange(SourceLoc start)
 : S(start), E(start)

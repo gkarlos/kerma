@@ -24,7 +24,7 @@ public:
   bool isValid() const;
   bool isInvalid() const;
 
-  /// Returns true if the end of the range is 
+  /// Returns true if the end of the range is
   /// strictly greater than the start
   bool isEmpty() const;
 
