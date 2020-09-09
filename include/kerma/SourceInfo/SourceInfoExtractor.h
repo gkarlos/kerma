@@ -40,6 +40,10 @@ public:
   /// Get the ranges of a subset of the functions in the file
   /// Missing functions have no entry in the results
   FunctionRangeRes getFunctionRanges(std::vector<std::string>& Functions);
+
+  /// Get the range of the function. If the function is overloaded
+  /// all ranges are retrieved
+  FunctionRangeRes getFunctionRange(const std::string Function);
 };
 
 };

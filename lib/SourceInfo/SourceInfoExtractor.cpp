@@ -58,6 +58,9 @@ FunctionRangeRes SourceInfoExtractor::getFunctionRanges(std::vector<std::string>
   return FunRangeExtractor->getFunctionRanges(Functions);
 }
 
+FunctionRangeRes SourceInfoExtractor::getFunctionRange(const std::string Function) {
+  return FunRangeExtractor->getFunctionRange(Function);
+}
 
 
 };
