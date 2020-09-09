@@ -32,7 +32,7 @@ target_link_libraries(KermaSourceInfo PRIVATE
     LLVMMCParser
     LLVMOption
     LLVMProfileData
-    KermaCompile
-    KermaSupport
 )
+
+target_link_libraries(KermaSourceInfo PRIVATE KermaCompile KermaSupport)
 

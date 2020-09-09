@@ -3,7 +3,9 @@
 #include "kerma/SourceInfo/FunctionRangeExtractor.h"
 #include "kerma/SourceInfo/SourceLoc.h"
 #include "kerma/SourceInfo/SourceRange.h"
+#include "kerma/Support/CXXExtras.h"
 
+#include "clang/AST/DeclGroup.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/LLVM.h"
 #include "clang/Frontend/CompilerInstance.h"
@@ -11,13 +13,6 @@
 #include "clang/Tooling/CompilationDatabase.h"
 #include "clang/Tooling/Tooling.h"
 
-#include "clang/AST/DeclGroup.h"
-#include "clang/Basic/Diagnostic.h"
-#include "clang/Basic/SourceLocation.h"
-#include "clang/Basic/SourceManager.h"
-
-#include <clang/Basic/DiagnosticIDs.h>
-#include <clang/Basic/DiagnosticOptions.h>
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -92,6 +87,10 @@ namespace {
       FullSourceLoc FullLocation = Context.getFullLoc(F->getLocation());
       if ( FullLocation.isValid() && !SourceManager.isInSystemHeader(FullLocation)
                                   && SourceManager.isInMainFile(F->getLocation())) {
+
+        if ( !Targets.empty() && !inVector(F->getName(), Targets))
+          return true;
+
         SourceRange range = parseRange(F->getSourceRange(), SourceManager);
 
         auto val = Res.find(F->getName().str());
