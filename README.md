@@ -58,8 +58,21 @@ TODO: Add flags for each step
 
 ### Notes
 
-#### Clang Flags
-- `-fno-discard-value-names`
+#### Steps
+- Step 0
+     ```
+     clang++ -std=c++11 -c -S -g -O0 -emit-llvm -fno-discard-value-names      \
+             -Xclang -disable-O0-optnone                                      \
+             <file> -cuda-gpu-arch=<arch>
+     ```
 
+- Step 1
+     ```
+     opt -S -mem2reg -instnamer <file>.ll > <file>.1.ll
+     ```
+- Step 2
+     ```
+     opt -S -load <KermaTransformPlugin> --kerma-md --kerma-mi [<kerma-md options>] [<kerma-mi-options>] <file>.1.ll > <file>.2.ll
+     ```
 #### Passes to check
 - https://llvm.org/doxygen/TargetLibraryInfo_8h_source.html
