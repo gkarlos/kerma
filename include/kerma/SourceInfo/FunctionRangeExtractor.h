@@ -19,6 +19,33 @@ using FunctionRangeRes = std::unordered_map< std::string,
 /// for Functions in a file. Each extractor is associated with a
 /// file only and methods trigger an invocation of a ClangTool.
 class FunctionRangeExtractor {
+private:
+  class FunctionRangeActionFactory; // forward declaration
+
+private:
+  std::vector<std::string> SourcePaths;
+  clang::tooling::CompilationDatabase *CompileDB;
+  std::unique_ptr<clang::tooling::ClangTool> Tool;
+  std::unique_ptr<FunctionRangeActionFactory> ActionFactory;
+
+private:
+  unsigned int runTool() const;
+
+public:
+  FunctionRangeExtractor( std::string SourcePath, clang::tooling::CompilationDatabase *DB);
+
+  void getFunctionRanges(FunctionRangeRes& Res);
+  void getFunctionRanges(std::vector<std::string>& Targets, FunctionRangeRes &Res);
+  void getFunctionRange(const std::string& Target, FunctionRangeRes &Res);
+
+  /// Get the ranges of all functions in the file
+  const FunctionRangeRes& getFunctionRanges() const;
+
+  /// Get the ranges of specific function in the file
+  /// If Targets is empty, then the ranges of all the
+  /// functions in the file are returned
+  const FunctionRangeRes& getFunctionRanges(const std::vector<std::string> &Targets);
+  const FunctionRangeRes& getFunctionRange(const std::string& Target);
 
 private:
   /// Inner class used by the ClangTool of the FunctionRangeExtractor
@@ -55,31 +82,6 @@ private:
     /// ClangTool calls this on each run() invocation
     std::unique_ptr<clang::FrontendAction> create() override;
   };
-
-  std::vector<std::string> SourcePaths;
-  clang::tooling::CompilationDatabase *CompileDB;
-  std::unique_ptr<clang::tooling::ClangTool> Tool;
-  std::unique_ptr<FunctionRangeActionFactory> ActionFactory;
-
-private:
-  /// Run the tool and return the number of errors encountered
-  unsigned int runTool() const;
-
-public:
-  FunctionRangeExtractor( std::string SourcePath, clang::tooling::CompilationDatabase *DB);
-
-  void getFunctionRanges(FunctionRangeRes& Res);
-  void getFunctionRanges(std::vector<std::string>& Targets, FunctionRangeRes &Res);
-  void getFunctionRange(const std::string& Target, FunctionRangeRes &Res);
-
-  /// Get the ranges of all functions in the file
-  const FunctionRangeRes& getFunctionRanges() const;
-
-  /// Get the ranges of specific function in the file
-  /// If Targets is empty, then the ranges of all the
-  /// functions in the file are returned
-  const FunctionRangeRes& getFunctionRanges(const std::vector<std::string> &Targets);
-  const FunctionRangeRes& getFunctionRange(const std::string& Target);
 };
 
 } // namespace kerma
