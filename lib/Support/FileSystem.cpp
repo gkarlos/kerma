@@ -40,9 +40,7 @@ std::string get_cwd() {
 std::string get_realpath(const std::string& relpath) {
   char real[ PATH_MAX];
   char *res = realpath(relpath.c_str(), real);
-  if ( !res)
-    throw std::runtime_error("realpath() error");
-  return std::string(real);
+  return res? std::string(real) : "";
 }
 
 bool fileExists(const std::string& name) {
