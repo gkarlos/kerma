@@ -50,15 +50,15 @@ SourceInfoExtractor::SourceInfoExtractor( std::string SourcePath,
   this->FunRangeExtractor = std::make_unique<FunctionRangeExtractor>(RealSourcePath, CompileDB);
 }
 
-FunctionRangeRes SourceInfoExtractor::getAllFunctionRanges() {
+const FunctionRangeExtractor::Result & SourceInfoExtractor::getAllFunctionRanges() {
   return FunRangeExtractor->getFunctionRanges();
 }
 
-FunctionRangeRes SourceInfoExtractor::getFunctionRanges(std::vector<std::string>& Functions) {
+const FunctionRangeExtractor::Result & SourceInfoExtractor::getFunctionRanges(const std::vector<std::string>& Functions) {
   return FunRangeExtractor->getFunctionRanges(Functions);
 }
 
-FunctionRangeRes SourceInfoExtractor::getFunctionRange(const std::string Function) {
+const FunctionRangeExtractor::Result & SourceInfoExtractor::getFunctionRange(const std::string& Function) {
   return FunRangeExtractor->getFunctionRange(Function);
 }
 

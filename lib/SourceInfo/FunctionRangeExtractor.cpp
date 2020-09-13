@@ -34,10 +34,10 @@ namespace {
   private:
     ASTContext &Context;
     SourceManager &SourceManager;
-    FunctionRangeRes &Res;
+    FunctionRangeExtractor::Result &Res;
     std::vector<std::string> &Targets;
   public:
-    explicit FunctionRangeVisitor(CompilerInstance *CI, FunctionRangeRes &Res, std::vector<std::string> &Targets)
+    explicit FunctionRangeVisitor(CompilerInstance *CI, FunctionRangeExtractor::Result &Res, std::vector<std::string> &Targets)
     : Context(CI->getASTContext()), SourceManager(CI->getSourceManager()), Res(Res), Targets(Targets) {}
 
     bool VisitFunctionDecl(clang::FunctionDecl* F) {
@@ -67,7 +67,7 @@ namespace {
     CompilerInstance *CI;
 
   public:
-    explicit FunctionRangeConsumer(CompilerInstance* CI, FunctionRangeRes& Res, std::vector<std::string>& Targets)
+    explicit FunctionRangeConsumer(CompilerInstance* CI, FunctionRangeExtractor::Result &Res, std::vector<std::string>& Targets)
     : Visitor(CI, Res, Targets), CI(CI) {}
 
     virtual void HandleTranslationUnit(ASTContext &Context) override {
@@ -80,11 +80,11 @@ namespace {
 
   class FunctionRangeAction : public ASTFrontendAction {
   private:
-    FunctionRangeRes &Res;
+    FunctionRangeExtractor::Result& Res;
     std::vector<std::string>& Targets;
 
   public:
-    FunctionRangeAction(FunctionRangeRes &Res, std::vector<std::string>& Targets): Res(Res), Targets(Targets) {}
+    FunctionRangeAction(FunctionRangeExtractor::Result &Res, std::vector<std::string>& Targets): Res(Res), Targets(Targets) {}
 
     std::unique_ptr<ASTConsumer> CreateASTConsumer( CompilerInstance &CI, StringRef file) override {
       return std::make_unique<FunctionRangeConsumer>(&CI, Res, Targets);
@@ -95,7 +95,7 @@ namespace {
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-FunctionRangeExtractor::FunctionRangeActionFactory::FunctionRangeActionFactory() 
+FunctionRangeExtractor::FunctionRangeActionFactory::FunctionRangeActionFactory()
 : UserProvidedResults(nullptr)
 {}
 
@@ -137,12 +137,12 @@ FunctionRangeExtractor::FunctionRangeActionFactory::addTargets(const std::vector
 }
 
 FunctionRangeExtractor::FunctionRangeActionFactory&
-FunctionRangeExtractor::FunctionRangeActionFactory::useResults(FunctionRangeRes& ResContainer) {
-  UserProvidedResults = &ResContainer;
+FunctionRangeExtractor::FunctionRangeActionFactory::useResults(Result& Results) {
+  UserProvidedResults = &Results;
   return *this;
 }
 
-const FunctionRangeRes&
+const FunctionRangeExtractor::Result&
 FunctionRangeExtractor::FunctionRangeActionFactory::getResults() const {
   if ( UserProvidedResults)
     return *UserProvidedResults;
@@ -177,38 +177,38 @@ unsigned int FunctionRangeExtractor::runTool() const {
   return DiagnosticsConsumer.getNumErrors();
 }
 
-void FunctionRangeExtractor::getFunctionRanges(FunctionRangeRes& res) {
+void FunctionRangeExtractor::getFunctionRanges(Result& res) {
   ActionFactory->useResults(res);
   if ( auto err = runTool())
     throw std::runtime_error(std::to_string(err) + " errors while processing " + *SourcePaths.begin());
 }
 
-void FunctionRangeExtractor::getFunctionRanges(std::vector<std::string>& Targets, FunctionRangeRes& Res) {
+void FunctionRangeExtractor::getFunctionRanges(std::vector<std::string>& Targets, Result& Res) {
   ActionFactory->useTargets(Targets);
   ActionFactory->useResults(Res);
   if ( auto err = runTool())
     throw std::runtime_error(std::to_string(err) + " errors while processing " + *SourcePaths.begin());
 }
 
-void FunctionRangeExtractor::getFunctionRange(const std::string& Target, FunctionRangeRes &Res) {
+void FunctionRangeExtractor::getFunctionRange(const std::string& Target, Result &Res) {
   ActionFactory->useTarget(Target);
   ActionFactory->useResults(Res);
   if ( auto err = runTool())
     throw std::runtime_error(std::to_string(err) + " errors while processing " + *SourcePaths.begin());
 }
 
-const FunctionRangeRes& FunctionRangeExtractor::getFunctionRanges() const {
+const FunctionRangeExtractor::Result& FunctionRangeExtractor::getFunctionRanges() const {
   if ( auto err = runTool())
     throw std::runtime_error(std::to_string(err) + " errors while processing " + *SourcePaths.begin());
   return ActionFactory->getResults();
 }
 
-const FunctionRangeRes& FunctionRangeExtractor::getFunctionRanges(const std::vector<std::string> &Targets) {
+const  FunctionRangeExtractor::Result& FunctionRangeExtractor::getFunctionRanges(const std::vector<std::string> &Targets) {
   ActionFactory->useTargets(Targets);
   return getFunctionRanges();
 }
 
-const FunctionRangeRes& FunctionRangeExtractor::getFunctionRange(const std::string& Target) {
+const  FunctionRangeExtractor::Result& FunctionRangeExtractor::getFunctionRange(const std::string& Target) {
   ActionFactory->useTarget(Target);
   return getFunctionRanges();
 }

@@ -2,7 +2,8 @@ set(SourceInfo_SOURCES SourceLoc.cpp
                        SourceRange.cpp
                        SourceInfo.cpp
                        SourceInfoExtractor.cpp
-                       FunctionRangeExtractor.cpp)
+                       FunctionRangeExtractor.cpp
+                       Util.cpp)
 
 add_library(KermaSourceInfo SHARED ${SourceInfo_SOURCES})
 

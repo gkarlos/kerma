@@ -11,8 +11,8 @@
 
 namespace kerma {
 
-using FunctionRangeRes = std::unordered_map< std::string,
-                                             std::vector<kerma::SourceRange>>;
+// using FunctionRangeRes = std::unordered_map< std::string,
+//                                              std::vector<kerma::SourceRange>>;
 
 
 /// This class provides an API for extracting source code ranges
@@ -30,27 +30,30 @@ private:
   unsigned int runTool() const;
 
 public:
+  using Result = std::unordered_map< std::string, std::vector<kerma::SourceRange>>;
+
+public:
   FunctionRangeExtractor( std::string SourcePath, clang::tooling::CompilationDatabase *DB);
 
-  void getFunctionRanges(FunctionRangeRes& Res);
-  void getFunctionRanges(std::vector<std::string>& Targets, FunctionRangeRes &Res);
-  void getFunctionRange(const std::string& Target, FunctionRangeRes &Res);
+  void getFunctionRanges(Result& Res);
+  void getFunctionRanges(std::vector<std::string>& Targets, Result &Res);
+  void getFunctionRange(const std::string& Target, Result &Res);
 
   /// Get the ranges of all functions in the file
-  const FunctionRangeRes& getFunctionRanges() const;
+  const Result& getFunctionRanges() const;
 
   /// Get the ranges of specific function in the file
   /// If Targets is empty, then the ranges of all the
   /// functions in the file are returned
-  const FunctionRangeRes& getFunctionRanges(const std::vector<std::string> &Targets);
-  const FunctionRangeRes& getFunctionRange(const std::string& Target);
+  const Result& getFunctionRanges(const std::vector<std::string> &Targets);
+  const Result& getFunctionRange(const std::string& Target);
 
   private:
     /// Inner class used by the ClangTool of the FunctionRangeExtractor
     class FunctionRangeActionFactory : public clang::tooling::FrontendActionFactory {
     private:
-      FunctionRangeRes Results;
-      FunctionRangeRes *UserProvidedResults;
+      Result Results;
+      Result *UserProvidedResults;
       std::vector<std::string> Targets;
     public:
       FunctionRangeActionFactory();
@@ -66,13 +69,13 @@ public:
 
       /// Provide a container to fill with the results. It should be used before
       /// running a ClangTool that makes use of this factory.
-      FunctionRangeActionFactory& useResults(FunctionRangeRes& ResContainer);
+      FunctionRangeActionFactory& useResults(Result& ResContainer);
 
       /// Retrieve the Results container used. In general the results are
       /// relevant to the latest invocation of the ClangTool that produces
       /// them. i.e calling this method before running the tool will just
-      // return an empty result
-      const FunctionRangeRes& getResults() const;
+      /// return an empty result
+      const Result& getResults() const;
 
       /// ClangTool calls this on each run() invocation
       std::unique_ptr<clang::FrontendAction> create() override;
