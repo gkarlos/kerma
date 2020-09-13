@@ -38,14 +38,13 @@ namespace {
     std::vector<std::string> &Targets;
   public:
     explicit FunctionRangeVisitor(CompilerInstance *CI, FunctionRangeRes &Res, std::vector<std::string> &Targets)
-    : Context(CI->getASTContext()), SourceManager(CI->getSourceManager()), Res(Res), Targets(Targets)
-    {}
+    : Context(CI->getASTContext()), SourceManager(CI->getSourceManager()), Res(Res), Targets(Targets) {}
 
     bool VisitFunctionDecl(clang::FunctionDecl* F) {
       FullSourceLoc FullLocation = Context.getFullLoc(F->getLocation());
+
       if ( FullLocation.isValid() && !SourceManager.isInSystemHeader(FullLocation)
                                   && SourceManager.isInMainFile(F->getLocation())) {
-
         if ( !Targets.empty() && !inVector(F->getName(), Targets))
           return true;
 
@@ -62,8 +61,6 @@ namespace {
     }
   };
 
-  /// This consumer just iterates over all top level
-  /// declarations in a file
   class FunctionRangeConsumer : public ASTConsumer {
   private:
     FunctionRangeVisitor Visitor;
@@ -71,20 +68,11 @@ namespace {
 
   public:
     explicit FunctionRangeConsumer(CompilerInstance* CI, FunctionRangeRes& Res, std::vector<std::string>& Targets)
-    : Visitor(CI, Res, Targets), CI(CI)
-    {}
-
-    // bool HandleTopLevelDecl(DeclGroupRef D) override {
-    //   for ( auto& Decl : D)
-    //     Visitor.TraverseDecl(Decl);
-    //   return true;
-    // }
+    : Visitor(CI, Res, Targets), CI(CI) {}
 
     virtual void HandleTranslationUnit(ASTContext &Context) override {
       // Make the CompileInstance not print a summary of the errors
       CI->getDiagnosticOpts().ShowCarets = false;
-      // we can use ASTContext to get the TranslationUnitDecl, which is
-      // a single Decl that collectively represents the entire source file
       Visitor.TraverseDecl(Context.getTranslationUnitDecl());
     }
   };
@@ -96,8 +84,7 @@ namespace {
     std::vector<std::string>& Targets;
 
   public:
-    FunctionRangeAction(FunctionRangeRes &Res, std::vector<std::string>& Targets): Res(Res), Targets(Targets)
-    {}
+    FunctionRangeAction(FunctionRangeRes &Res, std::vector<std::string>& Targets): Res(Res), Targets(Targets) {}
 
     std::unique_ptr<ASTConsumer> CreateASTConsumer( CompilerInstance &CI, StringRef file) override {
       return std::make_unique<FunctionRangeConsumer>(&CI, Res, Targets);
@@ -108,8 +95,8 @@ namespace {
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-FunctionRangeExtractor::FunctionRangeActionFactory
-::FunctionRangeActionFactory() : UserProvidedResults(nullptr)
+FunctionRangeExtractor::FunctionRangeActionFactory::FunctionRangeActionFactory() 
+: UserProvidedResults(nullptr)
 {}
 
 const std::vector<std::string>&
@@ -126,7 +113,7 @@ FunctionRangeExtractor::FunctionRangeActionFactory::clearTargets() {
 FunctionRangeExtractor::FunctionRangeActionFactory&
 FunctionRangeExtractor::FunctionRangeActionFactory::useTarget(const std::string &Target) {
   Targets.clear();
-  Targets.push_back(Target);
+  Targets.push_back(Target.c_str());
   return *this;
 }
 
@@ -187,7 +174,6 @@ unsigned int FunctionRangeExtractor::runTool() const {
   ErrorCountConsumer DiagnosticsConsumer;
   Tool->setDiagnosticConsumer(&DiagnosticsConsumer);
   Tool->run(ActionFactory.get());
-  // std::cout << DiagConsumer.getNumErrors() << "/" << DiagConsumer.getNumWarnings() << '\n';
   return DiagnosticsConsumer.getNumErrors();
 }
 
