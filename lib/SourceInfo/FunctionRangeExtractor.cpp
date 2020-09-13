@@ -3,6 +3,7 @@
 #include "kerma/SourceInfo/FunctionRangeExtractor.h"
 #include "kerma/SourceInfo/SourceLoc.h"
 #include "kerma/SourceInfo/SourceRange.h"
+#include "kerma/SourceInfo/Util.h"
 #include "kerma/Support/CXXExtras.h"
 
 #include "clang/AST/DeclGroup.h"
@@ -24,49 +25,6 @@ using namespace clang;
 namespace kerma {
 
 namespace {
-  // Read a clang::SourceLocation string of the form 'line:col'
-  // into a kerma::SourceLoc. i.e simply parse 'line' and 'col'
-  // into integers and create the SourceLoc
-  void parseLoc( const std::string& LocStr, SourceLoc& Loc) {
-    std::string token;
-    std::vector<std::string> Values;
-    std::stringstream iss(LocStr);
-
-    while ( std::getline(iss, token, ':'))
-      Values.push_back(token);
-
-    Loc.set( std::stoul(Values[0]), std::stoul(Values[1]));
-  }
-
-  // Turn a clang::SourceRange to a kerma::SourceRange
-  //
-  // FIXME: A range string has the form:
-  //        <filename>:<line>:<col>[ <other>]
-  //                  ^             ^space
-  // At the moment we extract the substr between the first ':' and the
-  // first space. If no space exists, then until the end of the string.
-  // This may fail on malformed strings so a more robust way is needed.
-  SourceRange parseRange(const clang::SourceRange &Range, SourceManager& SourceManager) {
-    std::string BeginLocStr = Range.getBegin().printToString(SourceManager);
-    std::string EndLocStr = Range.getEnd().printToString(SourceManager);
-
-    BeginLocStr = BeginLocStr.substr(BeginLocStr.find(':') + 1,
-                                     BeginLocStr.find(' ') - (BeginLocStr.find(':')? BeginLocStr.find(':') + 1 : 0));
-    EndLocStr = EndLocStr.substr(EndLocStr.find(':') + 1,
-                                 EndLocStr.find(' ') - (EndLocStr.find(':')? EndLocStr.find(':') + 1 : 0));
-
-    SourceRange res;
-
-    try {
-      parseLoc(BeginLocStr, res.getStart());
-      parseLoc(EndLocStr, res.getEnd());
-    } catch (...) {
-      return SourceRange::Unknown;
-    }
-
-    return res;
-  }
-
   /// This visitor will record the source range of every function in a file
   /// Clang treats both defs and decls as decls. Basically def = decl + body.
   /// To distringuish the two when we encounter a decl without a body we insert
@@ -91,7 +49,7 @@ namespace {
         if ( !Targets.empty() && !inVector(F->getName(), Targets))
           return true;
 
-        SourceRange range = parseRange(F->getSourceRange(), SourceManager);
+        SourceRange range = kerma::readClangSrcRange(F->getSourceRange(), SourceManager);
 
         auto val = Res.find(F->getName().str());
 

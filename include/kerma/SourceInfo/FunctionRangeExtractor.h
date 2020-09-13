@@ -44,7 +44,7 @@ public:
   /// Get the ranges of specific function in the file
   /// If Targets is empty, then the ranges of all the
   /// functions in the file are returned
-  const FunctionRangeRes& getFunctionRanges(const std::vector<std::string> &Targets);
+  const FunctionRangeRes& getFunctionRanges(const std::vector<std::string> &Targets={});
   const FunctionRangeRes& getFunctionRange(const std::string& Target);
 
 private:
