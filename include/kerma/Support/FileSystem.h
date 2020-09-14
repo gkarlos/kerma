@@ -6,6 +6,7 @@
 #define KERMA_STATIC_ANALYSIS_FILESYSTEM_H
 
 #include <string>
+#include <memory>
 
 namespace kerma
 {
