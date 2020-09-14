@@ -100,9 +100,7 @@ FunctionRangeExtractor::FunctionRangeActionFactory::FunctionRangeActionFactory()
 {}
 
 const std::vector<std::string>&
-FunctionRangeExtractor::FunctionRangeActionFactory::getTargets() const {
-  return Targets;
-}
+FunctionRangeExtractor::FunctionRangeActionFactory::getTargets() const { return Targets; }
 
 FunctionRangeExtractor::FunctionRangeActionFactory&
 FunctionRangeExtractor::FunctionRangeActionFactory::clearTargets() {
