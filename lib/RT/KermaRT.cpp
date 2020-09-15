@@ -1,0 +1,1 @@
+__device__ __constant__ ___kerma_rt_linked___ = 0xFEEDC0DE;
