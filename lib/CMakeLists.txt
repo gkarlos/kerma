@@ -5,4 +5,5 @@ add_subdirectory(NVVM)
 add_subdirectory(Analysis)
 add_subdirectory(Transforms)
 add_subdirectory(SourceInfo)
+add_subdirectory(RT)
 
