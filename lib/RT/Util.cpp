@@ -9,8 +9,6 @@
 #include <llvm/Support/Casting.h>
 
 namespace kerma {
-namespace rt {
-
 using namespace llvm;
 
 const std::string KermaRTLinkedSymbol      = "___kerma_rt_linked___";
@@ -35,5 +33,14 @@ bool KermaRTLinked(const llvm::Module& M) {
 }
 
 
-} // namespace rt
+///
+/// Exceptions
+///
+
+KermaRTNotFoundError::KermaRTNotFoundError(const std::string& Msg) : std::runtime_error("KermaRT not found: " + Msg)
+{}
+
+KermaRTIRParseError::KermaRTIRParseError(const std::string& Msg) : std::runtime_error("KermaRT not parsed: " + Msg)
+{}
+
 } // namespace kerma
