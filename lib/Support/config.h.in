@@ -1,0 +1,2 @@
+#cmakedefine01 KERMA_TESTS_ENABLED
+#cmakedefine01 KERMA_EXAMPLES_ENABLED
