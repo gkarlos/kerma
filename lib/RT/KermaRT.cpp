@@ -1,1 +1,1 @@
-__device__ __constant__ ___kerma_rt_linked___ = 0xFEEDC0DE;
+__device__ __constant__ unsigned int ___kerma_rt_linked___ = 0xFEEDC0DE;
