@@ -45,6 +45,7 @@
 set(Support_SOURCES Demangle.cpp
                     FileSystem.cpp
                     FileUtils.cpp
+                    Parse.cpp
                     Version.cpp )
 
 add_library(KermaSupportOpt SHARED ${Support_SOURCES})
