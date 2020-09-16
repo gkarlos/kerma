@@ -1,7 +1,7 @@
 set(MaterializeDims_SOURCES MaterializeDims.cpp)
 set(MaterializeIdx_SOURCES MaterializeIdx.cpp)
-set(MemOpInstrumentation_SOURCES MemOpInstrumentation.cpp)
-set(LinkKermaRTDevice_SOURCES LinkKermaRTDevicePass.cpp)
+set(InstruMemOpPrintf_SOURCES InstruMemOpPrintf.cpp)
+set(LinkDeviceRT_SOURCES LinkDeviceRT.cpp)
 
 ##===--------------------------------------------------------------------------
 ## Build standalone Opt plugins for each pass so that we can easily test a
@@ -13,7 +13,7 @@ set(LinkKermaRTDevice_SOURCES LinkKermaRTDevicePass.cpp)
 ## MaterializeDims (plugin)
 ##===--------------------------------------------------------------------------
 add_library(MaterializeDimsPlugin SHARED ${MaterializeDims_SOURCES})
-target_compile_definitions(MaterializeDimsPlugin PUBLIC -DLLVM_ENABLE_STATS KERMA_OPT_PLUGIN)
+target_compile_definitions(MaterializeDimsPlugin PUBLIC KERMA_OPT_PLUGIN)
 target_include_directories(MaterializeDimsPlugin PUBLIC ${KERMA_INCLUDE_DIR})
 set_target_properties(MaterializeDimsPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
 target_link_libraries(MaterializeDimsPlugin DetectKernelsPlugin
@@ -38,11 +38,11 @@ target_link_libraries(MaterializeIdxPlugin DetectKernelsPlugin
 ##===--------------------------------------------------------------------------
 ## MemOpInstrumentation (plugin)
 ##===--------------------------------------------------------------------------
-add_library(MemOpInstrumentationPlugin SHARED ${MemOpInstrumentation_SOURCES})
-target_compile_definitions(MemOpInstrumentationPlugin PUBLIC -DLLVM_ENABLE_STATS KERMA_OPT_PLUGIN)
-target_include_directories(MemOpInstrumentationPlugin PUBLIC ${KERMA_INCLUDE_DIR})
-set_target_properties(MemOpInstrumentationPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
-target_link_libraries(MemOpInstrumentationPlugin
+add_library(InstruMemOpPrintf SHARED ${InstruMemOpPrintf_SOURCES})
+target_compile_definitions(InstruMemOpPrintf PUBLIC KERMA_OPT_PLUGIN)
+target_include_directories(InstruMemOpPrintf PUBLIC ${KERMA_INCLUDE_DIR})
+set_target_properties(InstruMemOpPrintf PROPERTIES COMPILE_FLAGS "-fno-rtti")
+target_link_libraries(InstruMemOpPrintf
                       DetectKernelsPlugin
                       KermaRTUtilsOpt)
 
@@ -51,8 +51,8 @@ target_link_libraries(MemOpInstrumentationPlugin
 ##===--------------------------------------------------------------------------
 add_library(KermaTransforms SHARED ${MaterializeDims_SOURCES}
                                    ${MaterializeIdx_SOURCES}
-                                   ${LinkKermaRTDevice_SOURCES}
-                                   ${MemOpInstrumentation_SOURCES})
+                                   ${LinkDeviceRT_SOURCES}
+                                   ${InstrMemOpPrintf_SOURCES})
 target_include_directories(KermaTransforms PUBLIC ${KERMA_INCLUDE_DIR})
 set_target_properties(KermaTransforms PROPERTIES COMPILE_FLAGS "-fno-rtti")
 target_link_libraries(KermaTransforms KermaAnalysis

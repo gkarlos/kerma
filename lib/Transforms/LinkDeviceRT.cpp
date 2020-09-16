@@ -1,4 +1,4 @@
-#include "kerma/Transforms/LinkKermaRTDevice.h"
+#include "kerma/Transforms/LinkDeviceRT.h"
 
 #include "kerma/RT/Util.h"
 #include "kerma/Support/Config.h"
@@ -13,11 +13,11 @@ using namespace llvm;
 
 namespace kerma {
 
-char LinkKermaRTDevicePass::ID = 5;
+char LinkDeviceRTPass::ID = 5;
 
-LinkKermaRTDevicePass::LinkKermaRTDevicePass() : ModulePass(ID) {}
+LinkDeviceRTPass::LinkDeviceRTPass() : ModulePass(ID) {}
 
-bool LinkKermaRTDevicePass::runOnModule(llvm::Module &M) {
+bool LinkDeviceRTPass::runOnModule(llvm::Module &M) {
   if ( M.getTargetTriple().find("nvptx") == std::string::npos)
     return false;
 
@@ -35,8 +35,8 @@ bool LinkKermaRTDevicePass::runOnModule(llvm::Module &M) {
   return true;
 }
 
-static RegisterPass<LinkKermaRTDevicePass> RegisterLinkKermaRTDevicePass(
-        /* pass arg  */   "kerma-link-rt-device",
+static RegisterPass<LinkDeviceRTPass> RegisterLinkDeviceRTPass(
+        /* pass arg  */   "kerma-link-device-rt",
         /* pass name */   "Link the Kerma device RT",
         /* modifies CFG */ false,
         /* analysis pass*/ false);
