@@ -1,6 +1,6 @@
 #include "kerma/RT/Util.h"
 
-#include "kerma/Transforms/LinkKermaRTDevice.h"
+#include "kerma/Transforms/LinkDeviceRT.h"
 
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IRReader/IRReader.h"
@@ -30,7 +30,7 @@ int main(int argc, const char** argv) {
   if ( !kerma::KermaRTLinked(*M)) {
     std::cout << "KermaRT is not linked with " << argv[1] << '\n';
     std::cout << "Linking...";
-    kerma::LinkKermaRTDevicePass LinkRTPass;
+    kerma::LinkDeviceRTPass LinkRTPass;
     try {
       LinkRTPass.runOnModule(*M);
     } catch ( std::runtime_error &e) {
