@@ -1,6 +1,7 @@
 set(MaterializeDims_SOURCES MaterializeDims.cpp)
 set(MaterializeIdx_SOURCES MaterializeIdx.cpp)
 set(InstruMemOpPrintf_SOURCES InstruMemOpPrintf.cpp)
+set(NormLoadsAndStores_SOURCES NormLoadsAndStores.cpp)
 set(LinkDeviceRT_SOURCES LinkDeviceRT.cpp)
 
 ##===--------------------------------------------------------------------------
@@ -36,15 +37,33 @@ target_link_libraries(MaterializeIdxPlugin DetectKernelsPlugin
                                            )
 
 ##===--------------------------------------------------------------------------
-## MemOpInstrumentation (plugin)
+## NormalizeLoadsAndStores (plugin)
 ##===--------------------------------------------------------------------------
-add_library(InstruMemOpPrintf SHARED ${InstruMemOpPrintf_SOURCES})
-target_compile_definitions(InstruMemOpPrintf PUBLIC KERMA_OPT_PLUGIN)
-target_include_directories(InstruMemOpPrintf PUBLIC ${KERMA_INCLUDE_DIR})
-set_target_properties(InstruMemOpPrintf PROPERTIES COMPILE_FLAGS "-fno-rtti")
-target_link_libraries(InstruMemOpPrintf
+add_library(NormLoadsAndStoresPlugin SHARED ${NormLoadsAndStores_SOURCES})
+target_compile_definitions(NormLoadsAndStoresPlugin PUBLIC KERMA_OPT_PLUGIN)
+target_include_directories(NormLoadsAndStoresPlugin PUBLIC ${KERMA_INCLUDE_DIR})
+set_target_properties(NormLoadsAndStoresPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
+
+##===--------------------------------------------------------------------------
+## InstruMemOpPrintf (plugin)
+##===--------------------------------------------------------------------------
+add_library(InstruMemOpPrintfPlugin SHARED ${InstruMemOpPrintf_SOURCES})
+target_compile_definitions(InstruMemOpPrintfPlugin PUBLIC KERMA_OPT_PLUGIN)
+target_include_directories(InstruMemOpPrintfPlugin PUBLIC ${KERMA_INCLUDE_DIR})
+set_target_properties(InstruMemOpPrintfPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
+target_link_libraries(InstruMemOpPrintfPlugin
+                      NormLoadsAndStoresPlugin
                       DetectKernelsPlugin
                       KermaRTUtilsOpt)
+
+
+
+add_library(LinkRT SHARED ${LinkDeviceRT_SOURCES})
+target_compile_definitions(LinkRT PUBLIC KERMA_OPT_PLUGIN)
+target_include_directories(LinkRT PUBLIC ${KERMA_INCLUDE_DIR})
+set_target_properties(LinkRT PROPERTIES COMPILE_FLAGS "-fno-rtti")
+target_link_libraries(LinkRT LLVMLinker)
+
 
 ##===--------------------------------------------------------------------------
 ## KermaTransforms
@@ -52,7 +71,8 @@ target_link_libraries(InstruMemOpPrintf
 add_library(KermaTransforms SHARED ${MaterializeDims_SOURCES}
                                    ${MaterializeIdx_SOURCES}
                                    ${LinkDeviceRT_SOURCES}
-                                   ${InstrMemOpPrintf_SOURCES})
+                                   ${InstrMemOpPrintf_SOURCES}
+                                   ${NormLoadsAndStoresPlugin_SOURCES})
 target_include_directories(KermaTransforms PUBLIC ${KERMA_INCLUDE_DIR})
 set_target_properties(KermaTransforms PROPERTIES COMPILE_FLAGS "-fno-rtti")
 target_link_libraries(KermaTransforms KermaAnalysis
