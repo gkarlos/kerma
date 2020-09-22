@@ -12,6 +12,9 @@ bool isKernelFunction(const llvm::Function &F);
 /// Check if a function is an NVVM intrinsic
 bool isNVVMIntrinsic(const llvm::Function &F);
 
+/// Check if a function is an NVVM atomic intrinsic
+bool isNVVMAtomic(const llvm::Function &F);
+
 } // namespace nvvm
 } // namespace kerma
 
