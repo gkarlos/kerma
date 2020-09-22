@@ -33,8 +33,11 @@ private:
   std::vector<llvm::Function*> Kernels;
 };
 
-
 std::unique_ptr<DetectKernelsPass> createDetectKernelsPass();
+
+
+/// Check if a function is a CUDA kernel
+bool isKerneFunction(const llvm::Function& F);
 
 } // end namespace kerma
 

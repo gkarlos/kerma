@@ -3,6 +3,7 @@
 #include "llvm/Pass.h"
 #include "llvm/PassSupport.h"
 #include "llvm/Support/CommandLine.h"
+#include <llvm/Support/Casting.h>
 #include <memory>
 #include <vector>
 
@@ -69,13 +70,29 @@ createDetectKernelsPass() {
   return std::make_unique<DetectKernelsPass>();
 }
 
-} // end namespace kerma
-
 namespace {
 
-static llvm::RegisterPass<kerma::DetectKernelsPass> RegisterDetectKernelsPass(/* pass arg  */    "kerma-detect-kernels", 
-                                                                 /* pass name */    "Detect kernel functions", 
-                                                                 /* modifies CFG */ false, 
+static llvm::RegisterPass<kerma::DetectKernelsPass> RegisterDetectKernelsPass(/* pass arg  */    "kerma-detect-kernels",
+                                                                 /* pass name */    "Detect kernel functions",
+                                                                 /* modifies CFG */ false,
                                                                  /* analysis pass*/ true);
 }
+
+
+bool isKerneFunction(const llvm::Function &F) {
+  NamedMDNode *MD = F.getParent()->getNamedMetadata("nvvm.annotations");
+  if(MD) {
+    for ( auto* MDNode : MD->operands()) {
+      if ( ValueAsMetadata *VAM = dyn_cast_or_null<ValueAsMetadata>(MDNode->getOperand(0).get()))
+        if ( Function *Fun = dyn_cast<Function>(VAM->getValue()))
+          if ( auto* MDStr = dyn_cast_or_null<MDString>(MDNode->getOperand(0).get()))
+            if ( MDStr->getString() == "kernel")
+              return Fun == &F;
+    }
+  }
+  return F.getCallingConv() == CallingConv::PTX_Kernel;
+}
+
+} // end namespace kerma
+
 
