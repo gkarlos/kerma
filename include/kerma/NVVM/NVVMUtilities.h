@@ -9,6 +9,9 @@ namespace nvvm {
 /// Check if a function is a CUDA Kernel
 bool isKernelFunction(const llvm::Function &F);
 
+/// Check if a function is an NVVM intrinsic
+bool isNVVMIntrinsic(const llvm::Function &F);
+
 } // namespace nvvm
 } // namespace kerma
 
