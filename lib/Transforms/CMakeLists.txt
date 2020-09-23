@@ -1,7 +1,8 @@
 set(MaterializeDims_SOURCES MaterializeDims.cpp)
 set(MaterializeIdx_SOURCES MaterializeIdx.cpp)
 set(InstruMemOpPrintf_SOURCES InstruMemOpPrintf.cpp)
-set(NormLoadsAndStores_SOURCES NormLoadsAndStores.cpp)
+set(CanonLoadsAndStores_SOURCES CanonLoadsAndStores.cpp)
+set(NormConstantGEPs_SOURCES NormConstantGEPs.cpp)
 set(LinkDeviceRT_SOURCES LinkDeviceRT.cpp)
 
 ##===--------------------------------------------------------------------------
@@ -37,12 +38,20 @@ target_link_libraries(MaterializeIdxPlugin DetectKernelsPlugin
                                            )
 
 ##===--------------------------------------------------------------------------
-## NormalizeLoadsAndStores (plugin)
+## CanonLoadsAndStores (plugin)
 ##===--------------------------------------------------------------------------
-add_library(NormLoadsAndStoresPlugin SHARED ${NormLoadsAndStores_SOURCES})
-target_compile_definitions(NormLoadsAndStoresPlugin PUBLIC KERMA_OPT_PLUGIN)
-target_include_directories(NormLoadsAndStoresPlugin PUBLIC ${KERMA_INCLUDE_DIR})
-set_target_properties(NormLoadsAndStoresPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
+add_library(CanonLoadsAndStoresPlugin SHARED ${CanonLoadsAndStores_SOURCES})
+target_compile_definitions(CanonLoadsAndStoresPlugin PUBLIC KERMA_OPT_PLUGIN)
+target_include_directories(CanonLoadsAndStoresPlugin PUBLIC ${KERMA_INCLUDE_DIR})
+set_target_properties(CanonLoadsAndStoresPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
+
+##===--------------------------------------------------------------------------
+## NormConstantGEPs (plugin)
+##===--------------------------------------------------------------------------
+add_library(NormConstantGEPsPlugin SHARED ${NormConstantGEPs_SOURCES})
+target_compile_definitions(NormConstantGEPsPlugin PUBLIC KERMA_OPT_PLUGIN)
+target_include_directories(NormConstantGEPsPlugin PUBLIC ${KERMA_INCLUDE_DIR})
+set_target_properties(NormConstantGEPsPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
 
 ##===--------------------------------------------------------------------------
 ## InstruMemOpPrintf (plugin)
@@ -52,8 +61,9 @@ target_compile_definitions(InstruMemOpPrintfPlugin PUBLIC KERMA_OPT_PLUGIN)
 target_include_directories(InstruMemOpPrintfPlugin PUBLIC ${KERMA_INCLUDE_DIR})
 set_target_properties(InstruMemOpPrintfPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
 target_link_libraries(InstruMemOpPrintfPlugin
-                      NormLoadsAndStoresPlugin
-                      DetectKernelsPlugin
+                      CanonLoadsAndStoresPlugin
+                      NormConstantGEPsPlugin
+                      KermaAnalysis
                       KermaRTUtilsOpt)
 
 
@@ -71,8 +81,9 @@ target_link_libraries(LinkRT LLVMLinker)
 add_library(KermaTransforms SHARED ${MaterializeDims_SOURCES}
                                    ${MaterializeIdx_SOURCES}
                                    ${LinkDeviceRT_SOURCES}
-                                   ${InstrMemOpPrintf_SOURCES}
-                                   ${NormLoadsAndStoresPlugin_SOURCES})
+                                   ${InstruMemOpPrintf_SOURCES}
+                                   ${CanonLoadsAndStores_SOURCES}
+                                   ${NormConstantGEPs_SOURCES})
 target_include_directories(KermaTransforms PUBLIC ${KERMA_INCLUDE_DIR})
 set_target_properties(KermaTransforms PROPERTIES COMPILE_FLAGS "-fno-rtti")
 target_link_libraries(KermaTransforms KermaAnalysis
