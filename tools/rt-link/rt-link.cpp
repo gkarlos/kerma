@@ -1,5 +1,6 @@
 #include "kerma/RT/Util.h"
 
+#include "kerma/Support/Config.h"
 #include "kerma/Transforms/LinkDeviceRT.h"
 
 #include "llvm/IR/LLVMContext.h"
@@ -7,7 +8,7 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/CommandLine.h"
 
-#include <iostream>
+#include <llvm/Support/raw_ostream.h>
 #include <stdexcept>
 
 using namespace llvm;
@@ -18,6 +19,9 @@ namespace {
   cl::opt<bool> OptDump("dump", cl::cat(RTLinkOptions), cl::desc("Dump the resulting IR to stdout"), cl::init(false));
 }
 
+static std::string KermaDeviceRT = std::string(KERMA_HOME) + "/lib/RT/libKermaDeviceRT.bc";
+static std::string CuMemtraceDeviceRT = std::string(KERMA_HOME) + "/lib/RT/libKermaDeviceRTCuMemtrace.bc";
+
 int main(int argc, const char** argv) {
   llvm::cl::HideUnrelatedOptions(RTLinkOptions);
   llvm::cl::ParseCommandLineOptions(argc, argv);
@@ -25,25 +29,29 @@ int main(int argc, const char** argv) {
   LLVMContext Context;
   SMDiagnostic Err;
 
-  auto M = llvm::parseIRFile(argv[1], Err, Context);
+  llvm::errs() << "Input: " << OptInput.getValue() << '\n';
+
+  auto M = llvm::parseIRFile(OptInput.getValue(), Err, Context);
 
   if ( !kerma::KermaRTLinked(*M)) {
-    std::cout << "KermaRT is not linked with " << argv[1] << '\n';
-    std::cout << "Linking...";
+    llvm::errs() << "KermaRT is not linked with " << OptInput.getValue() << "\nLinking...";
+
     kerma::LinkDeviceRTPass LinkRTPass;
+    LinkRTPass.useDeviceRT(CuMemtraceDeviceRT);
+
     try {
       LinkRTPass.runOnModule(*M);
     } catch ( std::runtime_error &e) {
-      std::cout << '\n' << e.what() << '\n';
+      llvm::errs() << '\n' << e.what() << '\n';
       return 1;
     }
-    std::cout << (kerma::KermaRTLinked(*M)? " Success " : " Error ") << '\n';
+    llvm::errs() << (kerma::KermaRTLinked(*M)? " Success " : " Error ") << '\n';
   } else {
-    std::cout << "KermaRT is already linked\n";
+    llvm::errs() << "KermaRT is already linked\n";
   }
 
   if ( OptDump.getValue())
-    M->print(llvm::errs(), nullptr);
+    M->print(llvm::outs(), nullptr);
 
   return 0;
 }
