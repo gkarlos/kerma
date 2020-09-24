@@ -6,9 +6,13 @@
 namespace kerma {
 
 class LinkDeviceRTPass : public llvm::ModulePass {
+private:
+  std::string DeviceRTPath;
 public:
   static char ID;
   LinkDeviceRTPass();
+  LinkDeviceRTPass(std::string RTPath);
+  void useDeviceRT(std::string RTPath);
   bool runOnModule(llvm::Module &M) override;
 };
 

@@ -15,18 +15,23 @@ namespace kerma {
 
 char LinkDeviceRTPass::ID = 5;
 
-LinkDeviceRTPass::LinkDeviceRTPass() : ModulePass(ID) {}
+static std::string KermaDeviceRT = std::string(KERMA_HOME) + "/lib/RT/libKermaDeviceRT.bc";
+
+LinkDeviceRTPass::LinkDeviceRTPass() : LinkDeviceRTPass(KermaDeviceRT) {}
+LinkDeviceRTPass::LinkDeviceRTPass(std::string RTPath) : DeviceRTPath(RTPath), ModulePass(ID) {}
+
+void LinkDeviceRTPass::useDeviceRT(std::string RTPath) { DeviceRTPath = RTPath; }
 
 bool LinkDeviceRTPass::runOnModule(llvm::Module &M) {
   if ( M.getTargetTriple().find("nvptx") == std::string::npos)
     return false;
 
-  std::string LibRT = std::string(KERMA_HOME) + "/lib/RT/libKermaRT.bc";
+  // std::string LibRT = std::string(KERMA_HOME) + "/lib/RT/libKermaRT.bc";
 
   SMDiagnostic Err;
   LLVMContext &Ctx = M.getContext();
 
-  auto LibRTModule = llvm::parseIRFile(LibRT, Err, Ctx);
+  auto LibRTModule = llvm::parseIRFile(DeviceRTPath, Err, Ctx);
   if ( LibRTModule.get() == nullptr)
     throw KermaRTIRParseError(Err.getMessage());
 
