@@ -70,12 +70,12 @@ bool SimplifyGEPPass::simplifyGEP(llvm::GetElementPtrInst *GEP) {
         }
         Sum = llvm::BinaryOperator::Create(BinaryOperator::Add,
                                            SO1, GO1,
-                                           PtrOp->getName()+".sum",GEP);
+                                           PtrOp->getName() + ".sum" , GEP);
       }
 
       // Update the GEP in place if possible.
       if (Src->getNumOperands() == 2) {
-        assert(isa<GetElementPtrInst>(Src) && "Inline GEP detect. Maybe NormConstantGEPs wasn't run!");
+        assert(isa<GetElementPtrInst>(Src) && "Inline GEP detected. Maybe NormConstantGEPs wasn't run!");
 
         GEP->setOperand(0, Src->getOperand(0));
         GEP->setOperand(1, Sum);
