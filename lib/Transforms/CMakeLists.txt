@@ -3,6 +3,7 @@ set(MaterializeIdx_SOURCES MaterializeIdx.cpp)
 set(InstruMemOpPrintf_SOURCES InstruMemOpPrintf.cpp)
 set(CanonLoadsAndStores_SOURCES CanonLoadsAndStores.cpp)
 set(NormConstantGEPs_SOURCES NormConstantGEPs.cpp)
+set(SimplifyGEP_SOURCES SimplifyGEP.cpp)
 set(LinkDeviceRT_SOURCES LinkDeviceRT.cpp)
 
 ##===--------------------------------------------------------------------------
@@ -53,6 +54,16 @@ target_compile_definitions(NormConstantGEPsPlugin PUBLIC KERMA_OPT_PLUGIN)
 target_include_directories(NormConstantGEPsPlugin PUBLIC ${KERMA_INCLUDE_DIR})
 set_target_properties(NormConstantGEPsPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
 
+
+##===--------------------------------------------------------------------------
+## SimplifyGEP (plugin)
+##===--------------------------------------------------------------------------
+add_library(SimplifyGEPPlugin SHARED ${SimplifyGEP_SOURCES})
+target_compile_definitions(SimplifyGEPPlugin PUBLIC KERMA_OPT_PLUGIN)
+target_include_directories(SimplifyGEPPlugin PUBLIC ${KERMA_INCLUDE_DIR})
+set_target_properties(SimplifyGEPPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
+
+
 ##===--------------------------------------------------------------------------
 ## InstruMemOpPrintf (plugin)
 ##===--------------------------------------------------------------------------
@@ -60,13 +71,12 @@ add_library(InstruMemOpPrintfPlugin SHARED ${InstruMemOpPrintf_SOURCES})
 target_compile_definitions(InstruMemOpPrintfPlugin PUBLIC KERMA_OPT_PLUGIN)
 target_include_directories(InstruMemOpPrintfPlugin PUBLIC ${KERMA_INCLUDE_DIR})
 set_target_properties(InstruMemOpPrintfPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
-target_link_libraries(InstruMemOpPrintfPlugin
+target_link_libraries(InstruMemOpPrintfPlugin PUBLIC
                       CanonLoadsAndStoresPlugin
+                      SimplifyGEPPlugin
                       NormConstantGEPsPlugin
                       KermaAnalysis
                       KermaRTUtilsOpt)
-
-
 
 add_library(LinkRT SHARED ${LinkDeviceRT_SOURCES})
 target_compile_definitions(LinkRT PUBLIC KERMA_OPT_PLUGIN)
@@ -83,7 +93,8 @@ add_library(KermaTransforms SHARED ${MaterializeDims_SOURCES}
                                    ${LinkDeviceRT_SOURCES}
                                    ${InstruMemOpPrintf_SOURCES}
                                    ${CanonLoadsAndStores_SOURCES}
-                                   ${NormConstantGEPs_SOURCES})
+                                   ${NormConstantGEPs_SOURCES}
+                                   ${SimplifyGEP_SOURCES})
 target_include_directories(KermaTransforms PUBLIC ${KERMA_INCLUDE_DIR})
 set_target_properties(KermaTransforms PROPERTIES COMPILE_FLAGS "-fno-rtti")
 target_link_libraries(KermaTransforms KermaAnalysis
