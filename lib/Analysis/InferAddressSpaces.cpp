@@ -58,7 +58,7 @@ const AddressSpace::Ty& getAddressSpaceForArgValue(Argument& Arg, bool isKernelA
     // TODO: 1. Kernel argument placement is (in general) arch specific. So far,
     //          for CC >= 2.x, arguments are copied to constant addr space.
     //       2. For CC >= 2.x the argument limit is 4KB. It is unclear where
-    //          the arguments are copied it they exceed that. Assume global.
+    //          the arguments are copied if they exceed that. Assume global.
     //
     // https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#function-parameters
     return AddressSpace::Constant;
