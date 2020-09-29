@@ -9,10 +9,10 @@
 
 #include <mutex>
 
+using namespace llvm;
+
 namespace kerma {
 namespace nvvm {
-
-using namespace llvm;
 
 namespace {
   typedef std::map<std::string, std::vector<unsigned> > key_val_pair_t;
@@ -93,9 +93,10 @@ namespace {
     retval = (*annotationCache)[m][gv][prop][0];
     return true;
   }
-} // namespace
+} // anonymous namespace
 
-/// https://github.com/llvm/llvm-project/blob/master/llvm/lib/Target/NVPTX/NVPTXUtilities.cpp
+// https://github.com/llvm/llvm-project/blob/master/llvm/lib/Target/NVPTX/NVPTXUtilities.cpp
+
 bool isKernelFunction(const llvm::Function &F) {
   unsigned x = 0;
   bool retval = findOneNVVMAnnotation(&F, "kernel", x);
@@ -145,6 +146,45 @@ bool isNVVMAtomic(const llvm::Function &F) {
       return true;
     default:
       return false;
+  }
+}
+
+bool isAtomic(const std::string& F) {
+  return std::find(Atomics.begin(), Atomics.end(), F) != Atomics.end()
+      || std::find(cc35::Atomics.begin(), cc35::Atomics.end(), F) != cc35::Atomics.end()
+      || std::find(cc60::Atomics.begin(), cc60::Atomics.end(), F) != cc60::Atomics.end()
+      || std::find(cc70::Atomics.begin(), cc70::Atomics.end(), F) != cc70::Atomics.end()
+      || std::find(cc80::Atomics.begin(), cc80::Atomics.end(), F) != cc80::Atomics.end();
+}
+
+bool isIntrinsic(const std::string& F) {
+  return std::find(Atomics.begin(), Intrinsics.end(), F) != Intrinsics.end()
+      || std::find(cc35::Intrinsics.begin(), cc35::Intrinsics.end(), F) != cc35::Intrinsics.end()
+      || std::find(cc60::Intrinsics.begin(), cc60::Intrinsics.end(), F) != cc60::Intrinsics.end()
+      || std::find(cc70::Intrinsics.begin(), cc70::Intrinsics.end(), F) != cc70::Intrinsics.end()
+      || std::find(cc80::Intrinsics.begin(), cc80::Intrinsics.end(), F) != cc80::Intrinsics.end();
+}
+
+const AddressSpace::Ty& getAddressSpaceWithId(int id) {
+  switch(id) {
+    case 1:
+      return AddressSpace::Global;
+    case 3:
+      return AddressSpace::Shared;
+    case 4:
+      return AddressSpace::Constant;
+    case 5:
+      return AddressSpace::Local;
+    case 0:
+      return AddressSpace::Generic;
+    case 2:
+      return AddressSpace::Internal;
+    case 7:
+      return AddressSpace::LocalOrGlobal;
+    case 8:
+      return AddressSpace::LocalOrShared;
+    default:
+      return AddressSpace::Unknown;
   }
 }
 
