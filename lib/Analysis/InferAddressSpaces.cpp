@@ -1,6 +1,6 @@
 #include "kerma/Analysis/InferAddressSpaces.h"
 #include "kerma/Analysis/DetectKernels.h"
-#include "kerma/NVVM/NVVM.h"
+#include "kerma/NVVM/NVVMUtilities.h"
 #include <llvm/Demangle/Demangle.h>
 #include <llvm/IR/Argument.h>
 #include <llvm/IR/DerivedTypes.h>
@@ -28,7 +28,8 @@ static Value* stripCasts(Value *V) {
 
 using AddressSpaceCacheTy = std::map<Value *, AddressSpace::Ty const *>;
 
-//TODO: ManagedStatic
+//TODO: 1. ManagedStatic
+//TODO: 2. Per module caches
 static AddressSpaceCacheTy AddressSpaceCache;
 
 
