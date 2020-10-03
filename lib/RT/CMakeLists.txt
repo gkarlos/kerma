@@ -19,12 +19,23 @@ target_include_directories(KermaRTUtils PUBLIC ${KERMA_INCLUDE_DIR})
 set_target_properties(KermaRTUtils PROPERTIES COMPILE_FLAGS "-fno-rtti")
 
 ##
-## TODO Create .bc of KermaRT
+## TODO Create .bc of DeviceRT
 ##
-add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/libKermaRT.bc"
-    COMMAND $ENV{LLVM_HOME}/bin/clang++ -x cuda --cuda-device-only -c -emit-llvm --cuda-gpu-arch=sm_30 -o libKermaRT.bc "${CMAKE_CURRENT_SOURCE_DIR}/KermaRT.cpp"
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/libKermaDeviceRT.bc"
+    COMMAND $ENV{LLVM_HOME}/bin/clang++ -S -x cuda --cuda-device-only -emit-llvm --cuda-gpu-arch=sm_52 -o libKermaDeviceRT.bc -std=c++11 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceRT.cpp"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-    DEPENDS KermaRT.cpp
+    DEPENDS DeviceRT.cpp
     VERBATIM
     )
-add_custom_target(KermaRT ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/libKermaRT.bc")
+add_custom_target(KermaRT ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/libKermaDeviceRT.bc")
+
+##
+## TODO Create .bc of DeviceRTMemTrace
+##
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/libKermaDeviceRTCuMemtrace.bc"
+    COMMAND $ENV{LLVM_HOME}/bin/clang++ -S -x cuda --cuda-device-only -emit-llvm --cuda-gpu-arch=sm_52 -o libKermaDeviceRTCuMemtrace.bc -std=c++11 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceRTCuMemtrace.cpp"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    DEPENDS DeviceRTCuMemtrace.cpp
+    VERBATIM
+    )
+add_custom_target(CuMemtraceRT ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/libKermaDeviceRTCuMemtrace.bc")
