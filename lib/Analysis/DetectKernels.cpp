@@ -34,7 +34,7 @@ bool DetectKernelsPass::runOnModule(llvm::Module &M) {
     for ( const MDNode *node : NVVMMD->operands()) {
       if ( ValueAsMetadata *VAM = dyn_cast_or_null<ValueAsMetadata>(node->getOperand(0).get())) {
         if ( Function *F = dyn_cast<Function>(VAM->getValue())) {
-          // function with nvvm.annotation = kernel, 
+          // function with nvvm.annotation = kernel,
           // but lets be more robust:
           //  check if Arg 1 of the MDNode is the string kernel
           if ( MDString *MDStr = dyn_cast_or_null<MDString>(node->getOperand(1).get())) {
@@ -46,6 +46,10 @@ bool DetectKernelsPass::runOnModule(llvm::Module &M) {
     }
   }
   return false;
+}
+
+bool DetectKernelsPass::isKernel(Function *F) {
+  return std::find(Kernels.begin(), Kernels.end(), F)  != Kernels.end();
 }
 
 /// This method is invoked when the pass is run in

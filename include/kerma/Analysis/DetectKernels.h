@@ -29,6 +29,9 @@ public:
   /// container.
   void getKernels(std::vector<llvm::Function*> &Kernels);
 
+  /// Check if a function is a kernel
+  bool isKernel(llvm::Function *F);
+
 private:
   std::vector<llvm::Function*> Kernels;
 };
