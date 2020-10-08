@@ -1,4 +1,5 @@
 #include "kerma/NVVM/NVVMUtilities.h"
+#include "kerma/NVVM/NVVM.h"
 
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
@@ -186,6 +187,10 @@ const AddressSpace::Ty& getAddressSpaceWithId(int id) {
     default:
       return AddressSpace::Unknown;
   }
+}
+
+bool isNVVMSymbol(const std::string &Symbol) {
+  return std::find(nvvm::Symbols.begin(), nvvm::Symbols.end(), Symbol) != nvvm::Symbols.end();
 }
 
 } // namespace nvvm

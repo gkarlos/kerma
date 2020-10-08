@@ -26,6 +26,8 @@ bool isAtomic(const std::string& F);
 /// Check if the name names a CUDA intrinsic function
 bool isIntrinsic(const std::string& F);
 
+bool isNVVMSymbol(const std::string& Symbol);
+
 } // namespace nvvm
 } // namespace kerma
 

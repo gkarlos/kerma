@@ -7,6 +7,8 @@
 namespace kerma {
 namespace nvvm {
 
+extern const std::vector<std::string> Symbols;
+
 struct {
 private:
   // const std::string v_ = "__cuda_builtin_gridDim_t";

@@ -13,6 +13,15 @@ constexpr const AddressSpace::Ty AddressSpace::Local("local", 5);
 constexpr const AddressSpace::Ty AddressSpace::LocalOrGlobal("localOrGlobal", 7);
 constexpr const AddressSpace::Ty AddressSpace::LocalOrShared("localOrShared", 8);
 
+
+const std::vector<std::string> Symbols = {
+  "threadIdx",
+  "blockIdx",
+  "blockDim",
+  "gridDim"
+};
+
+
 namespace cc30 {
   const std::vector<std::string> Atomics{
     "atomicAdd(int*, int)",
