@@ -1,6 +1,8 @@
 #include "kerma/Transforms/SimplifyGEP.h"
+#include <llvm/ADT/SmallSet.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Function.h>
 #include <llvm/IR/GetElementPtrTypeIterator.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Operator.h>
@@ -25,7 +27,7 @@ static bool shouldMergeGEPs(GEPOperator &GEP, GEPOperator &Src) {
   return true;
 }
 
-char SimplifyGEPPass::ID = 9;
+char SimplifyGEPPass::ID = 1;
 const char * SimplifyGEPPass::PASS_NAME = "Kerma: Simplify GEP instructions/operands";
 
 SimplifyGEPPass::SimplifyGEPPass() : FunctionPass(ID) {}
@@ -100,6 +102,7 @@ bool SimplifyGEPPass::simplifyGEP(llvm::GetElementPtrInst *GEP) {
         ? GetElementPtrInst::CreateInBounds(Src->getPointerOperand(), indices, GEP->getName()+".new", GEP)
         : GetElementPtrInst::Create(cast<PointerType>(Src->getPointerOperand()->getType())->getElementType(),
                                     Src->getPointerOperand(), indices, GEP->getName()+".new", GEP);
+      GEPNew->setMetadata("dbg", GEP->getMetadata("dbg"));
       GEP->replaceAllUsesWith(GEPNew);
 
       // GEP is now dead. Mark for deletion
@@ -108,6 +111,29 @@ bool SimplifyGEPPass::simplifyGEP(llvm::GetElementPtrInst *GEP) {
     }
   }
   return false;
+}
+
+/// Poor mans DCE but only for GEP instructions
+/// Returns true if something was deleted, and
+/// otherwise false
+static bool eliminateDeadGEPs(llvm::Function &F) {
+  SmallSet<Instruction*, 32> DeleteSet;
+
+  bool deletedSomething = false;
+
+  for ( auto& BB : F)
+    for ( auto& I : BB)
+      if ( auto *GEP = dyn_cast<GetElementPtrInst>(&I))
+        if ( I.getNumUses() == 0)
+          DeleteSet.insert(&I);
+
+  if ( !DeleteSet.empty()) {
+    deletedSomething = true;
+    for ( auto* I : DeleteSet)
+      I->eraseFromParent();
+  }
+
+  return deletedSomething;
 }
 
 bool SimplifyGEPPass::runOnFunction(llvm::Function &F) {
@@ -125,12 +151,13 @@ bool SimplifyGEPPass::runOnFunction(llvm::Function &F) {
         if ( auto *GEP = dyn_cast<GetElementPtrInst>(&I))
           changed |= simplifyGEP(GEP);
 
-    if ( !DeleteSet.empty()) {
-      for ( auto *I : DeleteSet)
-        I->eraseFromParent();
-      DeleteSet.clear();
-      changed = true;
-    }
+    // if ( !DeleteSet.empty()) {
+    //   for ( auto *I : DeleteSet)
+    //     I->eraseFromParent();
+    //   DeleteSet.clear();
+    //   changed = true;
+    // }
+    eliminateDeadGEPs(F);
 
   } while ( changed);
 
@@ -143,9 +170,9 @@ namespace {
 
 static RegisterPass<SimplifyGEPPass> RegisterSimplifyGEPPass(
         /* arg      */ "kerma-simplify-gep",
-        /* name     */ SimplifyGEPPass::PASS_NAME,
+        /* name     */ "Simplify GEP instructions/operands",
         /* CFGOnly  */ false,
-        /* analysis */ false);
+        /* analysis */ true);
 
 } // anonymous namespace
 

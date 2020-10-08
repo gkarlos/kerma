@@ -28,7 +28,7 @@ public:
   static const char* PASS_NAME;
 
   SimplifyGEPPass();
-  virtual bool runOnFunction(llvm::Function& F) override;
+  bool runOnFunction(llvm::Function& F) override;
 };
 
 } // namespace kerma
