@@ -21,80 +21,37 @@ using namespace llvm;
 
 namespace kerma {
 
+static struct  {
+  unsigned MaxSupportedIndices = 2;
+} Opts;
 
-bool isPtrToStruct(Type *Ty) {
-  if ( auto *Ptr = dyn_cast<PointerType>(Ty))
-    return Ptr->getElementType()->isStructTy();
-  return false;
-}
 
-bool isStructOfScalars(StructType *Ty) {
-  for ( auto *ElemTy : Ty->elements())
-    if ( ElemTy->isAggregateType() || ElemTy->isPointerTy())
-      return false;
-  return true;
-}
+// Err
+enum StructErr : unsigned {
+  ER_None=0,
+  ER_NestedStructNotSimple,
+  ER_StructFieldIsPtr,
+  ER_StructFieldIsArr
+};
 
-bool isSimpleStruct(StructType *Ty) {
-  for ( unsigned int i = 0; i < Ty->getNumElements(); ++i) {
-    auto *FieldTy = Ty->getElementType(i);
-    if ( FieldTy->isPointerTy() || FieldTy->isAggregateType())
-      return false;
+static const std::string StructErrToStr(StructErr Err) {
+  switch ( Err) {
+    case ER_NestedStructNotSimple:
+      return "\'Inner struct must only contain scalars\'";
+    case ER_StructFieldIsArr:
+    case ER_StructFieldIsPtr:
+      return "\'Struct fields cannot be arrays\'";
+    default:
+      return "";
   }
-  return true;
 }
-
-Type* stripPointers(Type *Ty) {
-  Type *tmp = Ty;
-  while ( auto *ptr = dyn_cast<PointerType>(tmp))
-    tmp = ptr->getElementType();
-  return tmp;
-}
-
-Type *stripArrayNest(Type *Ty) {
-  Type *tmp = Ty;
-  while ( auto *ptr = dyn_cast<ArrayType>(tmp))
-    tmp = ptr->getElementType();
-  return tmp;
-}
-
-unsigned int getMaxIndicesForType( Type *Ty) {
-  if ( !Ty && !isa<PointerType>(Ty) && !isa<ArrayType>(Ty))
-    return 0;
-
-  Type *tmp = Ty;
-  unsigned int MaxIndices = 0;
-
-  while ( true) {
-    // array of pointers
-    if ( auto *ElemPtrTy = dyn_cast<PointerType>(tmp)) {
-      MaxIndices++;
-      tmp = ElemPtrTy->getElementType();
-    }
-    else if ( auto *ElemArrTy = dyn_cast<ArrayType>(tmp)) {
-      MaxIndices++;
-      tmp = ElemArrTy->getElementType();
-    }
-    else {
-      break;
-    }
-
-  }
-  return MaxIndices;
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 TypeCheckError::TypeCheckError(const std::string& Msg, unsigned int Line, unsigned int Col)
 : Msg(Msg), Line(Line), Col(Col) {}
 
-const std::string
-TypeCheckError::getMsg() { return Msg; }
+const std::string TypeCheckError::getMsg() { return Msg; }
 
-const std::string
-TypeCheckError::getMsgWithSourceLoc() {
+const std::string TypeCheckError::getMsgWithSourceLoc() {
   if ( Line && Col) {
     return Msg + " at " + std::to_string(Line) + ':' + std::to_string(Col);
   }
@@ -103,21 +60,6 @@ TypeCheckError::getMsgWithSourceLoc() {
   }
   else {
     return Msg;
-  }
-}
-
-static const std::string StructErrToStr(StructErr Err) {
-  switch ( Err) {
-    case ER_NestedStructNotSimple:
-      return " \'Inner struct must only contain scalars\'";
-    case ER_StructFieldHasUnsupportedDims:
-      return " \'Struct field has unsupported dimensions (>" + std::to_string(TypeCheck::MaxSupportedIndices) + ")\'";
-    case ER_StructFieldIsPtrToUnsupportedStruct:
-      return " \'Struct field is pointer to unsupported struct\'";
-    case ER_StructFieldIsArrOfUnsupportedStructs:
-      return " \'Struct field is array of unsupported structs\'";
-    default:
-      return "";
   }
 }
 
@@ -155,23 +97,20 @@ TypeCheckError TypeCheckError::getUnsupportedDimensions(CallInst& CI, unsigned i
 TypeCheckError TypeCheckError::getUnsupportedStruct(GlobalVariable &GV, StructErr Err) {
   assert(Err);
 
-  std::string msg = "Unsupported struct type in global";
+  std::string msg = "Unsupported struct type in global ";
   if ( !GV.getName().empty())
-    msg += " (" + GV.getName().str() + ')';
+    msg += "(" + GV.getName().str() + ") ";
   msg += StructErrToStr(Err);
   auto *MD = findMDForGlobal(&GV);
   return TypeCheckError(msg, MD? MD->getLine() : 0);
 }
 
-TypeCheckError TypeCheckError::getUnsupportedStruct(llvm::Argument &Arg, StructErr Err) {
+TypeCheckError TypeCheckError::getUnsupportedStruct(Argument &Arg, StructErr Err) {
   assert(Err);
-
   std::string msg = "Unsupported struct type in arg #" + std::to_string(Arg.getArgNo());
   if ( !Arg.getName().empty())
-    msg += " (" + Arg.getName().str() + ')';
-
+    msg += " (" + Arg.getName().str() + ") ";
   msg += StructErrToStr(Err);
-
   auto *MD = findMDForArgument(&Arg);
   return TypeCheckError(msg, MD? MD->getLine() : 0);
 }
@@ -179,7 +118,7 @@ TypeCheckError TypeCheckError::getUnsupportedStruct(llvm::Argument &Arg, StructE
 TypeCheckError TypeCheckError::getUnsupportedStruct(AllocaInst& AI, StructErr Err) {
   std::string msg = "Unsupported struct type in local variable";
   if ( !AI.getName().empty())
-    msg += " (" + AI.getName().str() + ')';
+    msg += " (" + AI.getName().str() + ") ";
   msg += StructErrToStr(Err);
   auto *MD = findMDForAlloca(&AI);
   return TypeCheckError(msg, MD? MD->getLine() : 0);
@@ -191,79 +130,17 @@ TypeCheckError TypeCheckError::getUnsupportedStruct(CallInst& CI, StructErr Err)
   return TypeCheckError(msg, DL? DL->getLine() : 0);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-char TypeCheckerPass::ID = 11;
-
-TypeCheckerPass::TypeCheckerPass() : ModulePass(ID) {}
-
-void
-TypeCheckerPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
-  AU.setPreservesAll();
-  AU.addRequired<DetectKernelsPass>();
-}
-
-
-SmallVector<TypeCheckError, 32> TypeCheckerPass::getErrors() { return Errors; }
-
-void TypeCheckerPass::dumpErrors() {
-  if ( Errors.empty())
-    llvm::errs() << "\n[Typechecker] Pass!" << "\n";
-  else {
-    llvm::errs() << "\n[Typechecker] Found " << Errors.size() << " errors\n";
-    for ( auto& Err : Errors) {
-      llvm::errs() << " - " << Err.getMsgWithSourceLoc() << "\n";
-    }
-  }
-}
-
-bool TypeCheckerPass::moduleTypechecks() { return Errors.empty(); }
-
-void TypeCheckerPass::typecheckGlobals(Module& M) {
-  for ( auto& Global : M.globals()) {
-    if ( auto* GV = dyn_cast<GlobalVariable>(&Global)) {
-      if ( !nvvm::isNVVMSymbol(GV->getName())) {
-        auto *GVTy = GV->getType()->getElementType();
-
-        if ( GVTy->isPointerTy() || GVTy->isArrayTy()) {
-          if ( auto MaxIndices = getMaxIndicesForType(GVTy); MaxIndices > TypeCheck::MaxSupportedIndices)
-            Errors.push_back(TypeCheckError::getUnsupportedDimensions(*GV, MaxIndices));
-
-          // pointer/array is max 2D. Now check the element type
-          else if (auto *ElemTy = isa<PointerType>(GVTy)? stripPointers(GVTy) : stripArrayNest(GVTy);
-              ElemTy->isStructTy()) {
-            if ( auto Err = typecheckStruct(dyn_cast<StructType>(ElemTy)))
-              Errors.push_back(TypeCheckError::getUnsupportedStruct(*GV, Err));
-          }
-        }
-
-        else if ( GVTy->isStructTy())
-          if ( auto Err = typecheckStruct(dyn_cast<StructType>(GVTy)))
-            Errors.push_back(TypeCheckError::getUnsupportedStruct(*GV, Err));
-      }
-    }
-  }
-}
-
-StructErr TypeCheckerPass::typecheckStruct(StructType *Ty) {
+// Util
+static StructErr typecheckStruct(StructType *Ty) {
 
   for ( unsigned int i = 0; i < Ty->getNumElements(); ++i) {
     auto *FieldTy = Ty->getElementType(i);
 
     // pointer/array in struct
-    if ( FieldTy->isPointerTy() || FieldTy->isArrayTy()) {
-      if ( getMaxIndicesForType(FieldTy) > TypeCheck::MaxSupportedIndices)
-        return ER_StructFieldHasUnsupportedDims;
-
-      auto *ElemTy = isa<PointerType>(FieldTy)? stripPointers(FieldTy)
-                                              : stripArrayNest(FieldTy);
-
-      // pointer/array to struct -> Must only be simple
-      if ( ElemTy->isStructTy() && !isSimpleStruct(dyn_cast<StructType>(ElemTy)))
-        return FieldTy->isPointerTy()? ER_StructFieldIsPtrToUnsupportedStruct
-                                     : ER_StructFieldIsArrOfUnsupportedStructs;
-    }
+    if ( FieldTy->isPointerTy())
+      return ER_StructFieldIsPtr;
+    if ( FieldTy->isArrayTy())
+      return ER_StructFieldIsArr;
 
     // struct in struct
     if ( FieldTy->isStructTy() && !isSimpleStruct(dyn_cast<StructType>(FieldTy)))
@@ -273,7 +150,8 @@ StructErr TypeCheckerPass::typecheckStruct(StructType *Ty) {
   return ER_None;
 }
 
-void TypeCheckerPass::typecheckKernelArgs(llvm::Function& Kernel) {
+static bool typecheckKernelArgs(llvm::Function& Kernel, SmallVectorImpl<TypeCheckError>& Errors) {
+  auto pre = Errors.size();
 
   for ( auto& Arg : Kernel.args()) {
 
@@ -281,12 +159,13 @@ void TypeCheckerPass::typecheckKernelArgs(llvm::Function& Kernel) {
 
     // pointer/array argument
     if ( ArgTy->isPointerTy() || ArgTy->isArrayTy()) {
-      if ( auto MaxIndices = getMaxIndicesForType(ArgTy); MaxIndices > TypeCheck::MaxSupportedIndices)
+      if (auto MaxIndices = getMaxIndicesForType(ArgTy);
+          MaxIndices > Opts.MaxSupportedIndices)
         Errors.push_back(TypeCheckError::getUnsupportedDimensions(Arg, MaxIndices));
 
       // pointer/array is max 2D. Now check the element type
-      else if (auto *ElemTy = isa<PointerType>(ArgTy)? stripPointers(ArgTy) : stripArrayNest(ArgTy);
-          ElemTy->isStructTy()) {
+      else if (auto* ElemTy = isa<PointerType>(ArgTy)? stripPointers(ArgTy) : stripArrayNest(ArgTy);
+               ElemTy->isStructTy()) {
         if ( auto Err = typecheckStruct(dyn_cast<StructType>(ElemTy)))
           Errors.push_back(TypeCheckError::getUnsupportedStruct(Arg, Err));
       }
@@ -301,9 +180,13 @@ void TypeCheckerPass::typecheckKernelArgs(llvm::Function& Kernel) {
         Errors.push_back(TypeCheckError::getUnsupportedStruct(Arg, Err));
     }
   }
+
+  return Errors.size() > pre;
 }
 
-void TypeCheckerPass::typecheckKernelLocals(llvm::Function& Kernel) {
+static bool typecheckKernelLocals( Function& Kernel, SmallVectorImpl<TypeCheckError>& Errors) {
+  auto pre = Errors.size();
+
   for ( auto& BB : Kernel) {
     for ( auto& I : BB) {
       if ( auto *AI = dyn_cast<AllocaInst>(&I)) {
@@ -311,9 +194,11 @@ void TypeCheckerPass::typecheckKernelLocals(llvm::Function& Kernel) {
         auto *AllocatedTy = AI->getAllocatedType();
 
         if ( AllocatedTy->isArrayTy()) { // local array
-          if ( auto MaxIndices = getMaxIndicesForType(AllocatedTy); MaxIndices > TypeCheck::MaxSupportedIndices)
+          if (auto MaxIndices = getMaxIndicesForType(AllocatedTy);
+              MaxIndices > Opts.MaxSupportedIndices)
             Errors.push_back(TypeCheckError::getUnsupportedDimensions(*AI, MaxIndices));
-          else if ( auto *ElemTy = stripArrayNest(AI->getAllocatedType()); ElemTy->isStructTy())
+          else if ( auto *ElemTy = stripArrayNest(AI->getAllocatedType());
+                    ElemTy->isStructTy())
             if ( auto Err = typecheckStruct(dyn_cast<StructType>(ElemTy)))
               Errors.push_back(TypeCheckError::getUnsupportedStruct(*AI, Err));
         }
@@ -327,7 +212,7 @@ void TypeCheckerPass::typecheckKernelLocals(llvm::Function& Kernel) {
         if ( Callee->getName().equals("malloc")) { // malloc result
           for ( auto *U : CI->users()) {
             if ( auto *BitCast = dyn_cast<BitCastInst>(U)) {
-              if ( auto MaxIndices = getMaxIndicesForType(BitCast->getDestTy()); MaxIndices > TypeCheck::MaxSupportedIndices)
+              if ( auto MaxIndices = getMaxIndicesForType(BitCast->getDestTy()); MaxIndices > Opts.MaxSupportedIndices)
                 Errors.push_back(TypeCheckError::getUnsupportedDimensions(*CI, MaxIndices));
               else if ( auto *ElemTy = stripArrayNest(BitCast->getDestTy()); ElemTy->isStructTy())
                 if ( auto Err = typecheckStruct(dyn_cast<StructType>(ElemTy)))
@@ -338,21 +223,141 @@ void TypeCheckerPass::typecheckKernelLocals(llvm::Function& Kernel) {
       }
     }
   }
+  return Errors.size() > pre;
 }
 
-void TypeCheckerPass::typecheckKernels(Module& M) {
-  auto Kernels = getAnalysis<DetectKernelsPass>().getKernels();
+// API
+bool isPtrToStruct(Type *Ty) {
+  if ( auto *Ptr = dyn_cast<PointerType>(Ty))
+    return Ptr->getElementType()->isStructTy();
+  return false;
+}
 
-  for ( auto *Kernel : Kernels) {
-    typecheckKernelArgs(*Kernel);
-    typecheckKernelLocals(*Kernel);
+bool isStructOfScalars(StructType *Ty) {
+  for ( auto *ElemTy : Ty->elements())
+    if ( ElemTy->isAggregateType() || ElemTy->isVectorTy() || ElemTy->isPointerTy())
+      return false;
+  return true;
+}
+
+bool isSimpleStruct(StructType *Ty) {
+  for ( unsigned int i = 0; i < Ty->getNumElements(); ++i) {
+    auto *FieldTy = Ty->getElementType(i);
+    if ( FieldTy->isPointerTy() || FieldTy->isAggregateType())
+      return false;
+  }
+  return true;
+}
+
+Type* stripPointers(Type *Ty) {
+  Type *tmp = Ty;
+  while ( auto *ptr = dyn_cast<PointerType>(tmp))
+    tmp = ptr->getElementType();
+  return tmp;
+}
+
+Type *stripArrayNest(Type *Ty) {
+  Type *tmp = Ty;
+  while ( auto *ptr = dyn_cast<ArrayType>(tmp))
+    tmp = ptr->getElementType();
+  return tmp;
+}
+
+unsigned int getMaxIndicesForType( Type *Ty) {
+  // if ( !Ty && !isa<PointerType>(Ty) && !isa<ArrayType>(Ty))
+  //   return 0;
+
+  Type *tmp = Ty;
+  unsigned int MaxIndices = 0;
+
+  while ( true) {
+    // array of pointers
+    if ( auto *ElemPtrTy = dyn_cast<PointerType>(tmp)) {
+      MaxIndices++;
+      tmp = ElemPtrTy->getElementType();
+    }
+    else if ( auto *ElemArrTy = dyn_cast<ArrayType>(tmp)) {
+      MaxIndices++;
+      tmp = ElemArrTy->getElementType();
+    }
+    else {
+      break;
+    }
+
+  }
+  return MaxIndices;
+}
+
+bool typecheckGlobals(Module& M, llvm::SmallVectorImpl<TypeCheckError>& Errors) {
+  auto pre = Errors.size();
+
+  for ( auto& Global : M.globals()) {
+    if ( auto* GV = dyn_cast<GlobalVariable>(&Global)) {
+
+      if ( nvvm::isNVVMSymbol(GV->getName()))
+        continue;
+
+      // All globals are pointers, get the element type
+      auto *GVTy = GV->getType()->getElementType();
+
+      if ( GVTy->isPointerTy() || GVTy->isArrayTy()) {
+        if (auto MaxIndices = getMaxIndicesForType(GVTy);
+            MaxIndices > Opts.MaxSupportedIndices)
+          Errors.push_back(TypeCheckError::getUnsupportedDimensions(*GV, MaxIndices));
+
+        // pointer/array is max 2D. Now check the element type
+        else if (auto *ElemTy = isa<PointerType>(GVTy)? stripPointers(GVTy) : stripArrayNest(GVTy);
+                 ElemTy->isStructTy()) {
+          if ( auto Err = typecheckStruct(dyn_cast<StructType>(ElemTy)))
+            Errors.push_back(TypeCheckError::getUnsupportedStruct(*GV, Err));
+        }
+      }
+
+      else if ( GVTy->isStructTy())
+        if ( auto Err = typecheckStruct(dyn_cast<StructType>(GVTy)))
+          Errors.push_back(TypeCheckError::getUnsupportedStruct(*GV, Err));
+    }
+  }
+  return Errors.size() > pre;
+}
+
+bool typecheckKernel(llvm::Function& F, llvm::SmallVectorImpl<TypeCheckError>& Errors) {
+  return typecheckKernelArgs(F, Errors)
+      || typecheckKernelLocals(F, Errors);
+}
+
+// Pass
+char TypeCheckerPass::ID = 11;
+
+TypeCheckerPass::TypeCheckerPass() : ModulePass(ID) {}
+
+SmallVector<TypeCheckError, 32> TypeCheckerPass::getErrors() { return Errors; }
+
+bool TypeCheckerPass::moduleTypechecks() { return Errors.empty(); }
+
+void TypeCheckerPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
+  AU.setPreservesAll();
+  AU.addRequired<DetectKernelsPass>();
+}
+
+void TypeCheckerPass::dumpErrors() {
+  if ( Errors.empty())
+    llvm::errs() << "\n[Typechecker] Pass!" << "\n";
+  else {
+    llvm::errs() << "\n[Typechecker] Found " << Errors.size() << " errors\n";
+    for ( auto& Err : Errors) {
+      llvm::errs() << " - " << Err.getMsgWithSourceLoc() << "\n";
+    }
   }
 }
 
 bool
 TypeCheckerPass::runOnModule(llvm::Module &M) {
-  typecheckKernels(M);
-  typecheckGlobals(M);
+  Errors.clear();
+  typecheckGlobals(M, Errors);
+  for ( auto Kernel : getAnalysis<DetectKernelsPass>().getKernels() )
+    typecheckKernel(*Kernel, Errors);
+
 #ifdef KERMA_OPT_PLUGIN
   dumpErrors();
 #endif
