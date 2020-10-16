@@ -11,7 +11,7 @@
 
 namespace kerma {
 
-std::string demangleFn(llvm::Function &f) 
+std::string demangleFn(const llvm::Function &f)
 {
 #if LLVM_VERSION_MAJOR < 9
   int status;
@@ -26,14 +26,12 @@ std::string demangleFn(llvm::Function &f)
 #endif
 }
 
-std::string demangleFnWithoutArgs(llvm::Function &f)
+std::string demangleFnWithoutArgs(const llvm::Function &f)
 {
-  std::string demangledName = kerma::demangleFn(f); //llvm::demangle(std::string(f->getName().str()));
-  
+  std::string demangledName = kerma::demangleFn(f);
   if ( auto argstart = demangledName.find('(')) {
     demangledName = demangledName.substr(0, argstart);
   }
-
   return demangledName;
 }
 
