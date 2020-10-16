@@ -127,3 +127,13 @@ bool DeviceFunctionInliner::runOnModule(Module& M) {
   return false;
 }
 
+
+namespace {
+
+static llvm::RegisterPass<kerma::DeviceFunctionInliner> RegisterDeviceFunctionInliner(
+                                        /* pass arg  */    "kerma-dev-inline",
+                                        /* pass name */    "Inline device functions",
+                                        /* modifies CFG */ false,
+                                        /* analysis pass*/ false);
+}
+
