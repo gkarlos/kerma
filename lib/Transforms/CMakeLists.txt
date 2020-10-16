@@ -1,105 +1,43 @@
+
+set(Canonicalize_SOURCES Canonicalize/BreakConstantGEP.cpp
+                         Canonicalize/Canonicalizer.cpp
+                         Canonicalize/GepifyMem.cpp
+                         Canonicalize/SimplifyGEP.cpp)
 set(MaterializeDims_SOURCES MaterializeDims.cpp)
 set(MaterializeIdx_SOURCES MaterializeIdx.cpp)
 set(InstruMemOpPrintf_SOURCES InstruMemOpPrintf.cpp)
-set(CanonLoadsAndStores_SOURCES CanonLoadsAndStores.cpp)
-set(NormConstantGEPs_SOURCES NormConstantGEPs.cpp)
-set(SimplifyGEP_SOURCES SimplifyGEP.cpp)
 set(LinkDeviceRT_SOURCES LinkDeviceRT.cpp)
 
 ##===--------------------------------------------------------------------------
-## Build standalone Opt plugins for each pass so that we can easily test a
-## specific pass in opt. It is important that these libraries are not linked
-## with any LLVM libraries to avoid duplicate cmdline opts errors in Opt
+## KermaTransforms (plugin)
 ##===--------------------------------------------------------------------------
-
-##===--------------------------------------------------------------------------
-## MaterializeDims (plugin)
-##===--------------------------------------------------------------------------
-add_library(MaterializeDimsPlugin SHARED ${MaterializeDims_SOURCES})
-target_compile_definitions(MaterializeDimsPlugin PUBLIC KERMA_OPT_PLUGIN)
-target_include_directories(MaterializeDimsPlugin PUBLIC ${KERMA_INCLUDE_DIR})
-set_target_properties(MaterializeDimsPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
-target_link_libraries(MaterializeDimsPlugin DetectKernelsPlugin
-                                            KermaNVVMOpt
-                                            KermaBaseOpt
-                                            KermaSupportOpt
-                                            )
-
-##===--------------------------------------------------------------------------
-## MaterializeIdx (plugin)
-##===--------------------------------------------------------------------------
-add_library(MaterializeIdxPlugin SHARED ${MaterializeIdx_SOURCES})
-target_compile_definitions(MaterializeIdxPlugin PUBLIC KERMA_OPT_PLUGIN)
-target_include_directories(MaterializeIdxPlugin PUBLIC ${KERMA_INCLUDE_DIR})
-set_target_properties(MaterializeIdxPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
-target_link_libraries(MaterializeIdxPlugin DetectKernelsPlugin
-                                           KermaNVVMOpt
-                                           KermaBaseOpt
-                                           KermaSupportOpt
-                                           )
-
-##===--------------------------------------------------------------------------
-## CanonLoadsAndStores (plugin)
-##===--------------------------------------------------------------------------
-add_library(CanonLoadsAndStoresPlugin SHARED ${CanonLoadsAndStores_SOURCES})
-target_compile_definitions(CanonLoadsAndStoresPlugin PUBLIC KERMA_OPT_PLUGIN)
-target_include_directories(CanonLoadsAndStoresPlugin PUBLIC ${KERMA_INCLUDE_DIR})
-set_target_properties(CanonLoadsAndStoresPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
-
-##===--------------------------------------------------------------------------
-## NormConstantGEPs (plugin)
-##===--------------------------------------------------------------------------
-add_library(NormConstantGEPsPlugin SHARED ${NormConstantGEPs_SOURCES})
-target_compile_definitions(NormConstantGEPsPlugin PUBLIC KERMA_OPT_PLUGIN)
-target_include_directories(NormConstantGEPsPlugin PUBLIC ${KERMA_INCLUDE_DIR})
-set_target_properties(NormConstantGEPsPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
-
-
-##===--------------------------------------------------------------------------
-## SimplifyGEP (plugin)
-##===--------------------------------------------------------------------------
-add_library(SimplifyGEPPlugin SHARED ${SimplifyGEP_SOURCES})
-target_compile_definitions(SimplifyGEPPlugin PUBLIC KERMA_OPT_PLUGIN)
-target_include_directories(SimplifyGEPPlugin PUBLIC ${KERMA_INCLUDE_DIR})
-set_target_properties(SimplifyGEPPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
-
-
-##===--------------------------------------------------------------------------
-## InstruMemOpPrintf (plugin)
-##===--------------------------------------------------------------------------
-add_library(InstruMemOpPrintfPlugin SHARED ${InstruMemOpPrintf_SOURCES})
-target_compile_definitions(InstruMemOpPrintfPlugin PUBLIC KERMA_OPT_PLUGIN)
-target_include_directories(InstruMemOpPrintfPlugin PUBLIC ${KERMA_INCLUDE_DIR})
-set_target_properties(InstruMemOpPrintfPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
-target_link_libraries(InstruMemOpPrintfPlugin PUBLIC
-                      CanonLoadsAndStoresPlugin
-                      SimplifyGEPPlugin
-                      NormConstantGEPsPlugin
-                      KermaAnalysis
-                      KermaRTUtilsOpt)
-
-add_library(LinkRT SHARED ${LinkDeviceRT_SOURCES})
-target_compile_definitions(LinkRT PUBLIC KERMA_OPT_PLUGIN)
-target_include_directories(LinkRT PUBLIC ${KERMA_INCLUDE_DIR})
-set_target_properties(LinkRT PROPERTIES COMPILE_FLAGS "-fno-rtti")
-target_link_libraries(LinkRT LLVMLinker)
-
+add_library(KermaTransformsPlugin SHARED ${Canonicalize_SOURCES}
+                                         ${MaterializeDims_SOURCES}
+                                         ${MaterializeIdx_SOURCES}
+                                         ${InstruMemOpPrintf_SOURCES})
+target_include_directories(KermaTransformsPlugin PUBLIC ${KERMA_INCLUDE_DIR})
+target_compile_definitions(KermaTransformsPlugin PUBLIC KERMA_OPT_PLUGIN)
+set_target_properties(KermaTransformsPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
+target_link_libraries(KermaTransformsPlugin KermaAnalysisPlugin
+                                            KermaBase
+                                            KermaNVVM
+                                            KermaUtilsPlugin
+                                            KermaRTUtils)
 
 ##===--------------------------------------------------------------------------
 ## KermaTransforms
 ##===--------------------------------------------------------------------------
-add_library(KermaTransforms SHARED ${MaterializeDims_SOURCES}
+add_library(KermaTransforms SHARED ${Canonicalize_SOURCES}
+                                   ${MaterializeDims_SOURCES}
                                    ${MaterializeIdx_SOURCES}
-                                   ${LinkDeviceRT_SOURCES}
                                    ${InstruMemOpPrintf_SOURCES}
-                                   ${CanonLoadsAndStores_SOURCES}
-                                   ${NormConstantGEPs_SOURCES}
-                                   ${SimplifyGEP_SOURCES})
+                                   ${LinkDeviceRT_SOURCES})
 target_include_directories(KermaTransforms PUBLIC ${KERMA_INCLUDE_DIR})
 set_target_properties(KermaTransforms PROPERTIES COMPILE_FLAGS "-fno-rtti")
 target_link_libraries(KermaTransforms KermaAnalysis
                                       KermaBase
                                       KermaNVVM
                                       KermaSupport
+                                      KermaUtils
                                       LLVMIRReader
                                       LLVMLinker)

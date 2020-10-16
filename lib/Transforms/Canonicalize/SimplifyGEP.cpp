@@ -1,4 +1,4 @@
-#include "kerma/Transforms/SimplifyGEP.h"
+#include "kerma/Transforms/Canonicalize/SimplifyGEP.h"
 #include <llvm/ADT/SmallSet.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/IR/DerivedTypes.h>
@@ -27,9 +27,8 @@ static bool shouldMergeGEPs(GEPOperator &GEP, GEPOperator &Src) {
   return true;
 }
 
-char SimplifyGEPPass::ID = 1;
+char SimplifyGEPPass::ID = 113;
 const char * SimplifyGEPPass::PASS_NAME = "Kerma: Simplify GEP instructions/operands";
-
 SimplifyGEPPass::SimplifyGEPPass() : FunctionPass(ID) {}
 
 // Adapted from https://llvm.org/doxygen/InstructionCombining_8cpp_source.html
@@ -136,32 +135,31 @@ static bool eliminateDeadGEPs(llvm::Function &F) {
   return deletedSomething;
 }
 
+
+void SimplifyGEPPass::getAnalysisUsage(AnalysisUsage &AU) const {
+  AU.setPreservesCFG();
+}
+
 bool SimplifyGEPPass::runOnFunction(llvm::Function &F) {
+  if ( F.isDeclaration() || F.isIntrinsic())
+    return false;
+
   DeleteSet.clear();
 
-  bool changed;
+  bool changed = false;
 
   int iter = 0;
 
   do {
     iter++;
-    changed = false;
     for ( auto& BB : F)
       for ( auto& I : BB)
         if ( auto *GEP = dyn_cast<GetElementPtrInst>(&I))
           changed |= simplifyGEP(GEP);
 
-    // if ( !DeleteSet.empty()) {
-    //   for ( auto *I : DeleteSet)
-    //     I->eraseFromParent();
-    //   DeleteSet.clear();
-    //   changed = true;
-    // }
     eliminateDeadGEPs(F);
 
   } while ( changed);
-
-  llvm::errs() << this->getPassName() << " " << iter << " iterations" << "\n";
 
   return changed;
 }
@@ -172,7 +170,7 @@ static RegisterPass<SimplifyGEPPass> RegisterSimplifyGEPPass(
         /* arg      */ "kerma-simplify-gep",
         /* name     */ "Simplify GEP instructions/operands",
         /* CFGOnly  */ false,
-        /* analysis */ true);
+        /* analysis */ false);
 
 } // anonymous namespace
 

@@ -1,4 +1,4 @@
-#include "kerma/Transforms/CanonLoadsAndStores.h"
+#include "kerma/Transforms/Canonicalize/GepifyMem.h"
 
 #include <llvm/IR/Argument.h>
 #include <llvm/IR/Constants.h>
@@ -14,9 +14,8 @@ using namespace llvm;
 
 namespace kerma {
 
-char CanonLoadsAndStoresPass::ID = 6;
-
-CanonLoadsAndStoresPass::CanonLoadsAndStoresPass() : llvm::FunctionPass(ID) {}
+char GepifyMemPass::ID = 112;
+GepifyMemPass::GepifyMemPass() : llvm::FunctionPass(ID) {}
 
 static bool isGEP(Value* V) {
   return dyn_cast_or_null<GetElementPtrInst>(V) != nullptr;
@@ -55,7 +54,10 @@ static unsigned int insertGepForLoadStore(Instruction *I) {
   return changes;
 }
 
-bool CanonLoadsAndStoresPass::runOnFunction(Function &F) {
+bool GepifyMemPass::runOnFunction(Function &F) {
+  if ( F.isDeclaration() || F.isIntrinsic())
+    return false;
+
   bool changed = false;
 
   for ( auto& BB : F) {
@@ -68,12 +70,14 @@ bool CanonLoadsAndStoresPass::runOnFunction(Function &F) {
   return changed;
 }
 
-
-static RegisterPass<kerma::CanonLoadsAndStoresPass> RegisterCanonLoadsAndStoresPass(
-        /* pass arg  */   "kerma-normalize-ls",
+namespace {
+static RegisterPass<GepifyMemPass> RegisterGepifyMemPass(
+        /* pass arg  */   "kerma-gepify-mem",
         /* pass name */   "Normalize non-gep loads and stores",
         /* modifies CFG */ false,
         /* analysis pass*/ false);
+}
+
 
 } // namespace kerma
 
