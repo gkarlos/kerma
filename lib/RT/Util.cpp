@@ -63,14 +63,12 @@ bool isDeviceRTFunction(std::string& FName) {
 
 bool isDeviceRTFunction(llvm::Function &F) {
   auto name = demangle(F.getName().str());
-  return std::find(DeviceRTFunctionSignatures.begin(),
-                   DeviceRTFunctionSignatures.end(),
-                   name) != DeviceRTFunctionSignatures.end();
+  return isDeviceRTFunction(name);
 }
 
-///
-/// Exceptions
-///
+//
+// Exceptions
+//
 
 KermaRTNotFoundError::KermaRTNotFoundError(const std::string &Msg)
     : std::runtime_error("KermaRT not found: " + Msg) {}
