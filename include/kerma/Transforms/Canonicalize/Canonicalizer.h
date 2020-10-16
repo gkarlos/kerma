@@ -8,13 +8,13 @@ namespace kerma {
 
 /// This pass is just an aggregator for all
 /// Canonicalization passes
-class CanonicalizerPass : public llvm::FunctionPass {
+class CanonicalizerPass : public llvm::ModulePass {
 public:
   static char ID;
   CanonicalizerPass();
 
-  // void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
-  bool runOnFunction(llvm::Function& F) override;
+  void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
+  bool runOnModule(llvm::Module& M) override;
 };
 
 } // namespace kerma

@@ -14,7 +14,7 @@ namespace kerma {
 ///  }
 ///
 ///  ==>
-//
+///
 ///  define dso_local void @f(i32* %0) {
 ///      %1 = getelementptr inbounds i32, i32 *0, i64 0
 ///      %2 = load i32, i32 *1;

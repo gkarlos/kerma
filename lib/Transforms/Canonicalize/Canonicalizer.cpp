@@ -1,9 +1,14 @@
 #include "kerma/Transforms/Canonicalize/Canonicalizer.h"
 
 #include "kerma/Analysis/DetectKernels.h"
+#include "kerma/NVVM/NVVMUtilities.h"
+#include "kerma/RT/Util.h"
 #include "kerma/Transforms/Canonicalize/BreakConstantGEP.h"
 #include "kerma/Transforms/Canonicalize/GepifyMem.h"
 #include "kerma/Transforms/Canonicalize/SimplifyGEP.h"
+
+
+#include <llvm/Support/FormatVariadic.h>
 
 #include <numeric>
 
@@ -12,23 +17,41 @@ using namespace llvm;
 
 char CanonicalizerPass::ID = 111;
 
-CanonicalizerPass::CanonicalizerPass() : FunctionPass(ID) {}
+CanonicalizerPass::CanonicalizerPass() : ModulePass(ID) {}
 
-bool CanonicalizerPass::runOnFunction(llvm::Function& F) {
-  if ( F.isDeclaration() || F.isIntrinsic() || F.isDebugInfoForProfiling())
-    return false;
+void CanonicalizerPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
+  AU.setPreservesAll();
+}
 
-  std::vector<bool> Changes(3, 0);
+bool CanonicalizerPass::runOnModule(llvm::Module& M) {
+
+  bool changed = false;
+  unsigned checked = 0;
+  std::vector<bool> Changes(3, false);
 
   GepifyMemPass GepifyMem;
   BreakConstantGEPPass BreakConstantGEP;
   SimplifyGEPPass SimplifyGEP;
 
-  Changes[0] = GepifyMem.runOnFunction(F);
-  Changes[1] = BreakConstantGEP.runOnFunction(F);
-  Changes[2] = SimplifyGEP.runOnFunction(F);
+  for ( auto& F : M) {
+    if ( F.isDeclaration() || F.isIntrinsic() || nvvm::isCudaAPIFunction(F) || isDeviceRTFunction(F))
+      continue;
 
-  return std::accumulate(Changes.begin(), Changes.end(), 0);
+    ++checked;
+
+    Changes[0] = GepifyMem.runOnFunction(F);
+    Changes[1] = BreakConstantGEP.runOnFunction(F);
+    Changes[2] = SimplifyGEP.runOnFunction(F);
+
+    changed |= std::accumulate(Changes.begin(), Changes.end(), 0);
+    std::fill(Changes.begin(), Changes.end(), false);
+  }
+
+#ifdef KERMA_OPT_PLUGIN
+  llvm::errs() << '[' << formatv("{0,15}", "Canonicalizer") << "] Run on " << checked << " functions\n";
+#endif
+
+  return changed;
 }
 
 namespace {
