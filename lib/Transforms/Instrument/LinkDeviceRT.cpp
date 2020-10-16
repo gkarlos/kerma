@@ -1,4 +1,4 @@
-#include "kerma/Transforms/LinkDeviceRT.h"
+#include "kerma/Transforms/Instrument/LinkDeviceRT.h"
 
 #include "kerma/RT/Util.h"
 #include "kerma/Support/Config.h"

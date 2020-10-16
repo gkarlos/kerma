@@ -1,7 +1,7 @@
 #include "kerma/RT/Util.h"
 
 #include "kerma/Support/Config.h"
-#include "kerma/Transforms/LinkDeviceRT.h"
+#include "kerma/Transforms/Instrument/LinkDeviceRT.h"
 
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IRReader/IRReader.h"
@@ -37,7 +37,7 @@ int main(int argc, const char** argv) {
     llvm::errs() << "KermaRT is not linked with " << OptInput.getValue() << "\nLinking...";
 
     kerma::LinkDeviceRTPass LinkRTPass;
-    LinkRTPass.useDeviceRT(CuMemtraceDeviceRT);
+    LinkRTPass.useDeviceRT(KermaDeviceRT);
 
     try {
       LinkRTPass.runOnModule(*M);
