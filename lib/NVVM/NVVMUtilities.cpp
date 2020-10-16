@@ -1,5 +1,6 @@
 #include "kerma/NVVM/NVVMUtilities.h"
 #include "kerma/NVVM/NVVM.h"
+#include "kerma/Support/Demangle.h"
 
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
@@ -8,6 +9,7 @@
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/Mutex.h"
 
+#include <algorithm>
 #include <mutex>
 
 using namespace llvm;
@@ -113,6 +115,11 @@ bool isNVVMIntrinsic(const llvm::Function &F) {
   // This means we may have to update the range if things change in that file
   return F.isIntrinsic() &&
          F.getIntrinsicID() >= Intrinsic::nvvm_add_rm_d && F.getIntrinsicID() <= Intrinsic::nvvm_wmma_m8n8k32_store_d_s32_row_stride;
+}
+
+bool isCudaAPIFunction(const llvm::Function &F) {
+  return std::find(CudaAPI.begin(), CudaAPI.end(), F.getName()) != CudaAPI.end()
+    || std::find(CudaAPI.begin(), CudaAPI.end(), demangleFnWithoutArgs(F)) != CudaAPI.end();
 }
 
 bool isNVVMAtomic(const llvm::Function &F) {

@@ -21,6 +21,14 @@ const std::vector<std::string> Symbols = {
   "gridDim"
 };
 
+const std::vector<std::string> CudaAPI = {
+  "cudaMalloc",
+  "cudaFuncGetAttributes",
+  "cudaDeviceGetAttribute",
+  "cudaGetDevice",
+  "cudaOccupancyMaxActiveBlocksPerMultiprocessor",
+  "cudaOccupancyMaxActiveBlocksPerMultiprocessorWithFlags"
+};
 
 namespace cc30 {
   const std::vector<std::string> Atomics{

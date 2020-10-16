@@ -16,6 +16,8 @@ bool isNVVMIntrinsic(const llvm::Function &F);
 /// Check if a function is an NVVM atomic intrinsic
 bool isNVVMAtomic(const llvm::Function &F);
 
+bool isCudaAPIFunction(const llvm::Function &F);
+
 /// Retrieve the address space corresponding to an ID
 /// Defaults to AddressSpace::Unknown;
 const AddressSpace::Ty& getAddressSpaceWithId(int id);
