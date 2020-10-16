@@ -4,6 +4,7 @@
 #include "kerma/NVVM/NVVMUtilities.h"
 #include "kerma/RT/Util.h"
 #include "kerma/Transforms/Canonicalize/BreakConstantGEP.h"
+#include "kerma/Transforms/Canonicalize/DeviceFunctionInliner.h"
 #include "kerma/Transforms/Canonicalize/GepifyMem.h"
 #include "kerma/Transforms/Canonicalize/SimplifyGEP.h"
 
@@ -51,7 +52,8 @@ bool CanonicalizerPass::runOnModule(llvm::Module& M) {
   llvm::errs() << '[' << formatv("{0,15}", "Canonicalizer") << "] Run on " << checked << " functions\n";
 #endif
 
-  return changed;
+  DeviceFunctionInliner Inliner;
+  return Inliner.runOnModule(M) || changed;
 }
 
 namespace {

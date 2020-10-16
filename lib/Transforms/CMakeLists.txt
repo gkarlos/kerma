@@ -1,6 +1,7 @@
 
 set(Canonicalize_SOURCES Canonicalize/BreakConstantGEP.cpp
                          Canonicalize/Canonicalizer.cpp
+                         Canonicalize/DeviceFunctionInliner.cpp
                          Canonicalize/GepifyMem.cpp
                          Canonicalize/SimplifyGEP.cpp)
 set(Instrument_SOURCES Instrument/InstruMemOpPrintf.cpp
