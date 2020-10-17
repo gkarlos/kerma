@@ -65,7 +65,7 @@ namespace cc30 {
     "__all_sync(unsigned int, int)",
     "__any_sync(unsigned int, int)",
     "__balloc_sync(unsigned int, int)",
-    "__activemark()"
+    "__activemask()"
   };
 }
 

@@ -7,6 +7,13 @@
 namespace kerma {
 namespace nvvm {
 
+
+/// Check if a Module is a Device Side LLVM IR Module
+bool isDeviceModule(const llvm::Module& M);
+
+///  Check if a Module is a Host Side LLVM IR Module
+bool isHostModule(const llvm::Module& M);
+
 /// Check if a function is a CUDA Kernel
 bool isKernelFunction(const llvm::Function &F);
 

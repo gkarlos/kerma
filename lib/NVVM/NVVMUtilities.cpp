@@ -8,8 +8,10 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/Mutex.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <algorithm>
+#include <llvm/IR/Metadata.h>
 #include <mutex>
 
 using namespace llvm;
@@ -101,13 +103,22 @@ namespace {
 // https://github.com/llvm/llvm-project/blob/master/llvm/lib/Target/NVPTX/NVPTXUtilities.cpp
 
 bool isKernelFunction(const llvm::Function &F) {
-  unsigned x = 0;
-  bool retval = findOneNVVMAnnotation(&F, "kernel", x);
-  if (!retval) {
-    // There is no NVVM metadata, check the calling convention
-    return F.getCallingConv() == llvm::CallingConv::PTX_Kernel;
+  NamedMDNode * NVVMMD = F.getParent()->getNamedMetadata("nvvm.annotations");
+  if ( !NVVMMD)
+    return false;
+
+  for ( auto* MDNode : NVVMMD->operands()) {
+    for ( auto& MDOp : MDNode->operands()) {
+      auto *MD =  MDOp.get();
+      if ( auto* VAMD = dyn_cast_or_null<ValueAsMetadata>(MD)) {
+        if ( auto *f = dyn_cast<Function>(VAMD->getValue()))
+          if ( f == &F || f->getName().equals(F.getName()))
+            return true;
+      }
+    }
   }
-  return (x == 1);
+
+  return false;
 }
 
 bool isNVVMIntrinsic(const llvm::Function &F) {
@@ -199,6 +210,13 @@ const AddressSpace::Ty& getAddressSpaceWithId(int id) {
 bool isNVVMSymbol(const std::string &Symbol) {
   return std::find(nvvm::Symbols.begin(), nvvm::Symbols.end(), Symbol) != nvvm::Symbols.end();
 }
+
+bool isDeviceModule(const Module& M) {
+   return M.getTargetTriple().find("nvptx") != std::string::npos;
+}
+
+bool isHostModule(const Module& M) { return !isDeviceModule(M); }
+
 
 } // namespace nvvm
 } // namespace kerma
