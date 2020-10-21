@@ -18,12 +18,14 @@ bool isHostModule(const llvm::Module& M);
 bool isKernelFunction(const llvm::Function &F);
 
 /// Check if a function is an NVVM intrinsic
-bool isNVVMIntrinsic(const llvm::Function &F);
+bool isIntrinsicFunction(const llvm::Function &F);
 
 /// Check if a function is an NVVM atomic intrinsic
-bool isNVVMAtomic(const llvm::Function &F);
+bool isAtomicFunction(const llvm::Function &F);
 
 bool isCudaAPIFunction(const llvm::Function &F);
+
+bool isReadOnlyCacheFunction(const llvm::Function &F);
 
 /// Retrieve the address space corresponding to an ID
 /// Defaults to AddressSpace::Unknown;

@@ -11,6 +11,8 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <algorithm>
+#include <llvm/ADT/StringRef.h>
+#include <llvm/Demangle/Demangle.h>
 #include <llvm/IR/Metadata.h>
 #include <mutex>
 
@@ -121,7 +123,7 @@ bool isKernelFunction(const llvm::Function &F) {
   return false;
 }
 
-bool isNVVMIntrinsic(const llvm::Function &F) {
+bool isIntrinsicFunction(const llvm::Function &F) {
   // We check if the intrinsic ID falls if the range of the NVVMIntrinsics enum
   // This means we may have to update the range if things change in that file
   return F.isIntrinsic() &&
@@ -133,9 +135,34 @@ bool isCudaAPIFunction(const llvm::Function &F) {
     || std::find(CudaAPI.begin(), CudaAPI.end(), demangleFnWithoutArgs(F)) != CudaAPI.end();
 }
 
-bool isNVVMAtomic(const llvm::Function &F) {
-  if ( !isNVVMIntrinsic(F))
-    return false;
+bool isReadOnlyCacheFunction(const llvm::Function &F) {
+  StringRef Name = demangle(F.getName());
+  return Name.startswith("llvm.nvvm.ldg")
+      || Name.startswith("llvm.nvvm.ldcg")
+      || Name.startswith("llvm.nvvm.ldca")
+      || Name.startswith("llvm.nvvm.ldcs")
+      || Name.startswith("llvm.nvvm.ldlu")
+      || Name.startswith("llvm.nvvm.ldcv")
+      || Name.startswith("llvm.nvvm.stwb")
+      || Name.startswith("llvm.nvvm.stcg")
+      || Name.startswith("llvm.nvvm.stcs")
+      || Name.startswith("llvm.nvvm.stwt")
+      || Name.startswith("__ldg")
+      || Name.startswith("__ldcg")
+      || Name.startswith("__ldca")
+      || Name.startswith("__ldcs")
+      || Name.startswith("__ldlu")
+      || Name.startswith("__ldcv")
+      || Name.startswith("__stwb")
+      || Name.startswith("__stcg")
+      || Name.startswith("__stcs")
+      || Name.startswith("__stwt");
+}
+
+bool isAtomicFunction(const llvm::Function &F) {
+  if ( isAtomic(demangle(F.getName()))) {
+    return true;
+  }
 
   switch( F.getIntrinsicID()) {
     case Intrinsic::nvvm_atomic_add_gen_f_cta:
@@ -169,11 +196,11 @@ bool isNVVMAtomic(const llvm::Function &F) {
 }
 
 bool isAtomic(const std::string& F) {
-  return std::find(Atomics.begin(), Atomics.end(), F) != Atomics.end()
-      || std::find(cc35::Atomics.begin(), cc35::Atomics.end(), F) != cc35::Atomics.end()
-      || std::find(cc60::Atomics.begin(), cc60::Atomics.end(), F) != cc60::Atomics.end()
-      || std::find(cc70::Atomics.begin(), cc70::Atomics.end(), F) != cc70::Atomics.end()
-      || std::find(cc80::Atomics.begin(), cc80::Atomics.end(), F) != cc80::Atomics.end();
+  return (std::find(cc30::Atomics.begin(), cc30::Atomics.end(), F) != cc30::Atomics.end())
+      || (std::find(cc35::Atomics.begin(), cc35::Atomics.end(), F) != cc35::Atomics.end())
+      || (std::find(cc60::Atomics.begin(), cc60::Atomics.end(), F) != cc60::Atomics.end())
+      || (std::find(cc70::Atomics.begin(), cc70::Atomics.end(), F) != cc70::Atomics.end())
+      || (std::find(cc80::Atomics.begin(), cc80::Atomics.end(), F) != cc80::Atomics.end());
 }
 
 bool isIntrinsic(const std::string& F) {

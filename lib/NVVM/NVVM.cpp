@@ -34,7 +34,7 @@ namespace cc30 {
   const std::vector<std::string> Atomics{
     "atomicAdd(int*, int)",
     "atomicAdd(unsigned int*, unsigned int)",
-    "atomicAdd(unsigned long long int*, unsigned long long int)"
+    "atomicAdd(unsigned long long int*, unsigned long long int)",
     "atomicAdd(float*, float)",
     "atomicSub(int*, int)",
     "atomicSub(unsigned int*, unsigned int)",
@@ -67,6 +67,8 @@ namespace cc30 {
     "__balloc_sync(unsigned int, int)",
     "__activemask()"
   };
+
+  // const std::vector<std::string> ReadOnlyCacheFunctions;
 }
 
 namespace cc35 {
