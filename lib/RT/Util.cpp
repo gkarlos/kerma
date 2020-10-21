@@ -13,36 +13,39 @@
 using namespace llvm;
 namespace kerma {
 
-const std::string KermaRTLinkedSymbol = "__kerma_rt_linked__";
-const unsigned int KermaRTLinkSymbolValue = 0xFEEDC0DE;
-const Type::TypeID KermaRTLinkSymbolTypeID = Type::IntegerTyID;
+const std::string KermaTraceStatusSymbol   = "__kerma_trace_status__";
+const std::string KermaGlobalSymbolPrefix  = "__kerma_sym";
+const std::string KermaRTLinkedSymbol      = "__kerma_rt_linked__";
 
-static std::string KermaGlobalNamePrefix = "__kerma_sym";
+const unsigned int KermaDeviceRTLinkedSymbolValue    = 0xFEEDC0DE;
+const Type::TypeID KermaDeviceRTLinkedSymbolTypeID   = Type::IntegerTyID;
+const unsigned int KermaDeviceRTLinkedSymbolTypeSize = 4;
 
-static std::vector<std::string> DeviceRTFunctions = {
+const Type::TypeID KermaTraceStatusSymbolTypeID   = Type::IntegerTyID;
+const unsigned int KermaTraceStatusSymbolTypeSize = 1;
+
+const std::vector<std::string> DeviceRTFunctions = {
+  "__kerma_trace_status",
+  "__kerma_stop_tracing",
   "__kerma_rec_kernel",
   "__kerma_rec_base",
   "__kerma_rec_access_b",
   "__kerma_rec_access_w",
-  "__kerma_rec_access_b_t" };
+  "__kerma_rec_access_t",
+  "__kerma_rec_copy_b",
+  "__kerma_rec_copy_w",
+  "__kerma_rec_copy_t"
+};
 
-static std::vector<std::string> DeviceRTFunctionSignatures = {
-  "__kerma_rec_kernel(unsigned int, char const*)",
-  "__kerma_rec_base(unsigned int, char const*, unsigned int, unsigned int)",
-  "__kerma_rec_access_b(unsigned int, unsigned int, unsigned int, unsigned int, char const*, unsigned int)",
-  "__kerma_rec_access_w(unsigned int, unsigned int, unsigned int, unsigned int, char const*, unsigned int)",
-  "__kerma_rec_access_b_t(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, char const*, unsigned int)" };
-
-/// Check if libKermaRT is linked with a  module
-bool KermaRTLinked(const llvm::Module &M) {
+/// Check if DeviceRT is linked with a  module
+bool isDeviceRTLinked(const llvm::Module &M) {
   auto &Globals = M.getGlobalList();
   for (auto &global : Globals) {
     if (global.getName() == KermaRTLinkedSymbol) {
-      if (global.getInitializer()->getType()->getTypeID() ==
-          KermaRTLinkSymbolTypeID) {
-        if (auto *ConstInt =
-                llvm::dyn_cast<ConstantInt>(global.getInitializer())) {
-          if (!(KermaRTLinkSymbolValue ^ ConstInt->getZExtValue())) {
+      if (auto *ty = global.getInitializer()->getType();
+          ty->getTypeID() == KermaDeviceRTLinkedSymbolTypeID) {
+        if (auto *ConstInt = llvm::dyn_cast<ConstantInt>(global.getInitializer())) {
+          if (!(KermaDeviceRTLinkedSymbolValue ^ ConstInt->getZExtValue())) {
             return true;
           }
         }
@@ -52,19 +55,31 @@ bool KermaRTLinked(const llvm::Module &M) {
   return false;
 }
 
-bool isDeviceRTFunction(std::string& FName) {
-  return std::find(DeviceRTFunctions.begin(),
-                   DeviceRTFunctions.end(),
-                   FName) != DeviceRTFunctions.end() ||
-         std::find(DeviceRTFunctionSignatures.begin(),
-                   DeviceRTFunctionSignatures.end(),
-                   FName) != DeviceRTFunctionSignatures.end();
+bool isDeviceRTFunction(const std::string& FName) {
+  auto name = demangle(FName);
+  for ( auto &Fn : DeviceRTFunctions)
+    if ( name.find(Fn) != name.npos)
+      return true;
+  return false;
 }
 
 bool isDeviceRTFunction(llvm::Function &F) {
-  auto name = demangle(F.getName().str());
-  return isDeviceRTFunction(name);
+  return isDeviceRTFunction(F.getName().str());
 }
+
+std::string getAccessTypeAsString(AccessType AT) {
+  if ( AT == Load)
+    return "Load";
+  else if ( AT == Store)
+    return "Store";
+  else if ( AT == Atomic)
+    return "Atomic";
+  else if ( AT == Memcpy)
+    return "Memcpy";
+  else
+    return "Any";
+}
+
 
 //
 // Exceptions
