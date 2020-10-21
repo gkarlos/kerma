@@ -31,6 +31,7 @@
 #include <llvm/Transforms/IPO/AlwaysInliner.h>
 #include <llvm/Transforms/Utils/Cloning.h>
 #include <llvm/Transforms/Utils/ModuleUtils.h>
+#include <llvm/Support/WithColor.h>
 
 using namespace kerma;
 using namespace llvm;
@@ -99,6 +100,7 @@ bool DeviceFunctionInliner::runOnModule(Module& M) {
   if ( !nvvm::isDeviceModule(M))
     return false;
 
+  FunctionsMarkedForInlining = 0;
   CallsChecked = 0;
   CallsInlined = 0;
   Info.clear();
@@ -108,8 +110,9 @@ bool DeviceFunctionInliner::runOnModule(Module& M) {
     if ( F.isDeclaration() || F.isIntrinsic()
                            || nvvm::isKernelFunction(F)
                            || nvvm::isCudaAPIFunction(F)
-                           || nvvm::isNVVMAtomic(F)
-                           || nvvm::isNVVMIntrinsic(F) )
+                           || nvvm::isAtomicFunction(F)
+                           || nvvm::isIntrinsicFunction(F)
+                           || nvvm::isReadOnlyCacheFunction(F) )
       continue;
 
     F.removeFnAttr(Attribute::AttrKind::OptimizeNone);
@@ -120,10 +123,10 @@ bool DeviceFunctionInliner::runOnModule(Module& M) {
   // step 2: perform the inlining
   doInline(M);
 
-#ifdef KERMA_OPT_PLUGIN
-  errs() << '[' << formatv("{0,15}", "DeviceInliner") << "] " << "Inlined " << getNumCallsInlined() << " calls\n";
-#endif
-
+  WithColor(errs(), HighlightColor::Note) << '[';
+  WithColor(errs(), raw_ostream::Colors::GREEN) << formatv("{0,15}", "DeviceInliner");
+  WithColor(errs(), HighlightColor::Note) << ']';
+  errs() << ' ' << FunctionsMarkedForInlining << " functions, " << CallsInlined << '/' << CallsChecked << " calls\n";
   return false;
 }
 

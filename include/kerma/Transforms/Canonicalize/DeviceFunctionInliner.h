@@ -29,6 +29,7 @@ class DeviceFunctionInliner : public llvm::ModulePass {
 private:
   unsigned int CallsChecked;
   unsigned int CallsInlined;
+  unsigned int FunctionsMarkedForInlining;
   llvm::SmallVector<InlineInfo, 32> Info;
   bool doInline(llvm::Module& M);
 
