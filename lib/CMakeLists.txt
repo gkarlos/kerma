@@ -1,4 +1,5 @@
 add_subdirectory(Support)
+add_subdirectory(Cuda)
 add_subdirectory(Utils)
 add_subdirectory(Base)
 add_subdirectory(Compile)
