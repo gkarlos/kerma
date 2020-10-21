@@ -13,7 +13,9 @@
 #include <llvm/IR/Metadata.h>
 #include <llvm/IR/Type.h>
 #include <llvm/PassSupport.h>
+#include <llvm/Support/FormatVariadic.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/WithColor.h>
 
 #include <string>
 
@@ -61,6 +63,32 @@ const std::string TypeCheckError::getMsgWithSourceLoc() {
   else {
     return Msg;
   }
+}
+
+
+TypeCheckError TypeCheckError::getUnsupportedArrayOfPointers(Argument& Arg) {
+  std::string msg = "Unsupported array of pointers for arg #" + std::to_string(Arg.getArgNo());
+  if ( !Arg.getName().empty())
+    msg += " (" + Arg.getName().str() + ')';
+  auto *MD = findMDForArgument(&Arg);
+  return TypeCheckError(msg, MD? MD->getLine() : 0);
+}
+
+TypeCheckError TypeCheckError::getUnsupportedArrayOfPointers(GlobalVariable& GV) {
+  std::string msg = "Unsupported array of pointers for global variable";
+  if ( !GV.getName().empty())
+    msg += " (" + GV.getName().str() + ')';
+  unsigned int lineno = 0;
+  auto *MD = findMDForGlobal(&GV);
+  return TypeCheckError(msg, MD? MD->getLine() : 0);
+}
+
+TypeCheckError TypeCheckError::getUnsupportedArrayOfPointers(llvm::AllocaInst &AI) {
+  std::string msg = "Unsupported array of pointers for local variable";
+  if ( !AI.getName().empty())
+    msg += " (" + AI.getName().str() + ')';
+  auto *MD = findMDForAlloca(&AI);
+  return TypeCheckError(msg, MD? MD->getLine() : 0);
 }
 
 TypeCheckError TypeCheckError::getUnsupportedDimensions(GlobalVariable& GV, unsigned int Dims) {
@@ -157,31 +185,42 @@ static bool typecheckKernelArgs(llvm::Function& Kernel, SmallVectorImpl<TypeChec
 
     auto *ArgTy = Arg.getType();
 
-    // pointer/array argument
-    if ( ArgTy->isPointerTy() || ArgTy->isArrayTy()) {
-      if (auto MaxIndices = getMaxIndicesForType(ArgTy);
-          MaxIndices > Opts.MaxSupportedIndices)
+    /// Arg is star star, e.g: int **X;
+    if ( auto *PtrTy = dyn_cast<PointerType>(ArgTy)) {
+      if ( PtrTy->getElementType()->isPointerTy() || PtrTy->getElementType()->isArrayTy())
+        Errors.push_back(TypeCheckError::getUnsupportedArrayOfPointers(Arg));
+    }
+    /// Arg is an array literal
+    else if ( auto ArrayTy = dyn_cast<ArrayType>(ArgTy)) {
+      /// Array of pointers, e.g: int *X[15]
+      if ( stripArrayNest(ArrayTy)->isPointerTy())
+        Errors.push_back(TypeCheckError::getUnsupportedArrayOfPointers(Arg));
+      /// 3D Array, e.g: int X[15][15][15]
+      else if (auto MaxIndices = getMaxIndicesForType(ArgTy);
+                    MaxIndices > Opts.MaxSupportedIndices)
         Errors.push_back(TypeCheckError::getUnsupportedDimensions(Arg, MaxIndices));
+    }
 
-      // pointer/array is max 2D. Now check the element type
-      else if (auto* ElemTy = isa<PointerType>(ArgTy)? stripPointers(ArgTy) : stripArrayNest(ArgTy);
-               ElemTy->isStructTy()) {
+    if ( ArgTy->isPointerTy() || ArgTy->isArrayTy()) {
+      /// single pointer or max 2D array. Now check the element type
+      if (auto* ElemTy = isa<PointerType>(ArgTy)? stripPointers(ArgTy) : stripArrayNest(ArgTy);
+                ElemTy->isStructTy()) {
         if ( auto Err = typecheckStruct(dyn_cast<StructType>(ElemTy)))
           Errors.push_back(TypeCheckError::getUnsupportedStruct(Arg, Err));
       }
     }
 
     else if ( ArgTy->isStructTy()) {
-      // This is probably not needed as Clang lowers struct args to
-      // struct pointers with Attribute::ByVal so it 'should' be
-      // handled by the previous check.
-      // But lets just check for it anyway
+      /// This is probably not needed as Clang lowers struct args to
+      /// struct pointers with Attribute::ByVal so it 'should' be
+      /// handled by the previous check.
+      /// But lets just check for it anyway
       if ( auto Err = typecheckStruct(dyn_cast<StructType>(ArgTy)))
         Errors.push_back(TypeCheckError::getUnsupportedStruct(Arg, Err));
     }
   }
 
-  return Errors.size() > pre;
+  return Errors.size() == pre;
 }
 
 static bool typecheckKernelLocals( Function& Kernel, SmallVectorImpl<TypeCheckError>& Errors) {
@@ -193,15 +232,27 @@ static bool typecheckKernelLocals( Function& Kernel, SmallVectorImpl<TypeCheckEr
 
         auto *AllocatedTy = AI->getAllocatedType();
 
-        if ( AllocatedTy->isArrayTy()) { // local array
-          if (auto MaxIndices = getMaxIndicesForType(AllocatedTy);
-              MaxIndices > Opts.MaxSupportedIndices)
+        /// Array Alloca
+        if ( AllocatedTy->isArrayTy()) {
+
+          auto *ElemTy = stripArrayNest(AllocatedTy);
+
+          /// Array of ptrs
+          if ( ElemTy->isPointerTy())
+            Errors.push_back(TypeCheckError::getUnsupportedArrayOfPointers(*AI));
+
+          /// 3D Array
+          else if (auto MaxIndices = getMaxIndicesForType(AllocatedTy);
+                        MaxIndices > Opts.MaxSupportedIndices)
             Errors.push_back(TypeCheckError::getUnsupportedDimensions(*AI, MaxIndices));
-          else if ( auto *ElemTy = stripArrayNest(AI->getAllocatedType());
-                    ElemTy->isStructTy())
+
+          /// Array of structs
+          else if ( ElemTy->isStructTy())
             if ( auto Err = typecheckStruct(dyn_cast<StructType>(ElemTy)))
               Errors.push_back(TypeCheckError::getUnsupportedStruct(*AI, Err));
         }
+
+        /// Struct Alloca
         else if ( AllocatedTy->isStructTy()) { // local struct
           if ( auto Err = typecheckStruct(dyn_cast<StructType>(AllocatedTy)))
             Errors.push_back(TypeCheckError::getUnsupportedStruct(*AI, Err));
@@ -223,7 +274,7 @@ static bool typecheckKernelLocals( Function& Kernel, SmallVectorImpl<TypeCheckEr
       }
     }
   }
-  return Errors.size() > pre;
+  return Errors.size() == pre;
 }
 
 // API
@@ -300,30 +351,38 @@ bool typecheckGlobals(Module& M, llvm::SmallVectorImpl<TypeCheckError>& Errors) 
       // All globals are pointers, get the element type
       auto *GVTy = GV->getType()->getElementType();
 
-      if ( GVTy->isPointerTy() || GVTy->isArrayTy()) {
-        if (auto MaxIndices = getMaxIndicesForType(GVTy);
-            MaxIndices > Opts.MaxSupportedIndices)
+      /// star star, e.g: int **X;
+      if ( GVTy->isPointerTy() && dyn_cast<PointerType>(GVTy)->getElementType()->isPointerTy())
+        Errors.push_back(TypeCheckError::getUnsupportedArrayOfPointers(*GV));
+      else if ( GVTy->isArrayTy()) {
+        /// array of ptrs, e.g: int *X[42];
+        if ( stripArrayNest(GVTy)->isPointerTy())
+          Errors.push_back(TypeCheckError::getUnsupportedArrayOfPointers(*GV));
+        else if (auto MaxIndices = getMaxIndicesForType(GVTy);
+                      MaxIndices > Opts.MaxSupportedIndices)
           Errors.push_back(TypeCheckError::getUnsupportedDimensions(*GV, MaxIndices));
-
+      }
+      else if ( GVTy->isPointerTy() || GVTy->isArrayTy()) {
         // pointer/array is max 2D. Now check the element type
-        else if (auto *ElemTy = isa<PointerType>(GVTy)? stripPointers(GVTy) : stripArrayNest(GVTy);
+        if (auto *ElemTy = isa<PointerType>(GVTy)? stripPointers(GVTy) : stripArrayNest(GVTy);
                  ElemTy->isStructTy()) {
           if ( auto Err = typecheckStruct(dyn_cast<StructType>(ElemTy)))
             Errors.push_back(TypeCheckError::getUnsupportedStruct(*GV, Err));
         }
       }
-
       else if ( GVTy->isStructTy())
         if ( auto Err = typecheckStruct(dyn_cast<StructType>(GVTy)))
           Errors.push_back(TypeCheckError::getUnsupportedStruct(*GV, Err));
     }
   }
-  return Errors.size() > pre;
+  return Errors.size() == pre;
 }
 
 bool typecheckKernel(llvm::Function& F, llvm::SmallVectorImpl<TypeCheckError>& Errors) {
-  return typecheckKernelArgs(F, Errors)
-      || typecheckKernelLocals(F, Errors);
+  /// Avoid short-circuiting to report more errors
+  auto args = typecheckKernelArgs(F, Errors);
+  auto lcls = typecheckKernelLocals(F, Errors);
+  return args && lcls;
 }
 
 // Pass
@@ -341,12 +400,16 @@ void TypeCheckerPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
 }
 
 void TypeCheckerPass::dumpErrors() {
+  WithColor(errs(), HighlightColor::Note) << '[';
+  WithColor(errs(), raw_ostream::Colors::GREEN) << formatv("{0,15}", "Typechecker");
+  WithColor(errs(), HighlightColor::Note) << ']';
+
   if ( Errors.empty())
-    llvm::errs() << "\n[Typechecker] Pass!" << "\n";
+   errs() << " Yes" << "\n";
   else {
-    llvm::errs() << "\n[Typechecker] Found " << Errors.size() << " errors\n";
+    WithColor(errs(), raw_ostream::Colors::RED, true) << " No" << "\n";
     for ( auto& Err : Errors) {
-      llvm::errs() << " - " << Err.getMsgWithSourceLoc() << "\n";
+      WithColor::warning() << Err.getMsgWithSourceLoc() << "\n";
     }
   }
 }
@@ -356,7 +419,7 @@ TypeCheckerPass::runOnModule(llvm::Module &M) {
   Errors.clear();
   typecheckGlobals(M, Errors);
   for ( auto Kernel : getAnalysis<DetectKernelsPass>().getKernels() )
-    typecheckKernel(*Kernel, Errors);
+    typecheckKernel(*Kernel.getFunction(), Errors);
 
 #ifdef KERMA_OPT_PLUGIN
   dumpErrors();

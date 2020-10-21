@@ -26,6 +26,10 @@ public:
   const std::string getMsg();
   const std::string getMsgWithSourceLoc();
 
+  static TypeCheckError getUnsupportedArrayOfPointers(llvm::Argument& Arg);
+  static TypeCheckError getUnsupportedArrayOfPointers(llvm::GlobalVariable& GV);
+  static TypeCheckError getUnsupportedArrayOfPointers(llvm::AllocaInst& AI);
+
   static TypeCheckError getUnsupportedDimensions(llvm::GlobalVariable& GV, unsigned int Dims);
   static TypeCheckError getUnsupportedDimensions(llvm::Argument& Arg, unsigned int Dims);
   static TypeCheckError getUnsupportedDimensions(llvm::AllocaInst& AI, unsigned int Dims);
