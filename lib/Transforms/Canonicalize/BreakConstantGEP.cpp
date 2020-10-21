@@ -1,11 +1,14 @@
 #include "kerma/Transforms/Canonicalize/BreakConstantGEP.h"
 
 #include <llvm/ADT/SmallVector.h>
+#include <llvm/Demangle/Demangle.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/Pass.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/WithColor.h>
 
 using namespace kerma;
 using namespace llvm;
@@ -31,9 +34,13 @@ bool BreakConstantGEPPass::runOnFunction(Function &F) {
   SmallVector<Instruction*, 32> Worklist;
 
   for ( auto& BB : F)
-    for ( auto& I : BB)
-      if ( hasConstantGEP(&I))
-        Worklist.push_back(&I);
+    for ( auto& I : BB) {
+      for (unsigned index = 0; index < I.getNumOperands(); ++index) {
+        if (hasConstantGEP (I.getOperand(index))) {
+          Worklist.push_back(&I);
+        }
+      }
+    }
 
   changed = Worklist.size();
 
@@ -42,41 +49,48 @@ bool BreakConstantGEPPass::runOnFunction(Function &F) {
 
     if (auto* PHI = dyn_cast<PHINode>(I)) {
       for (unsigned index = 0; index < PHI->getNumIncomingValues(); ++index) {
-        //
         // For PHI Nodes, if an operand is a constant expression with a GEP, we
-        // want to insert the new instructions in the predecessor basic block.
-        //
-        // Note: It seems that it's possible for a phi to have the same
-        // incoming basic block listed multiple times; this seems okay as long
-        // the same value is listed for the incoming block.
-        //
+        // want to insert the new instructions at the end of the incoming block.
         Instruction * InsertPt = PHI->getIncomingBlock(index)->getTerminator();
 
         if (ConstantExpr * CE = hasConstantGEP (PHI->getIncomingValue(index))) {
+
           Instruction * NewInst = CE->getAsInstruction();
+          NewInst->insertBefore(InsertPt);
+          NewInst->setName("brk.gep");
 
           for ( unsigned i = index; i < PHI->getNumIncomingValues(); ++i)
             if ( PHI->getIncomingBlock(i) == PHI->getIncomingBlock(index))
               PHI->setIncomingValue(i, NewInst);
 
           Worklist.push_back(NewInst);
+          if ( CE->user_empty())
+            CE->destroyConstant();
         }
       }
     } else {
       for (unsigned index = 0; index < I->getNumOperands(); ++index) {
-        //
-        // For other instructions, we want to insert instructions replacing
-        // constant expressions immediently before the instruction using the
-        // constant expression.
-        //
+        // For other instructions, just insert the instruction replacing
+        // the operand just before the instruction itself
         if (ConstantExpr * CE = hasConstantGEP (I->getOperand(index))) {
+
           Instruction * NewInst = CE->getAsInstruction();
+          NewInst->insertBefore(I);
+          NewInst->setName("brk.gep");
+
           I->replaceUsesOfWith(CE, NewInst);
+
           Worklist.push_back(NewInst);
+          if ( CE->user_empty())
+            CE->destroyConstant();
         }
       }
     }
   }
+
+  WithColor::note();
+  WithColor(errs(), raw_ostream::Colors::CYAN) << "BreakConstantGEP: ";
+  errs() << demangle(F.getName()) << ": " << changed << '\n';
 
   return changed;
 }

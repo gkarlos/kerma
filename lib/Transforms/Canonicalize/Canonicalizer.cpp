@@ -9,7 +9,9 @@
 #include "kerma/Transforms/Canonicalize/SimplifyGEP.h"
 
 
+#include <llvm/Demangle/Demangle.h>
 #include <llvm/Support/FormatVariadic.h>
+#include <llvm/Support/WithColor.h>
 
 #include <numeric>
 
@@ -26,34 +28,41 @@ void CanonicalizerPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
 
 bool CanonicalizerPass::runOnModule(llvm::Module& M) {
 
-  bool changed = false;
-  unsigned checked = 0;
+  bool Changed = false;
+  unsigned Checked = 0;
   std::vector<bool> Changes(3, false);
+
+  DeviceFunctionInliner Inliner;
+  Changed = Inliner.runOnModule(M);
 
   GepifyMemPass GepifyMem;
   BreakConstantGEPPass BreakConstantGEP;
   SimplifyGEPPass SimplifyGEP;
 
+#ifdef KERMA_OPT_PLUGIN
+  WithColor(errs(), HighlightColor::Note) << '[';
+  WithColor(errs(), HighlightColor::String) << formatv("{0,15}", "Canonicalizer");
+  WithColor(errs(), HighlightColor::Note) << "]\n";
+#endif
+
   for ( auto& F : M) {
-    if ( F.isDeclaration() || F.isIntrinsic() || nvvm::isCudaAPIFunction(F) || isDeviceRTFunction(F))
+    if ( F.isDeclaration() || F.isIntrinsic()
+                           || nvvm::isCudaAPIFunction(F)
+                           || nvvm::isAtomicFunction(F)
+                           || nvvm::isReadOnlyCacheFunction(F)
+                           || isDeviceRTFunction(F))
       continue;
 
-    ++checked;
+    ++Checked;
 
     Changes[0] = GepifyMem.runOnFunction(F);
     Changes[1] = BreakConstantGEP.runOnFunction(F);
     Changes[2] = SimplifyGEP.runOnFunction(F);
 
-    changed |= std::accumulate(Changes.begin(), Changes.end(), 0);
+    Checked |= std::accumulate(Changes.begin(), Changes.end(), 0);
     std::fill(Changes.begin(), Changes.end(), false);
   }
-
-#ifdef KERMA_OPT_PLUGIN
-  llvm::errs() << '[' << formatv("{0,15}", "Canonicalizer") << "] Run on " << checked << " functions\n";
-#endif
-
-  DeviceFunctionInliner Inliner;
-  return Inliner.runOnModule(M) || changed;
+  return Changed;
 }
 
 namespace {

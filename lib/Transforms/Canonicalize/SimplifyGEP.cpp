@@ -1,6 +1,7 @@
 #include "kerma/Transforms/Canonicalize/SimplifyGEP.h"
 #include <llvm/ADT/SmallSet.h>
 #include <llvm/ADT/SmallVector.h>
+#include <llvm/Demangle/Demangle.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/GetElementPtrTypeIterator.h>
@@ -10,6 +11,7 @@
 #include <llvm/PassSupport.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Transforms/Utils/Local.h>
+#include <llvm/Support/WithColor.h>
 
 using namespace llvm;
 
@@ -76,11 +78,11 @@ bool SimplifyGEPPass::simplifyGEP(llvm::GetElementPtrInst *GEP) {
 
       // Update the GEP in place if possible.
       if (Src->getNumOperands() == 2) {
-        assert(isa<GetElementPtrInst>(Src) && "Inline GEP detected. Maybe NormConstantGEPs wasn't run!");
+        // assert(isa<GetElementPtrInst>(Src) && "Inline GEP detected. Maybe NormConstantGEPs wasn't run!");
 
         GEP->setOperand(0, Src->getOperand(0));
         GEP->setOperand(1, Sum);
-        DeleteSet.insert(cast<GetElementPtrInst>(Src));
+        // DeleteSet.insert(cast<GetElementPtrInst>(Src));
         return true;
       }
 
@@ -146,22 +148,26 @@ bool SimplifyGEPPass::runOnFunction(llvm::Function &F) {
 
   DeleteSet.clear();
 
-  bool changed = false;
-
+  unsigned int Changes;
+  bool Changed;
   int iter = 0;
 
   do {
+    Changed = false;
     iter++;
     for ( auto& BB : F)
       for ( auto& I : BB)
         if ( auto *GEP = dyn_cast<GetElementPtrInst>(&I))
-          changed |= simplifyGEP(GEP);
+          Changed = simplifyGEP(GEP);
 
     eliminateDeadGEPs(F);
+    Changes += Changed;
+  } while ( Changed );
 
-  } while ( changed);
-
-  return changed;
+  WithColor::note();
+  WithColor(errs(), raw_ostream::Colors::CYAN) << "SimplifyGEP: ";
+  errs() << demangle(F.getName()) << ": " << Changes << '\n';
+  return Changed;
 }
 
 namespace {
