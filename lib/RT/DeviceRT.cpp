@@ -1,7 +1,3 @@
-/// If this global is present and has this value, then the
-/// module is considered to be linked with the RT library.
-__device__ __constant__ unsigned int __kerma_rt_linked__ = 0xFEEDC0DE;
-
 /// Ultimately we want to minimize the complexity of each stub as
 /// much as possible. For instance to remove branches and let the
 /// insrumentation pass decide which one to invoke. This has the
@@ -11,23 +7,48 @@ __device__ __constant__ unsigned int __kerma_rt_linked__ = 0xFEEDC0DE;
 
 #define __kerma_mem_access_type__ unsigned char
 
-__device__ volatile bool __kerma_trace_status__ = true;
+/// If this global is present and has this value, then the
+/// module is considered to be linked with the RT library.
+__device__ __constant__ unsigned int __kerma_rt_linked__ = 0xFEEDC0DE;
 
-// We insert this call at the start of each kernel and then
-// pass the result to every trace hook
-extern "C" __device__ bool __kerma_trace_status() {
-  bool status = __kerma_trace_status__;
+
+/// This array keeps trace of how many times a kernel function
+/// has been trace. Since we only want to trace a a kernel once
+/// (for now) a boolean array is enough.
+/// NOTE: This is actually a dummy declaration such that DeviceRT
+///       can compile without errors. The instrumeter pass(es) will
+///       remove it and replace it with an equiv. named one but with
+///       a size that matches the number of kernels in the program.
+ __device__ volatile bool __kerma_trace_status__[] = {false};
+
+/// Read the trace status for a kernel
+/// This call is inserted at the start of each kernel the result
+/// is is passed to every trace hook.
+///
+/// The function just reads the value and brings to local memory.
+/// We don't really need a function to do that per se. The alternative
+/// is to just an IRBuilder to insert the relevant code.
+/// By having this function however we let codegen do that for us,
+/// so we do not have to insert extra code in the Instrumenter.
+extern "C" __device__ bool __kerma_trace_status(unsigned int kernel_id) {
+  bool status = __kerma_trace_status__[kernel_id];
   return status;
 }
 
-// We insert this call at the end of the kernel so that
-// when the kernel is invoked again, the trace is not repeated
-extern "C" __device__ void __kerma_stop_tracing() {
+/// Signal that a kernel should not be traced anymore
+/// This call is inserted before every exit point for the kernel function
+///
+/// Similarly to __kerma_trace_status we put this function here to
+/// minimize the Instrumenter code.
+extern "C" __device__ void __kerma_stop_tracing(unsigned int kernel_id) {
   __syncthreads();
   if ( threadIdx.x == 0 && threadIdx.y == 0 && threadIdx.z == 0)
-    __kerma_trace_status__ = false;
+    __kerma_trace_status__[kernel_id] = false;
 }
 
+
+
+///
 extern "C" __device__ void __kerma_rec_kernel(bool should_trace,
                                               unsigned char id,
                                               const char *name) {
