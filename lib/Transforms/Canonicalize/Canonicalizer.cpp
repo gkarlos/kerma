@@ -23,6 +23,7 @@ char CanonicalizerPass::ID = 111;
 CanonicalizerPass::CanonicalizerPass() : ModulePass(ID) {}
 
 void CanonicalizerPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
+  AU.addRequired<DetectKernelsPass>();
   AU.setPreservesAll();
 }
 
@@ -45,19 +46,12 @@ bool CanonicalizerPass::runOnModule(llvm::Module& M) {
   WithColor(errs(), HighlightColor::Note) << "]\n";
 #endif
 
-  for ( auto& F : M) {
-    if ( F.isDeclaration() || F.isIntrinsic()
-                           || nvvm::isCudaAPIFunction(F)
-                           || nvvm::isAtomicFunction(F)
-                           || nvvm::isReadOnlyCacheFunction(F)
-                           || isDeviceRTFunction(F))
-      continue;
-
+  for ( auto& K : getAnalysis<DetectKernelsPass>().getKernels()) {
     ++Checked;
 
-    Changes[0] = GepifyMem.runOnFunction(F);
-    Changes[1] = BreakConstantGEP.runOnFunction(F);
-    Changes[2] = SimplifyGEP.runOnFunction(F);
+    Changes[0] = GepifyMem.runOnFunction(*K.getFunction());
+    Changes[1] = BreakConstantGEP.runOnFunction(*K.getFunction());
+    Changes[2] = SimplifyGEP.runOnFunction(*K.getFunction());
 
     Checked |= std::accumulate(Changes.begin(), Changes.end(), 0);
     std::fill(Changes.begin(), Changes.end(), false);
