@@ -13,9 +13,9 @@
 using namespace llvm;
 namespace kerma {
 
-const std::string KermaTraceStatusSymbol   = "__kerma_trace_status__";
-const std::string KermaGlobalSymbolPrefix  = "__kerma_sym";
-const std::string KermaRTLinkedSymbol      = "__kerma_rt_linked__";
+const std::string KermaTraceStatusSymbol    = "__kerma_trace_status__";
+const std::string KermaGlobalSymbolPrefix   = "__kerma_sym";
+const std::string KermaDeviceRTLinkedSymbol = "__kerma_rt_linked__";
 
 const unsigned int KermaDeviceRTLinkedSymbolValue    = 0xFEEDC0DE;
 const Type::TypeID KermaDeviceRTLinkedSymbolTypeID   = Type::IntegerTyID;
@@ -41,7 +41,7 @@ const std::vector<std::string> DeviceRTFunctions = {
 bool isDeviceRTLinked(const llvm::Module &M) {
   auto &Globals = M.getGlobalList();
   for (auto &global : Globals) {
-    if (global.getName() == KermaRTLinkedSymbol) {
+    if (global.getName() == KermaDeviceRTLinkedSymbol) {
       if (auto *ty = global.getInitializer()->getType();
           ty->getTypeID() == KermaDeviceRTLinkedSymbolTypeID) {
         if (auto *ConstInt = llvm::dyn_cast<ConstantInt>(global.getInitializer())) {

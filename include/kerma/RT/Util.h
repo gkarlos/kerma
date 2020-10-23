@@ -20,7 +20,7 @@ enum AccessType : unsigned char {
 
 extern const std::string KermaTraceStatusSymbol;
 extern const std::string KermaGlobalSymbolPrefix;
-extern const std::string KermaRTLinkedSymbol;
+extern const std::string KermaDeviceRTLinkedSymbol;
 
 extern const unsigned int KermaDeviceRTLinkedSymbolValue;
 extern const llvm::Type::TypeID KermaDeviceRTLinkedSymbolTypeID;
