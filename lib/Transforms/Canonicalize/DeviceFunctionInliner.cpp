@@ -15,11 +15,14 @@
 #include "kerma/Transforms/Canonicalize/DeviceFunctionInliner.h"
 
 #include "kerma/NVVM/NVVMUtilities.h"
+#include "kerma/Support/Demangle.h"
 
+#include <llvm/ADT/StringRef.h>
 #include <llvm/Analysis/AssumptionCache.h>
 #include <llvm/Analysis/InlineCost.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/Analysis/OptimizationRemarkEmitter.h>
+#include <llvm/Demangle/Demangle.h>
 #include <llvm/IR/CallSite.h>
 #include <llvm/IR/InstrTypes.h>
 #include <llvm/IR/Module.h>
@@ -100,7 +103,7 @@ bool DeviceFunctionInliner::runOnModule(Module& M) {
   if ( !nvvm::isDeviceModule(M))
     return false;
 
-  FunctionsMarkedForInlining = 0;
+  FunctionsMarkedForInlining.clear();
   CallsChecked = 0;
   CallsInlined = 0;
   Info.clear();
@@ -112,12 +115,14 @@ bool DeviceFunctionInliner::runOnModule(Module& M) {
                            || nvvm::isCudaAPIFunction(F)
                            || nvvm::isAtomicFunction(F)
                            || nvvm::isIntrinsicFunction(F)
-                           || nvvm::isReadOnlyCacheFunction(F) )
+                           || nvvm::isReadOnlyCacheFunction(F)
+                           || StringRef(demangle(F.getName())).startswith("__kerma"))
       continue;
 
     F.removeFnAttr(Attribute::AttrKind::OptimizeNone);
     F.removeFnAttr(Attribute::AttrKind::NoInline);
     F.addFnAttr(Attribute::AttrKind::AlwaysInline);
+    FunctionsMarkedForInlining.push_back(&F);
   }
 
   // step 2: perform the inlining
@@ -126,8 +131,16 @@ bool DeviceFunctionInliner::runOnModule(Module& M) {
   WithColor(errs(), HighlightColor::Note) << '[';
   WithColor(errs(), raw_ostream::Colors::GREEN) << formatv("{0,15}", "DeviceInliner");
   WithColor(errs(), HighlightColor::Note) << ']';
-  errs() << ' ' << FunctionsMarkedForInlining << " functions, " << CallsInlined << '/' << CallsChecked << " calls\n";
-  return false;
+  errs() << ' ' << FunctionsMarkedForInlining.size() << " functions";
+  if ( FunctionsMarkedForInlining.size()) {
+    errs() << ", " << CallsInlined << '/' << CallsChecked << " calls\n";
+    for ( auto *F : FunctionsMarkedForInlining)
+      WithColor::note() << demangleFnWithoutArgs(*F) << '\n';
+    return CallsInlined;
+  } else {
+    errs() << '\n';
+    return false;
+  }
 }
 
 
