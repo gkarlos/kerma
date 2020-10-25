@@ -4,15 +4,18 @@
   "C_Cpp.formatting": "Disabled",
   "C_Cpp.errorSquiggles": "Disabled",
   "python.pythonPath": "/usr/bin/python3.5",
-  "clangd.path": "/home/gkarlos/s/llvm/10/bin/clangd",
-  "clangd.arguments": [ 
+  "clangd.path": "${env:LLVM_HOME}/bin/clangd",
+  "clangd.arguments": [
     "--compile-commands-dir=build/",
     "--completion-style=detailed",
     "--header-insertion=iwyu",
     "--background-index",
-    // "-log=error",
+    // "-log=verbose",
     "-pretty"
   ],
   "cmake.configureOnOpen": false,
-  "editor.snippetSuggestions": "inline"
+  "editor.snippetSuggestions": "inline",
+  "clang-tidy.executable": "${env.LLVM_HOME}/bin/clang-tidy",
+  "clang-tidy.buildPath": "build",
+  "clang-tidy.compilerArgs": ["-Werror"]
 }
