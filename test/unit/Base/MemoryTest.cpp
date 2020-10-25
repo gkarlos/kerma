@@ -10,12 +10,13 @@ using namespace kerma;
 
 namespace {
 
-TEST(MemoryTest, Init_1) {
+TEST(MemoryTest, Init) {
   Memory Memory(0, "mem1", nvvm::AddressSpace::Generic, Dim(2,2,2), true);
   ASSERT_EQ(Memory.getID(), 0);
   ASSERT_EQ(Memory.getName().compare("mem1"), 0);
   ASSERT_EQ(Memory.getAddrSpace(), nvvm::AddressSpace::Generic);
   ASSERT_EQ(Memory.getDim(), Dim(2,2,2));
+  ASSERT_EQ(Memory.getPos(), Memory::Unknown);
   ASSERT_TRUE(Memory.dimIsAssumed());
 }
 
