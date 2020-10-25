@@ -3,15 +3,15 @@
 namespace kerma {
 namespace nvvm {
 
-constexpr const AddressSpace::Ty AddressSpace::Unknown("unknown", -1);
-constexpr const AddressSpace::Ty AddressSpace::Generic("generic", 0);
-constexpr const AddressSpace::Ty AddressSpace::Global("global", 1);
-constexpr const AddressSpace::Ty AddressSpace::Internal("internal",2);
-constexpr const AddressSpace::Ty AddressSpace::Shared("shared", 3);
-constexpr const AddressSpace::Ty AddressSpace::Constant("constant", 4);
-constexpr const AddressSpace::Ty AddressSpace::Local("local", 5);
-constexpr const AddressSpace::Ty AddressSpace::LocalOrGlobal("localOrGlobal", 7);
-constexpr const AddressSpace::Ty AddressSpace::LocalOrShared("localOrShared", 8);
+const AddressSpace::Ty AddressSpace::Unknown("unknown", -1);
+const AddressSpace::Ty AddressSpace::Generic("generic", 0);
+const AddressSpace::Ty AddressSpace::Global("global", 1);
+const AddressSpace::Ty AddressSpace::Internal("internal",2);
+const AddressSpace::Ty AddressSpace::Shared("shared", 3);
+const AddressSpace::Ty AddressSpace::Constant("constant", 4);
+const AddressSpace::Ty AddressSpace::Local("local", 5);
+const AddressSpace::Ty AddressSpace::LocalOrGlobal("localOrGlobal", 7);
+const AddressSpace::Ty AddressSpace::LocalOrShared("localOrShared", 8);
 
 
 const std::vector<std::string> Symbols = {

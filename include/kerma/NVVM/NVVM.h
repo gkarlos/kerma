@@ -59,15 +59,21 @@ namespace AddressSpace {
 
     struct AddressSpaceImpl {
     private:
-      const char *name_;
+      std::string Name;
+      int ID;
     public:
-      constexpr AddressSpaceImpl(const AddressSpaceImpl& Other) : AddressSpaceImpl(Other.name_, Other.ID) {}
-      constexpr AddressSpaceImpl(const char *name, int id) : name_(name), ID(id) {}
-      const int ID;
-      operator std::string() const { return name_;}
-      constexpr operator int() const { return ID; }
-      constexpr bool operator==(const AddressSpaceImpl& other) { return ID == other.ID; }
-      const std::string name() const { return name_; }
+      AddressSpaceImpl(const AddressSpaceImpl& Other) : AddressSpaceImpl(Other.Name, Other.ID) {}
+      AddressSpaceImpl(const std::string& name, int id) : Name(name), ID(id) {}
+      operator std::string() const { return Name;}
+      operator int() const { return ID; }
+      bool operator==(const AddressSpaceImpl& other) { return ID == other.ID; }
+      AddressSpaceImpl& operator=(const AddressSpaceImpl& Other) {
+        Name = Other.Name;
+        ID = Other.ID;
+        return *this;
+      }
+      int getID() const { return ID; }
+      const std::string getName() const { return Name; }
     }; // namespace impl
   } // namespace AddressSpace
 
