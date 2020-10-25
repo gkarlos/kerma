@@ -45,7 +45,10 @@ else()
   list(APPEND CMAKE_PREFIX_PATH "${LLVM_HOME}/lib/cmake/llvm")
 
   find_package(LLVM REQUIRED CONFIG PATHS ${LLVM_SEARCH_PATHS} NO_DEFAULT_PATH)
-  
+
+  list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
+  include(AddLLVM)
+
   message("   [-] Vers: ${LLVM_PACKAGE_VERSION}")
   message("   [-] Using LLVMConfig.cmake in ${LLVM_DIR}")
 

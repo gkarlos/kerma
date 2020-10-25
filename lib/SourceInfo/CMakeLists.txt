@@ -13,7 +13,7 @@ include_directories(${LLVM_INCLUDE_DIRS})
 
 set_target_properties(KermaSourceInfo PROPERTIES COMPILE_FLAGS "-fno-rtti")
 
-target_link_libraries(KermaSourceInfo PRIVATE
+target_link_libraries(KermaSourceInfo
     clangFrontend
     clangSerialization
     clangDriver
@@ -28,12 +28,11 @@ target_link_libraries(KermaSourceInfo PRIVATE
     LLVMCore
     LLVMFrontendOpenMP
     LLVMIRReader
-    LLVMSupport
+    # LLVMSupport
     LLVMMC
     LLVMMCParser
     LLVMOption
     LLVMProfileData
+    KermaCompile
+    KermaSupport
 )
-
-target_link_libraries(KermaSourceInfo PRIVATE KermaCompile KermaSupport)
-

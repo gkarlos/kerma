@@ -6,9 +6,9 @@
 namespace kerma
 {
 
-std::string demangleFn(llvm::Function &f);
+std::string demangleFn(const llvm::Function &f);
 
-std::string demangleFnWithoutArgs(llvm::Function &f);
+std::string demangleFnWithoutArgs(const llvm::Function &f);
 
 } /// NAMESPACE kerma
 

@@ -25,5 +25,9 @@ REFERENCES_RELATION     = YES
 
 REFERENCES_LINK_SOURCE  = YES
 
+HAVE_DOT                = YES
+GRAPHICAL_HIERARCHY     = YES
+UML_LOOK                = YES
+
 QUIET                   = YES
 WARN_LOGFILE            = @PROJECT_BINARY_DIR@/docs/log.txt

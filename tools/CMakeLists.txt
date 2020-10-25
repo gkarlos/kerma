@@ -1,4 +1,2 @@
-# add_subdirectory(kerma-cfg)
-
-add_subdirectory(range-locator)
-add_subdirectory(kermad)
+add_subdirectory(test-source-info)
+add_subdirectory(rt-link)

@@ -2,6 +2,7 @@
 #define KERMA_SOURCEINFO_SOURCEINFO_EXTRACTOR_H
 
 #include "kerma/SourceInfo/FunctionRangeExtractor.h"
+#include "kerma/SourceInfo/StmtRangeExtractor.h"
 #include "kerma/SourceInfo/SourceRange.h"
 
 #include <clang/Tooling/CompilationDatabase.h>
@@ -30,20 +31,21 @@ public:
   SourceInfoExtractor( std::string srcPath,
                        clang::tooling::CompilationDatabase *db=nullptr);
 
-  // std::string getSource() {
-  //   return SourcePaths.size()? *SourcePaths.begin() : "";
-  // }
-
   /// Get the ranges of all functions in the file
-  FunctionRangeRes getAllFunctionRanges();
+  const FunctionRangeExtractor::Result & getAllFunctionRanges();
 
   /// Get the ranges of a subset of the functions in the file
   /// Missing functions have no entry in the results
-  FunctionRangeRes getFunctionRanges(std::vector<std::string>& Functions);
+  const FunctionRangeExtractor::Result & getFunctionRanges(const std::vector<std::string>& Functions);
 
   /// Get the range of the function. If the function is overloaded
   /// all ranges are retrieved
-  FunctionRangeRes getFunctionRange(const std::string Function);
+  const FunctionRangeExtractor::Result & getFunctionRange(const std::string& Function);
+
+  const StmtRangeRes& getAllStmtRanges();
+  const StmtRangeRes& getStmtRangesForFunctions(const std::vector<std::string>& Functions);
+  const StmtRangeRes& getStmtRangesForFunction(std::string& Function);
+
 };
 
 };

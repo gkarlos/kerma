@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.12)
 project("Kerma")
 
-set(KERMA_MAJOR_VERSION 0)
-set(KERMA_MINOR_VERSION 1)
-set(KERMA_VERSION ${KERMA_MAJOR_VERSION}.${KERMA_MINOR_VERSION})
+set(KERMA_VER_MAJOR 0)
+set(KERMA_VER_MINOR 0)
+set(KERMA_VER_PATCH 1)
+set(KERMA_VERSION ${KERMA_VER_PATCH}.${KERMA_VER_MINOR}.${KERMA_VER_PATCH})
+set(KERMA_HOME ${CMAKE_CURRENT_SOURCE_DIR}/build)
 
-# set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(ENABLE_TESTS ON)
 set(BUILD_EXAMPLES ON)
@@ -16,9 +18,8 @@ include(cmake/llvm.cmake)
 include(cmake/boost.cmake)
 include(cmake/gtest.cmake)
 
-
-SET (CMAKE_C_COMPILER ${LLVM_BIN}/clang)
-SET (CMAKE_CXX_COMPILER ${LLVM_BIN}/clang++)
+set(CMAKE_C_COMPILER ${LLVM_BIN}/clang)
+set(CMAKE_CXX_COMPILER ${LLVM_BIN}/clang++)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -30,18 +31,6 @@ if(${ENABLE_TESTS})
 endif()
 set(KERMA_TESTS_ENABLED ${ENABLE_TESTS})
 set(KERMA_EXAMPLES_ENABLED ${BUILD_EXAMPLES})
-
-configure_file(
-    ${KERMA_INCLUDE_DIR}/kerma/Config/version.h.in
-    ${KERMA_INCLUDE_DIR}/kerma/Config/version.h
-)
-
-configure_file(
-    ${KERMA_INCLUDE_DIR}/kerma/Config/config.h.in
-    ${KERMA_INCLUDE_DIR}/kerma/Config/config.h
-    @ONLY
-)
-##-- 
 
 include_directories(${KERMA_INCLUDE_DIR})
 

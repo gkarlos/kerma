@@ -40,19 +40,19 @@ namespace {
 cl::OptionCategory GeneralOptions("kermad options");
 cl::opt<std::string> OptLog("log"); // FIXME
 
-cl::opt<std::string> OptDirectory("d", 
+cl::opt<std::string> OptDirectory("d",
   cl::cat(GeneralOptions),
   cl::desc("Specify a working directory. By default one is created at the same directory as the executable"),
   cl::value_desc("dir"));
 
-cl::opt<bool> OptPrettyPrint("pretty", 
-  cl::cat(GeneralOptions), 
+cl::opt<bool> OptPrettyPrint("pretty",
+  cl::cat(GeneralOptions),
   cl::desc("Pretty pretty JSON output"));
 
 
 cl::OptionCategory ConnectionOptions("kermad connection options");
 
-cl::opt<unsigned> OptPort("p", 
+cl::opt<unsigned> OptPort("p",
   cl::cat(ConnectionOptions),
   cl::desc("Specify the port to listen at. "
            "A random available port is picked otherwise"),

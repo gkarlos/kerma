@@ -184,7 +184,7 @@ TEST(DimTest, operatorUnsignedLongLong) {
   Dim dim;
   EXPECT_TRUE(dim == dim);
   EXPECT_TRUE(dim == Dim(1,1,1));
-  
+
   Dim dim1(10,10);
   Dim dim2(10,10);
   EXPECT_TRUE(dim1 == dim2);

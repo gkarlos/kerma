@@ -22,3 +22,6 @@ cmake-build-debug/
 
 *.old/
 *.b/
+
+include/kerma/Support/Config.h
+include/kerma/Support/Version.h

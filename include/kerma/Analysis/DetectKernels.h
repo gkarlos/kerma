@@ -4,7 +4,10 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
+#include <llvm/ADT/SmallSet.h>
 #include <vector>
+
+#include "kerma/Base/Kernel.h"
 
 namespace kerma {
 
@@ -23,18 +26,26 @@ public:
   /// found in the module. The returned vector is a copy
   /// the internal vector of the pass and can be freely
   /// manipulated
-  std::vector<llvm::Function*> getKernels();
-
-  /// Get the kernel function found in the use-provided
-  /// container.
-  void getKernels(std::vector<llvm::Function*> &Kernels);
-
+  const std::vector<Kernel> & getKernels();
+  void getKernels(std::vector<Kernel>& Kernels);
 private:
-  std::vector<llvm::Function*> Kernels;
+  std::vector<Kernel> Kernels;
 };
 
-
 std::unique_ptr<DetectKernelsPass> createDetectKernelsPass();
+
+
+/// Extract the kernels from a module. Results are cached
+/// until:
+///   (a) invalidateCacheEntry is true in which case the
+///       cache entry for this module is recomputed.
+///   (b) clearCache() is called, in which case the entire
+///       cache is invalided but not recomputed.
+std::vector<llvm::Function*> getKernelFunctions( const llvm::Module &M, bool invalidateCacheEntry=false);
+const std::vector<Kernel> & getKernels(const llvm::Module &M, bool invalidateCacheEntry=false);
+
+/// Check if a function is a CUDA kernel
+bool isKerneFunction(const llvm::Function& F);
 
 } // end namespace kerma
 
