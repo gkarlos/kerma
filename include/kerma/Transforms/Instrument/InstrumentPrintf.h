@@ -1,7 +1,7 @@
 #ifndef KERMA_TRANSFORMS_INSTRUMENT_INSTRUMENT_PRINTF_H
 #define KERMA_TRANSFORMS_INSTRUMENT_INSTRUMENT_PRINTF_H
 
-#include "kerma/Cuda/Kernel.h"
+#include "kerma/Base/Kernel.h"
 #include "kerma/RT/Util.h"
 
 #include <llvm/ADT/StringRef.h>

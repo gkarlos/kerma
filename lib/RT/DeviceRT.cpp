@@ -11,16 +11,6 @@
 /// module is considered to be linked with the RT library.
 __device__ __constant__ unsigned int __kerma_rt_linked__ = 0xFEEDC0DE;
 
-
-/// This array keeps trace of how many times a kernel function
-/// has been trace. Since we only want to trace a a kernel once
-/// (for now) a boolean array is enough.
-/// NOTE: This is actually a dummy declaration such that DeviceRT
-///       can compile without errors. The instrumeter pass(es) will
-///       remove it and replace it with an equiv. named one but with
-///       a size that matches the number of kernels in the program.
- __device__ volatile bool __kerma_trace_status__[] = {false};
-
 /// Read the trace status for a kernel
 /// This call is inserted at the start of each kernel the result
 /// is is passed to every trace hook.
@@ -30,8 +20,8 @@ __device__ __constant__ unsigned int __kerma_rt_linked__ = 0xFEEDC0DE;
 /// is to just an IRBuilder to insert the relevant code.
 /// By having this function however we let codegen do that for us,
 /// so we do not have to insert extra code in the Instrumenter.
-extern "C" __device__ bool __kerma_trace_status(unsigned int kernel_id) {
-  bool status = __kerma_trace_status__[kernel_id];
+extern "C" __device__ bool __kerma_trace_status(bool *stop_tracing, unsigned int kernel_id) {
+  bool status = stop_tracing[kernel_id];
   return status;
 }
 
@@ -40,19 +30,19 @@ extern "C" __device__ bool __kerma_trace_status(unsigned int kernel_id) {
 ///
 /// Similarly to __kerma_trace_status we put this function here to
 /// minimize the Instrumenter code.
-extern "C" __device__ void __kerma_stop_tracing(unsigned int kernel_id) {
+extern "C" __device__ void __kerma_stop_tracing(bool *stop_tracing, unsigned int kernel_id) {
   __syncthreads();
   if ( threadIdx.x == 0 && threadIdx.y == 0 && threadIdx.z == 0)
-    __kerma_trace_status__[kernel_id] = false;
+    stop_tracing[kernel_id] = true;
 }
 
 
 
 ///
-extern "C" __device__ void __kerma_rec_kernel(bool should_trace,
+extern "C" __device__ void __kerma_rec_kernel(bool stop_tracing,
                                               unsigned char id,
                                               const char *name) {
-  if ( !should_trace) return;
+  if ( stop_tracing) return;
 
   if (blockIdx.x == 0 && blockIdx.y == 0 && blockIdx.z == 0 &&
       threadIdx.x == 0 && threadIdx.y == 0 && threadIdx.z == 0) {
@@ -60,13 +50,13 @@ extern "C" __device__ void __kerma_rec_kernel(bool should_trace,
   }
 }
 
-extern "C" __device__ void __kerma_rec_base(bool should_trace,
+extern "C" __device__ void __kerma_rec_base(bool stop_tracing,
                                             unsigned char kernelid,
                                             const char *symbol,
                                             unsigned char addrspace,
                                             unsigned long baseaddr) {
 
-  if ( !should_trace) return;
+  if ( stop_tracing) return;
 
   unsigned int linearBlockIdx =
       blockIdx.z * gridDim.x * gridDim.y + blockIdx.y * gridDim.x + blockIdx.x;
@@ -76,13 +66,13 @@ extern "C" __device__ void __kerma_rec_base(bool should_trace,
   }
 }
 
-extern "C" __device__ void __kerma_rec_access_b(bool should_trace,
+extern "C" __device__ void __kerma_rec_access_b(bool stop_tracing,
                                                 __kerma_mem_access_type__ ty,
                                                 unsigned int bid,
                                                 unsigned int line, unsigned int col,
                                                 const char *name,
                                                 unsigned long offset, unsigned int size) {
-  if ( !should_trace) return;
+  if ( stop_tracing) return;
 
   unsigned int linearBlockIdx =
       blockIdx.z * gridDim.x * gridDim.y + blockIdx.y * gridDim.x + blockIdx.x;
@@ -105,14 +95,14 @@ extern "C" __device__ void __kerma_rec_access_b(bool should_trace,
 /// Record all threads in a specific warp in a specific block
 /// The warp id must exist otherwise threads will perform
 /// unecessary work.
-extern "C" __device__ void __kerma_rec_access_w(bool should_trace,
+extern "C" __device__ void __kerma_rec_access_w(bool stop_tracing,
                                                 __kerma_mem_access_type__ ty,
                                                 unsigned int bid,  unsigned int wid,
                                                 unsigned int line, unsigned int col,
                                                 const char *name, unsigned long offset,
                                                 unsigned int size) {
 
-  if ( !should_trace) return;
+  if ( stop_tracing) return;
 
   unsigned int linearBlockIdx =
     blockIdx.z * gridDim.x * gridDim.y + blockIdx.y * gridDim.x + blockIdx.x;
@@ -137,14 +127,14 @@ extern "C" __device__ void __kerma_rec_access_w(bool should_trace,
 }
 
 /// Record a specific thread in a block
-extern "C" __device__ void __kerma_rec_access_t(bool should_trace,
+extern "C" __device__ void __kerma_rec_access_t(bool stop_tracing,
                                                 __kerma_mem_access_type__ ty,
                                                 unsigned int bid, unsigned int tid,
                                                 unsigned int line, unsigned int col,
                                                 const char *name, unsigned long offset,
                                                 unsigned int size) {
 
-  if ( !should_trace) return;
+  if ( stop_tracing) return;
 
   unsigned int linearBlockIdx =
       blockIdx.z * gridDim.x * gridDim.y + blockIdx.y * gridDim.x + blockIdx.x;
@@ -176,13 +166,13 @@ extern "C" __device__ void __kerma_rec_access_t(bool should_trace,
 
 
 /// Record a copy for all threads in a block
-extern "C" __device__ void __kerma_rec_copy_b(bool should_trace,
+extern "C" __device__ void __kerma_rec_copy_b(bool stop_tracing,
                                               unsigned int bid,
                                               unsigned int line, unsigned int col,
                                               const char *sname, unsigned long soffset,
                                               const char *dname, unsigned long doffset,
                                               unsigned int size) {
-  if ( !should_trace) return;
+  if ( stop_tracing) return;
 
   unsigned int linearBlockIdx =
     blockIdx.z * gridDim.x * gridDim.y + blockIdx.y * gridDim.x + blockIdx.x;
@@ -214,13 +204,13 @@ extern "C" __device__ void __kerma_rec_copy_b(bool should_trace,
 }
 
 /// Record a copy for all threads in a specific warp in a specific block
-extern "C" __device__ void __kerma_rec_copy_w(bool should_trace,
+extern "C" __device__ void __kerma_rec_copy_w(bool stop_tracing,
                                               unsigned int bid, unsigned int wid,
                                               unsigned int line, unsigned int col,
                                               const char *sname, unsigned long soffset,
                                               const char *dname, unsigned long doffset,
                                               unsigned int size) {
-  if ( !should_trace) return;
+  if ( stop_tracing) return;
 
   unsigned int linearBlockIdx =
     blockIdx.z * gridDim.x * gridDim.y + blockIdx.y * gridDim.x + blockIdx.x;
@@ -256,13 +246,13 @@ extern "C" __device__ void __kerma_rec_copy_w(bool should_trace,
 }
 
 /// Record a copy for all threads in a specific warp in a specific block
-extern "C" __device__ void __kerma_rec_copy_t(bool should_trace,
+extern "C" __device__ void __kerma_rec_copy_t(bool stop_tracing,
                                               unsigned int bid, unsigned int tid,
                                               unsigned int line, unsigned int col,
                                               const char *sname, unsigned long soffset,
                                               const char *dname, unsigned long doffset,
                                               unsigned int size) {
-  if ( !should_trace) return;
+  if ( stop_tracing) return;
 
   unsigned int linearBlockIdx =
     blockIdx.z * gridDim.x * gridDim.y + blockIdx.y * gridDim.x + blockIdx.x;

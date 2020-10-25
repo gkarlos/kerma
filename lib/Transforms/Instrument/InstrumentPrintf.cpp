@@ -18,8 +18,10 @@
 #include <llvm/Demangle/Demangle.h>
 #include <llvm/IR/Argument.h>
 #include <llvm/IR/CallingConv.h>
+#include <llvm/IR/Constant.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/GlobalValue.h>
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/IntrinsicInst.h>
@@ -30,20 +32,19 @@
 #include <llvm/IR/Operator.h>
 #include <llvm/Pass.h>
 #include <llvm/IR/Value.h>
+#include <llvm/Support/Alignment.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/FormatVariadic.h>
+#include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/WithColor.h>
 
 #include <algorithm>
-#include <llvm/Support/raw_ostream.h>
 #include <memory>
 #include <string>
 #include <utility>
 
 
 using namespace llvm;
-
-#define TAB "       "
 
 #ifdef KERMA_OPT_PLUGIN
 namespace {
@@ -65,41 +66,6 @@ cl::opt<kerma::Mode> InstruMode("kerma-instru-mode", cl::Optional, cl::desc("Ins
 
 namespace kerma {
 
-GlobalVariable *insertGlobalStr(Module &M, llvm::StringRef Str) {
-  static unsigned int counter = 0;
-
-  auto* CharTy = IntegerType::get(M.getContext(), 8);
-
-  std::vector<Constant*> chars(Str.size());
-  for ( unsigned int i = 0; i < Str.size(); ++i)
-    chars[i] = ConstantInt::get(CharTy, Str[i]);
-  chars.push_back( ConstantInt::get(CharTy, 0));
-
-  auto* StrTy = ArrayType::get(CharTy, chars.size());
-
-  auto *G = M.getOrInsertGlobal(std::string("arr") + std::to_string(counter++), StrTy);
-
-  if ( G) {
-    if ( auto* GV = dyn_cast<GlobalVariable>(G)) {
-      GV->setInitializer(ConstantArray::get(StrTy, chars));
-      GV->setConstant(true);
-      GV->setLinkage(GlobalValue::LinkageTypes::PrivateLinkage);
-      GV->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
-      return GV;
-    }
-  }
-  return nullptr;
-}
-
-static bool GEPHasAddressSpaceCast(GetElementPtrInst *GEP) {
-  if ( auto *CE = dyn_cast<ConstantExpr>(GEP->getOperand(0)))
-    if ( auto *OP = dyn_cast<Operator>(CE))
-      if ( OP->getOpcode() == Instruction::AddrSpaceCast)
-        return true;
-  return false;
-}
-
-
 SmallSet<GlobalVariable *, 32> getGlobalsUsedInKernel(Function &Kernel) {
   SmallSet<GlobalVariable *, 32> Globals;
 
@@ -115,9 +81,6 @@ SmallSet<GlobalVariable *, 32> getGlobalsUsedInKernel(Function &Kernel) {
               Globals.insert(&GV);
               break;
             }
-        // if ( auto *GV = dyn_cast<GlobalVariable>(U->stripPointerCasts()))
-        //   if ( !GV->getName().startswith("__kerma"))
-        //     Globals.insert(dyn_cast<GlobalVariable>(U));
     }
   }
 
@@ -550,9 +513,24 @@ bool InstrumentPrintfPass::instrumentAccesses(const Kernel& Kernel, Instruction 
 /// Insert a trace status call at the beginning of the kernel
 /// and return it.
 static Instruction * instrumentTraceStatus(Kernel& Kernel) {
-  auto *TraceStatusHook = Kernel.getFunction()->getParent()->getFunction("__kerma_trace_status");
-  if ( !TraceStatusHook) return nullptr;
-  auto *TraceStatus = CallInst::Create(TraceStatusHook, {}, Kernel.getFunction()->getEntryBlock().getFirstNonPHI());
+  auto *M = Kernel.getFunction()->getParent();
+  auto *Hook = M->getFunction("__kerma_trace_status");
+  auto *GV = M->getGlobalVariable(KermaTraceStatusSymbol);
+
+  if ( !Hook) return nullptr;
+
+  auto *KernelID = ConstantInt::get( IntegerType::getInt32Ty(M->getContext()),
+                                     Kernel.getID());
+
+  IRBuilder<> IRB(Kernel.getFunction()->getEntryBlock().getFirstNonPHI());
+
+  auto *Ptr = PointerType::get(GV->getValueType(), 0);
+  auto *Cast = IRB.CreatePointerBitCastOrAddrSpaceCast(GV, Ptr);
+  auto *GEP = IRB.CreateInBoundsGEP( GV->getValueType(), Cast, {
+                                     ConstantInt::get(IntegerType::getInt64Ty(M->getContext()), 0),
+                                     ConstantInt::get(IntegerType::getInt64Ty(M->getContext()), 0) });
+  auto *TraceStatus = IRB.CreateCall(Hook, {GEP, KernelID});
+
   return TraceStatus;
 }
 
@@ -565,17 +543,63 @@ static Instruction * instrumentTraceStatus(Kernel& Kernel) {
 /// and then just get the (now unique) exit block and insert before
 /// its terminator
 static bool instrumentStopTracing(Kernel& Kernel) {
-  auto *Hook = Kernel.getFunction()->getParent()->getFunction("__kerma_stop_tracing");
+  auto *M = Kernel.getFunction()->getParent();
+  auto *Hook = M->getFunction("__kerma_stop_tracing");
+  auto *GV = M->getGlobalVariable(KermaTraceStatusSymbol);
   if ( !Hook) return false;
   for ( auto &BB : *Kernel.getFunction()) {
     for ( auto &I : BB) {
       if ( auto *Ret = dyn_cast<ReturnInst>(&I)) {
-        if ( !CallInst::Create(Hook, {}, Ret))
+        auto *KernelID = ConstantInt::get( IntegerType::getInt32Ty(M->getContext()),
+                                           Kernel.getID());
+
+        IRBuilder<> IRB(Ret);
+        auto *Ptr = PointerType::get(GV->getValueType(), 0);
+        auto *Cast = IRB.CreatePointerBitCastOrAddrSpaceCast(GV, Ptr);
+        auto *GEP = IRB.CreateInBoundsGEP( GV->getValueType(), Cast, {
+                                           ConstantInt::get(IntegerType::getInt64Ty(M->getContext()), 0),
+                                           ConstantInt::get(IntegerType::getInt64Ty(M->getContext()), 0)});
+        if ( !IRB.CreateCall(Hook, {GEP, KernelID}))
           return false;
       }
     }
   }
   return true;
+}
+
+static bool initInstrumentation(Module &M, const std::vector<Kernel>& Kernels) {
+
+  /// This array keeps track of how many times a kernel function
+  /// has been traced. Since (for now) we only want to trace a
+  /// kernel once, a boolean array is enough.
+  /// The size of the array is equal to the number of kernels we
+  /// we detected.
+  /// The first thing a thread does is bring the corresponding
+  /// value in local memory and check it before at every call
+  /// to a record function.
+  /// At every exit point of a kernel, thread 0 will set the
+  /// corresponding index to true.
+
+  auto *Ty = ArrayType::get( IntegerType::getInt8Ty(M.getContext()), Kernels.size());
+
+  auto *TraceStatusGV = new GlobalVariable(
+    /* module    */ M,
+    /* type      */ Ty,
+    /* isConst   */ false,
+    /* linkage   */ GlobalValue::ExternalLinkage,
+    /* init      */ ConstantAggregateZero::get(Ty),
+    /* name      */ KermaTraceStatusSymbol,
+    /* insertpt  */ M.getGlobalVariable(KermaDeviceRTLinkedSymbol),
+    /* threadloc */ GlobalValue::NotThreadLocal,
+    /* addrspace */ 1,
+    /* externinit*/ true);
+
+  if ( TraceStatusGV) {
+    TraceStatusGV->setDSOLocal(true);
+    TraceStatusGV->setAlignment(MaybeAlign(1));
+  }
+
+  return TraceStatusGV;
 }
 
 bool InstrumentPrintfPass::runOnModule(Module &M) {
@@ -613,7 +637,11 @@ bool InstrumentPrintfPass::runOnModule(Module &M) {
   errs() << " mode:" << Mode << ", #kernels:" << Kernels.size() << '\n';
 #endif
 
-  // HighlightColor::
+  if ( !initInstrumentation(M, Kernels)) {
+    WithColor::warning() << " Failed to init instrumentation. Exiting" << '\n';
+    return false;
+  }
+
   bool Changed = false;
 
   for ( auto &Kernel : Kernels) {
