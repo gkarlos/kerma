@@ -10,13 +10,11 @@ set(Support_SOURCES Demangle.cpp
 add_library(KermaSupportOpt SHARED ${Support_SOURCES})
 
 set_target_properties(KermaSupportOpt PROPERTIES COMPILE_FLAGS "-fno-rtti")
-target_link_libraries(KermaSupportOpt LLVMDemangle)
-target_link_libraries(KermaSupportOpt stdc++fs)
+target_link_libraries(KermaSupportOpt LLVMDemangle stdc++fs)
 
 add_library(KermaSupport SHARED ${Support_SOURCES})
 set_target_properties(KermaSupport PROPERTIES COMPILE_FLAGS "-fno-rtti")
-target_link_libraries(KermaSupport LLVMDemangle)
-target_link_libraries(KermaSupport stdc++fs)
+target_link_libraries(KermaSupport PUBLIC stdc++fs)
 
 # Clean up config auto-generated files
 set_property(TARGET KermaSupport

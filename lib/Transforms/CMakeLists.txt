@@ -20,8 +20,8 @@ target_include_directories(KermaTransformsPlugin PUBLIC ${KERMA_INCLUDE_DIR})
 target_compile_definitions(KermaTransformsPlugin PUBLIC KERMA_OPT_PLUGIN)
 set_target_properties(KermaTransformsPlugin PROPERTIES COMPILE_FLAGS "-fno-rtti")
 target_link_libraries(KermaTransformsPlugin KermaAnalysisPlugin
-                                            KermaBase
-                                            KermaNVVM
+                                            KermaBaseOpt
+                                            KermaNVVMOpt
                                             KermaUtilsPlugin
                                             KermaRTUtils)
 
