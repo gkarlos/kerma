@@ -9,3 +9,7 @@ add_test(NAME Base.Index COMMAND IndexTest)
 add_executable(MemoryTest MemoryTest.cpp)
 target_link_libraries(MemoryTest gtest gtest_main KermaBase)
 add_test(NAME Base.Memory COMMAND MemoryTest)
+
+add_executable(MemoryAccessTest MemoryTest.cpp)
+target_link_libraries(MemoryAccessTest gtest gtest_main KermaBase)
+add_test(NAME Base.MemoryAccess COMMAND MemoryAccessTest)
