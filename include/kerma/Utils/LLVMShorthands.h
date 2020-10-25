@@ -13,17 +13,20 @@ namespace kerma {
 /// the first non-pointer type encountered
 llvm::Type* stripPointers(llvm::Type *Ty);
 
-// Get the number of pointers in the type
-// e.g int*   -> 1
-//     int**  -> 2
-//     int*** -> 3
+/// Get the number of pointers in the type
+/// e.g int*   -> 1
+///     int**  -> 2
+///     int*** -> 3
 unsigned int getPointerDepth(llvm::PointerType& PtrTy);
 
-// Check if its a ptr to ptr to ... chain
+/// Check if its a ptr to ptr to ... chain
 bool isNestedPointer(llvm::PointerType& PtrTy);
 
-// Retrieve a list of globals used in a function
+/// Retrieve a list of globals used in a function
 std::vector<const llvm::Value *> getGlobalValuesUsedinFunction(const llvm::Function *F);
+
+///
+llvm::GlobalVariable *insertGlobalStr(llvm::Module &M, llvm::StringRef Str);
 
 } // namespace kerma
 

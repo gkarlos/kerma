@@ -1,5 +1,6 @@
 #include "kerma/Utils/LLVMShorthands.h"
 #include <llvm/IR/Constants.h>
+#include <llvm/IR/Module.h>
 #include <llvm/Support/Casting.h>
 
 using namespace llvm;
@@ -47,5 +48,30 @@ std::vector<const llvm::Value *> getGlobalValuesUsedinFunction(const llvm::Funct
   return GlobalsUsed;
 }
 
+GlobalVariable *insertGlobalStr(Module &M, llvm::StringRef Str) {
+  static unsigned int counter = 0;
+
+  auto* CharTy = IntegerType::get(M.getContext(), 8);
+
+  std::vector<Constant*> chars(Str.size());
+  for ( unsigned int i = 0; i < Str.size(); ++i)
+    chars[i] = ConstantInt::get(CharTy, Str[i]);
+  chars.push_back( ConstantInt::get(CharTy, 0));
+
+  auto* StrTy = ArrayType::get(CharTy, chars.size());
+
+  auto *G = M.getOrInsertGlobal(std::string("arr") + std::to_string(counter++), StrTy);
+
+  if ( G) {
+    if ( auto* GV = dyn_cast<GlobalVariable>(G)) {
+      GV->setInitializer(ConstantArray::get(StrTy, chars));
+      GV->setConstant(true);
+      GV->setLinkage(GlobalValue::LinkageTypes::PrivateLinkage);
+      GV->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
+      return GV;
+    }
+  }
+  return nullptr;
+}
 
 } // end namespace kerma
