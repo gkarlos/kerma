@@ -2,6 +2,7 @@
 #define KERMA_PASS_MATERIALIZE_DIMS_H
 
 #include "kerma/Base/Dim.h"
+#include "kerma/Cuda/Kernel.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/Pass.h"
@@ -45,7 +46,7 @@ private:
   bool hasTargetKernel() const;
 
 private:
-  std::vector<llvm::Function*> Kernels;
+  std::vector<Kernel> Kernels;
   llvm::Function *TargetKernelFun;
   const char *TargetKernelName;
   Dim Grid;
