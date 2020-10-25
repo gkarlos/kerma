@@ -12,11 +12,11 @@ namespace kerma {
 
 class Memory {
 public:
-  enum Type: unsigned {Arg, Global, Alloca, Unknown};
+  enum Pos: unsigned { Arg, Global, Alloca, Unknown};
 
 private:
   unsigned int ID;
-  Type Ty;
+  Pos Pos=Unknown;
   std::string Name;
   bool DimAssumed;
   Dim D;
@@ -38,33 +38,69 @@ public:
 
   unsigned int getID() const { return ID; }
 
-  void setName(const std::string& Name) { this->Name = Name; }
-  void setName(const char *Name) { this->Name = Name? Name : ""; }
-  void setName(const llvm::StringRef& Name) { this->Name = Name.str(); }
+  Memory& setName(const std::string& Name) {
+    this->Name = Name;
+    return *this;
+  }
 
-  const std::string& getName() { return Name; }
+  Memory& setName(const char *Name) {
+    this->Name = Name? Name : "";
+    return *this;
+  }
 
-  void setDim(const Dim& Dim) { D = Dim; }
-  void setDim(unsigned int x, unsigned int y=1, unsigned int z=3) { D = Dim(x,y,z); }
+  Memory& setName(const llvm::StringRef& Name) {
+    this->Name = Name.str();
+    return *this;
+  }
 
-  const Dim& getDim() { return D; }
+  const std::string& getName() const { return Name; }
 
-  bool dimIsAssumed() { return DimAssumed; }
+  Memory& setDim(const Dim& Dim) {
+    D = Dim;
+    return *this;
+  }
 
-  const nvvm::AddressSpace::Ty& getAddrSpace() { return AddrSpace; }
+  Memory& setDim(unsigned int x, unsigned int y=1, unsigned int z=3) {
+    D = Dim(x,y,z);
+    return *this;
+  }
 
-  void setValue(llvm::Value *V) { this->V = V; }
+  const Dim& getDim() const { return D; }
+
+  bool dimIsAssumed() const { return DimAssumed; }
+
+  const nvvm::AddressSpace::Ty& getAddrSpace() const { return AddrSpace; }
+
+  Memory& setValue(llvm::Value *V) {
+    this->V = V;
+    return *this;
+  }
+
   const llvm::Value *getValue() const { return V; }
   bool hasValue() const { return V != nullptr; }
 
-  bool isArgument() { return Ty == Arg; }
-  bool isGlobal() { return Ty == Global; }
-  bool isAlloca() { return Ty = Alloca; }
+  bool isArgument() const { return Pos == Arg; }
+  bool isGlobal() const { return Pos == Global; }
+  bool isAlloca() const { return Pos == Alloca; }
+
+  enum Pos getPos() const { return Pos; }
+  Memory& setPos(enum Pos Pos) {
+    this->Pos = Pos;
+    return *this;
+  }
 
   bool operator==(const Memory& Other) { return ID = Other.ID; }
   bool operator<(const Memory& Other) { return ID < Other.ID; }
-
-  enum Memory::Type getType() { return Ty; }
+  Memory& operator=(const Memory& Other) {
+    ID = Other.ID;
+    Pos = Other.Pos;
+    Name = Other.Name;
+    DimAssumed = Other.DimAssumed;
+    D = Other.D;
+    AddrSpace = Other.AddrSpace;
+    V = Other.V;
+    return *this;
+  }
 };
 
 }
