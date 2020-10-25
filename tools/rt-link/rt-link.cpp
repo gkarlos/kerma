@@ -33,7 +33,7 @@ int main(int argc, const char** argv) {
 
   auto M = llvm::parseIRFile(OptInput.getValue(), Err, Context);
 
-  if ( !kerma::KermaRTLinked(*M)) {
+  if ( !kerma::isDeviceRTLinked(*M)) {
     llvm::errs() << "KermaRT is not linked with " << OptInput.getValue() << "\nLinking...";
 
     kerma::LinkDeviceRTPass LinkRTPass;
@@ -45,7 +45,7 @@ int main(int argc, const char** argv) {
       llvm::errs() << '\n' << e.what() << '\n';
       return 1;
     }
-    llvm::errs() << (kerma::KermaRTLinked(*M)? " Success " : " Error ") << '\n';
+    llvm::errs() << (kerma::isDeviceRTLinked(*M)? " Success " : " Error ") << '\n';
   } else {
     llvm::errs() << "KermaRT is already linked\n";
   }
