@@ -34,7 +34,13 @@ static AddressSpaceCacheTy AddressSpaceCache;
 
 
 static const AddressSpace::Ty& join(const AddressSpace::Ty& A, const AddressSpace::Ty& B) {
-  return A.ID > B.ID? A : B;
+  return A.getID() > B.getID()? A : B;
+}
+
+
+bool clearAddressSpaceCacheEntry(llvm::Value *V) {
+  // TODO: implement me
+  return false;
 }
 
 bool cacheAddressSpaceForValue(llvm::Value *V, const nvvm::AddressSpace::Ty& AS) {

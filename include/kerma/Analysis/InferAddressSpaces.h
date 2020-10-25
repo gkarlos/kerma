@@ -3,6 +3,8 @@
 
 #include "kerma/NVVM/NVVM.h"
 #include "llvm/IR/Value.h"
+#include <llvm/IR/Function.h>
+#include <llvm/Pass.h>
 
 namespace kerma {
 
@@ -29,6 +31,15 @@ const nvvm::AddressSpace::Ty& getAddressSpaceForArgValue(llvm::Argument& Arg, bo
 /// Defaults to AddressSpace::Generic
 /// Returns AddressSpace::Unknown if something went wrong
 const nvvm::AddressSpace::Ty& getAddressSpace(llvm::Value *V, bool kernel=true);
+
+
+class InferAddressSpacesPass : public llvm::FunctionPass {
+public:
+  char ID;
+  InferAddressSpacesPass();
+public:
+  bool runOnFunction(llvm::Function& F) override;
+};
 
 } // namespace kerma
 
