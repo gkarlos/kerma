@@ -60,15 +60,15 @@ jobs :
         - cmake -DCMAKE_C_COMPILER=$CLANG -DCMAKE_CXX_COMPILER=$CLANGPP ..
         - make
 
-    - name : "llvm-8-gcc"
+    - name : "llvm-10-gcc"
       stage : build
       cache :
         ccache : true
         apt : true
         directories :
           - $HOME/boost/
-      env : 
-        - LLVM_VERSION=8
+      env :
+        - LLVM_VERSION=10
         - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
         - BOOST_ROOT=$HOME/boost/172
       before_script:
@@ -81,14 +81,14 @@ jobs :
         - mkdir build && cd build && cmake ..
         - make
 
-    - name : "llvm-8-clang"
+    - name : "llvm-10-clang"
       stage : build
       cache :
         ccache : true
         apt : true
         directories :
           - $HOME/boost/
-      env : 
+      env :
         - LLVM_VERSION=8
         - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
         - CLANGPP=$LLVM_HOME/bin/clang++
@@ -101,6 +101,6 @@ jobs :
         - chmod +x scripts/travis/install_boost.sh
         - scripts/travis/install_boost.sh
       script:
-        - mkdir build && cd build 
+        - mkdir build && cd build
         - cmake -DCMAKE_C_COMPILER=$CLANG -DCMAKE_CXX_COMPILER=$CLANGPP ..
         - make
