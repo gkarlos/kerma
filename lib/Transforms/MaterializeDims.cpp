@@ -28,17 +28,17 @@ using namespace llvm;
 
 /// Set up some cl args for Opt
 cl::OptionCategory MDOptionCategory("Kerma Materialize-Dim Options (--kerma-md)");
-cl::opt<std::string> MDGrid("md-grid", cl::desc("Grid dimensions. Default=1,1,1"), 
+cl::opt<std::string> MDGrid("md-grid", cl::desc("Grid dimensions. Default=1,1,1"),
                             cl::value_desc("x,y,z"), cl::init("1,1,1"), cl::cat(MDOptionCategory));
-cl::opt<std::string> MDBlock("md-block", cl::desc("Block dimensions. Default=1,1,1"), 
+cl::opt<std::string> MDBlock("md-block", cl::desc("Block dimensions. Default=1,1,1"),
                             cl::value_desc("x,y,z"), cl::init("1,1,1"), cl::cat(MDOptionCategory));
 cl::opt<std::string> MDTarget("md-target", cl::Optional,
                             cl::desc("Target kernel function"),
                             cl::value_desc("kernel_name"), cl::cat(MDOptionCategory), cl::init(""));
 
-/// Parse a string of the form x,y,z into a Dim(x,y,z).If the parsing fails 
-/// an llvm fatal_error is issued and the program exits with an appropriate 
-/// message. This function is not meant to be used by library code but rather 
+/// Parse a string of the form x,y,z into a Dim(x,y,z).If the parsing fails
+/// an llvm fatal_error is issued and the program exits with an appropriate
+/// message. This function is not meant to be used by library code but rather
 /// only for testing purposes in Opt plugins.
 kerma::Dim parseDimOrExit(const std::string& DimStr, const char *ErrorMsg="") {
   std::stringstream ss(DimStr);
@@ -163,7 +163,7 @@ bool MaterializeDimsPass::analyzeKernel(llvm::Function &F) const {
   for ( auto &BB : F) {
     for ( auto &I : BB) {
       if ( auto *CI = dyn_cast<CallInst>(&I)) {
-        
+
         auto *Callee = CI->getCalledFunction();
         auto DemangledCalleeName = llvm::demangle(Callee->getName());
 
@@ -172,7 +172,7 @@ bool MaterializeDimsPass::analyzeKernel(llvm::Function &F) const {
 
 #ifdef KERMA_OPT_PLUGIN
         if ( CI->getDebugLoc())
-          llvm::errs() << (isGridDimBuiltin(*Callee)? "  -grid.dim" : "  -block.dim") 
+          llvm::errs() << (isGridDimBuiltin(*Callee)? "  -grid.dim" : "  -block.dim")
                     << " call at line " << CI->getDebugLoc().getLine();
         else
           llvm::errs() << (isGridDimBuiltin(*Callee)? "  -grid.dim" : "  -block.dim")
@@ -200,7 +200,7 @@ bool MaterializeDimsPass::analyzeKernel(llvm::Function &F) const {
 
 #ifdef KERMA_OPT_PLUGIN
         llvm::errs() << " -> " << Callee->getNumUses() << " uses materialized\n";
-#endif 
+#endif
 
         changes += Callee->getNumUses();
       }
@@ -209,7 +209,7 @@ bool MaterializeDimsPass::analyzeKernel(llvm::Function &F) const {
 
 #ifdef KERMA_OPT_PLUGIN
   llvm::errs() << "\n";
-#endif 
+#endif
   return changes;
 }
 
@@ -223,18 +223,18 @@ bool MaterializeDimsPass::runOnFunction(llvm::Function &F) {
 
   if ( !this->hasWork())
     return false;
-    
+
   if ( this->hasTargetKernel() ) {
-    if ( !(this->TargetKernelFun && this->TargetKernelFun->getName() == F.getName()) &&  
-         !(this->TargetKernelName && this->TargetKernelName == demangleFnWithoutArgs(F))) 
+    if ( !(this->TargetKernelFun && this->TargetKernelFun->getName() == F.getName()) &&
+         !(this->TargetKernelName && this->TargetKernelName == demangleFnWithoutArgs(F)))
     {
 #ifdef KERMA_OPT_PLUGIN
     llvm::errs() << "Skipping: " << llvm::demangle(F.getName()) << '\n';
 #endif
       return false;
-    }  
+    }
   }
-  
+
   return analyzeKernel(F);
 }
 
@@ -243,7 +243,7 @@ std::unique_ptr<MaterializeDimsPass> createMaterializeDimsPass() {
   return std::make_unique<MaterializeDimsPass>();
 }
 
-std::unique_ptr<MaterializeDimsPass> 
+std::unique_ptr<MaterializeDimsPass>
 createMaterializeDimsPass(const Dim& Grid, const Dim& Block) {
   return std::make_unique<MaterializeDimsPass>(Grid, Block);
 }
