@@ -1,4 +1,4 @@
-#include "kerma/Cuda/Kernel.h"
+#include "kerma/Base/Kernel.h"
 #include "kerma/Support/Demangle.h"
 #include <llvm/Support/ManagedStatic.h>
 

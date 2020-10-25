@@ -1,5 +1,5 @@
-#ifndef KERMA_CUDA_KERNEL_H
-#define KERMA_CUDA_KERNEL_H
+#ifndef KERMA_BASE_KERNEL_H
+#define KERMA_BASE_KERNEL_H
 
 #include <llvm/IR/Function.h>
 
