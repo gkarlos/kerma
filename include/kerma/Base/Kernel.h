@@ -13,7 +13,7 @@ private:
 
 public:
   explicit Kernel(llvm::Function *F);
-  Kernel(llvm::Function *F, unsigned int ID);
+  Kernel(unsigned int ID, llvm::Function *F);
   Kernel(const Kernel& Other);
   Kernel& operator=(const Kernel& Other);
   bool operator==(const Kernel& Kernel);

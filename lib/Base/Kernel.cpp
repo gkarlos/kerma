@@ -18,9 +18,9 @@ static unsigned int genID() {
   return id;
 }
 
-Kernel::Kernel(Function *F) : Kernel(F, genID()) {}
+Kernel::Kernel(Function *F) : Kernel(genID(), F) {}
 
-Kernel::Kernel(Function *F, unsigned int ID) : F(F), ID(ID) {
+Kernel::Kernel(unsigned int ID, llvm::Function *F) : ID(ID), F(F) {
   assert(F);
   DemangledName = demangleFnWithoutArgs(*F);
 }
@@ -36,7 +36,6 @@ Kernel& Kernel::operator=(const Kernel &Other) {
 }
 
 bool Kernel::operator==(const Kernel &Other) { return ID == Other.ID; }
-
 bool Kernel::operator==(const Function& F) { return this->F == &F; }
 
 Function * Kernel::getFunction() const { return F; }
