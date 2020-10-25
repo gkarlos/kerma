@@ -7,7 +7,7 @@
 #include <llvm/ADT/SmallSet.h>
 #include <vector>
 
-#include "kerma/Cuda/Kernel.h"
+#include "kerma/Base/Kernel.h"
 
 namespace kerma {
 
