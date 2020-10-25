@@ -13,6 +13,10 @@ namespace kerma {
 using namespace llvm;
 using namespace clang;
 
+// https://github.com/ROCm-Developer-Tools/HIPIFY/blob/c43543b88cd7693add3c6ecfb4387fde4198eb35/src/main.cpp#L126
+// https://github.com/ROCm-Developer-Tools/HIPIFY/blob/c43543b88cd7693add3c6ecfb4387fde4198eb35/src/main.cpp#L219
+// https://github.com/ROCm-Developer-Tools/HIPIFY/blob/c43543b88cd7693add3c6ecfb4387fde4198eb35/src/main.cpp#L364
+
 SourceInfoExtractor::SourceInfoExtractor( std::string SourcePath,
                                           clang::tooling::CompilationDatabase *DB)
 : CompileDB(DB) {

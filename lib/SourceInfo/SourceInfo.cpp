@@ -8,8 +8,8 @@ namespace kerma {
 SourceInfo::SourceInfo() : SourceInfo("", SourceRange::Unknown, "")
 {}
 
-SourceInfo::SourceInfo( const std::string& path, 
-                        const SourceRange& range, 
+SourceInfo::SourceInfo( const std::string& path,
+                        const SourceRange& range,
                         const std::string& text)
 : Path(path), Range(range), Text(text)
 {
