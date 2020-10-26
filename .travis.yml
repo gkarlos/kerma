@@ -26,6 +26,7 @@ jobs :
       - LLVM_HOME=/home/llvm-10
       - BOOST_ROOT=$HOME/boost/172
     before_script:
+      - mkdir /home/llvm-10
       - wget -c https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
       - tar xf clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz -C /home/llvm-10
       - chmod +x scripts/travis/install_boost.sh
@@ -48,6 +49,7 @@ jobs :
       - CLANG=$LLVM_HOME/bin/clang
       - BOOST_ROOT=$HOME/boost/172
     before_script:
+      - mkdir /home/llvm-10
       - wget -c https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
       - tar xf clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz -C /home/llvm-10
       - chmod +x scripts/travis/install_boost.sh
