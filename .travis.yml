@@ -23,12 +23,11 @@ jobs :
         - $HOME/boost/
     env :
       - LLVM_VERSION=10
-      - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
+      - LLVM_HOME=/home/llvm-10
       - BOOST_ROOT=$HOME/boost/172
     before_script:
-      - wget https://apt.llvm.org/llvm.sh
-      - chmod +x llvm.sh
-      - sudo ./llvm.sh $LLVM_VERSION
+      - wget -c https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+      - tar xf clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz -C /home/llvm-10
       - chmod +x scripts/travis/install_boost.sh
       - scripts/travis/install_boost.sh
     script:
@@ -44,14 +43,13 @@ jobs :
         - $HOME/boost/
     env :
       - LLVM_VERSION=10
-      - LLVM_HOME=/usr/lib/llvm-$LLVM_VERSION
+      - LLVM_HOME=/home/llvm-10
       - CLANGPP=$LLVM_HOME/bin/clang++
       - CLANG=$LLVM_HOME/bin/clang
       - BOOST_ROOT=$HOME/boost/172
     before_script:
-      - wget https://apt.llvm.org/llvm.sh
-      - chmod +x llvm.sh
-      - sudo ./llvm.sh $LLVM_VERSION
+      - wget -c https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+      - tar xf clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz -C /home/llvm-10
       - chmod +x scripts/travis/install_boost.sh
       - scripts/travis/install_boost.sh
     script:
