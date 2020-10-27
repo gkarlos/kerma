@@ -4,7 +4,10 @@ set(Names_SOURCES Names.cpp)
 set(Typecheck_SOURCES Typecheck.cpp)
 set(DataDep_SOURCES DataDependency.cpp)
 
-file(GLOB_RECURSE Analysis_SOURCES "*.cpp")
+file(GLOB_RECURSE Analysis_SOURCES DetectKernels.cpp
+                                   InferAddressSpaces.cpp
+                                   Names.cpp
+                                   Typecheck.cpp)
 
 ##===--------------------------------------------------------------------------
 ## Analysis (plugin)
