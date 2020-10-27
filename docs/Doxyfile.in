@@ -7,6 +7,7 @@ STRIP_FROM_PATH         = @PROJECT_SOURCE_DIR@ \
 INPUT                   = @PROJECT_SOURCE_DIR@/docs/Main.md \
                           @PROJECT_SOURCE_DIR@/include/ \
                           @PROJECT_SOURCE_DIR@/lib/
+OUTPUT_DIRECTORY        = @CMAKE_BINARY_DIR@/out/docs
 FILE_PATTERNS           = *.h \
                           *.cpp
 RECURSIVE               = YES

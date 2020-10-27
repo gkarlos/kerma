@@ -1,3 +1,32 @@
-#cmakedefine01 KERMA_VER_MAJOR @KERMA_VER_MAJOR@
-#cmakedefine01 KERMA_VER_MINOR @KERMA_VER_MINOR@
-#cmakedefine01 KERMA_VER_PATCH @KERMA_VER_PATCH@
+#ifndef KERMA_SUPPORT_VERSION_H
+#define KERMA_SUPPORT_VERSION_H
+
+#cmakedefine KERMA_VER_MAJOR @KERMA_VER_MAJOR@
+#cmakedefine KERMA_VER_MINOR @KERMA_VER_MINOR@
+#cmakedefine KERMA_VER_PATCH @KERMA_VER_PATCH@
+#cmakedefine KERMA_VERSION "@KERMA_VERSION@"
+
+#ifndef KERMA_VER_MAJOR
+  #define KERMA_VER_MAJOR 0
+#endif
+
+#ifndef KERMA_VER_MINOR
+  #define KERMA_VER_MINOR 0
+#endif
+
+#ifndef KERMA_VER_PATCH
+  #define KERMA_VER_PATCH 0
+#endif
+
+#include <string>
+namespace kerma {
+
+unsigned int getVersionMajor() { return KERMA_VER_MAJOR; }
+unsigned int getVersionMinor() { return KERMA_VER_MINOR; }
+unsigned int getVersionPatch() { return KERMA_VER_PATCH; }
+
+std::string getVersion() { return KERMA_VERSION; }
+
+}
+
+#endif

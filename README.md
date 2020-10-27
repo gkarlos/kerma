@@ -2,10 +2,12 @@
 
 ## KERnel Memory-access Analysis
 
-### Installation
+#### Dependencies
 - Ubuntu 18.04 LTS
+     - Only tested in 18.04. In principle it should work on higher versions too, but no guarantees
 
 - LLVM 10
+     - Currently the build system does not automatically pull the LLVM dependencies so we need to manually install them
     ```bash
     # Download precompiled LLVM 10 binaries
     wget -c https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
@@ -15,12 +17,33 @@
     echo -e export LLVM_HOME=$(realpath /my/llvm/install/dir) >> ~/.bashrc 
     source ~/.bashrc
     ```
-- cxxtools
+- cxxtools (we should really have CMake configure this but for now its ok)
     ```
     sudo apt update
     sudo apt install libcxxtools-dev
     ```
-    
+
+#### Build
+```
+cd kerma
+mkdir build
+cd build && cmake ..
+make -j4
+```
+If all went well there should be a directory `out` under `build` with the following structure:
+```
+out/
+├── bin/
+├── docs/
+├── include/
+├── lib/
+└── rt/
+```
+ This is the directory to use as `KERMA_HOME` in KermaView, meaning that in KermaView you should set `KERMA_HOME=path/to/kerma/build/out` in the `.env` file.
+
+#### Documentation
+
+- dot
 
 * * * 
 
