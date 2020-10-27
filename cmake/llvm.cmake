@@ -16,7 +16,7 @@ else()
     set(LLVM_INC   ${LLVM_HOME}/include)
     message("\tUsing $LLVM_HOME/include")
   endif()
-  
+
   if (DEFINED ENV{LLVM_LIB})
     set(LLVM_LIB $ENV{LLVM_LIB})
     message("\tFound $LLVM_LIB = ${LLVM_LIB}")
@@ -24,7 +24,7 @@ else()
     set(LLVM_LIB ${LLVM_HOME}/lib)
     message("\tUsing $LLVM_HOME/lib")
   endif()
-  
+
   if (DEFINED ENV{LLVM_BIN})
     set(LLVM_BIN $ENV{LLVM_BIN})
     message("\tFound $LLVM_BIN = ${LLVM_BIN}")
@@ -41,15 +41,11 @@ else()
     ${LLVM_LIB}/cmake/llvm/
   )
 
-  message("LLVM_SEARCH_PATHS: ${LLVM_SEARCH_PATHS}")
-  message("HOME: ${LLVM_HOME}")
-
   list(APPEND CMAKE_PREFIX_PATH "${LLVM_HOME}/lib/cmake/llvm")
 
   find_package(LLVM REQUIRED CONFIG PATHS ${LLVM_SEARCH_PATHS} NO_DEFAULT_PATH)
 
   if (LLVM_FOUND)
-    message("LLVM_CMAKE_DIR: ${LLVM_CMAKE_DIR}")
     list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
     include(AddLLVM)
 

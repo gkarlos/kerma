@@ -1,29 +1,39 @@
 [![Build Status](https://travis-ci.com/gkarlos/kerma.svg?branch=master)](https://travis-ci.com/gkarlos/kerma) [![Documentation](https://codedocs.xyz/gkarlos/kerma.svg)](https://codedocs.xyz/gkarlos/kerma/)
 
-## KERnel Memory-access Analysis
+# KERnel Memory Accesses
 
-#### Dependencies
-- Ubuntu 18.04 LTS
-     - Only tested in 18.04. In principle it should work on higher versions too, but no guarantees
+## Dependencies
+#### Ubuntu 18.04 LTS
+Only tested in 18.04. In principle it should work on higher versions too, but no guarantees
 
-- LLVM 10
-     - Currently the build system does not automatically pull the LLVM dependencies so we need to manually install them
-    ```bash
-    # Download precompiled LLVM 10 binaries
-    wget -c https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-    tar xf clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz -C /my/llvm/install/dir
+#### LLVM 10
+Currently the build system does not automatically pull the LLVM dependencies so we need to manually install them
+```bash
+# Download precompiled LLVM 10 binaries
+wget -c https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+tar xf clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz -C /my/llvm/install/dir --strip-components=1
 
-    # Create `$LLVM_HOME` env var pointing to the llvm installation
-    echo -e export LLVM_HOME=$(realpath /my/llvm/install/dir) >> ~/.bashrc 
-    source ~/.bashrc
-    ```
-- cxxtools (we should really have CMake configure this but for now its ok)
-    ```
-    sudo apt update
-    sudo apt install libcxxtools-dev
-    ```
+# (Optional) Create `$LLVM_HOME` env var pointing to the llvm installation
+echo -e export LLVM_HOME=$(realpath /my/llvm/install/dir) >> ~/.bashrc 
+source ~/.bashrc
+```
+#### cxxtools
+(we should really have CMake configure this but for now its ok)
+```
+sudo apt update
+sudo apt install libcxxtools-dev
+```
 
-#### Build
+## Optional Dependencies
+#### Documentation
+- dot
+- Doxygen
+```
+sudo apt install graphviz
+sudo apt install doxygen
+```
+
+## Build
 ```
 cd kerma
 mkdir build
@@ -40,10 +50,6 @@ out/
 └── rt/
 ```
  This is the directory to use as `KERMA_HOME` in KermaView, meaning that in KermaView you should set `KERMA_HOME=path/to/kerma/build/out` in the `.env` file.
-
-#### Documentation
-
-- dot
 
 * * * 
 
