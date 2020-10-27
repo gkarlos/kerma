@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.12)
 project("Kerma")
 
+if ( DEFINED "$ENV{TRAVIS}")
+    set(KERMA_CI_BUILD TRUE)
+else()
+    set(KERMA_CI_BUILD FALSE)
+endif()
+
 set(KERMA_VER_MAJOR 0)
 set(KERMA_VER_MINOR 1)
 set(KERMA_VER_PATCH 0)
