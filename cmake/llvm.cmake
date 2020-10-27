@@ -39,28 +39,36 @@ else()
   set(LLVM_SEARCH_PATHS
     ${LLVM_HOME}
     ${LLVM_LIB}/cmake/llvm/
-    ${LLVM_HOME}/share/llvm/cmake/
   )
+
+  message("LLVM_SEARCH_PATHS: ${LLVM_SEARCH_PATHS}")
+  message("HOME: ${LLVM_HOME}")
 
   list(APPEND CMAKE_PREFIX_PATH "${LLVM_HOME}/lib/cmake/llvm")
 
   find_package(LLVM REQUIRED CONFIG PATHS ${LLVM_SEARCH_PATHS} NO_DEFAULT_PATH)
 
-  list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
-  include(AddLLVM)
+  if (LLVM_FOUND)
+    message("LLVM_CMAKE_DIR: ${LLVM_CMAKE_DIR}")
+    list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
+    include(AddLLVM)
 
-  message("   [-] Vers: ${LLVM_PACKAGE_VERSION}")
-  message("   [-] Using LLVMConfig.cmake in ${LLVM_DIR}")
+    message("   [-] Vers: ${LLVM_PACKAGE_VERSION}")
+    message("   [-] Using LLVMConfig.cmake in ${LLVM_DIR}")
 
-  add_definitions(${LLVM_DEFINITIONS})
+    add_definitions(${LLVM_DEFINITIONS})
 
-  include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
-  link_directories(${LLVM_LIBRARY_DIRS})
-  add_definitions(${LLVM_DEFINITIONS})
+    include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
+    link_directories(${LLVM_LIBRARY_DIRS})
+    add_definitions(${LLVM_DEFINITIONS})
 
-  set(LLVM_RUNTIME_OUTPUT_INTDIR "${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INT_DIR}")
-  set(LLVM_LIBRARY_OUTPUT_INTDIR "${CMAKE_BINARY_DIR}/lib/${CMAKE_CFG_INT_DIR}")
+    set(LLVM_RUNTIME_OUTPUT_INTDIR "${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INT_DIR}")
+    set(LLVM_LIBRARY_OUTPUT_INTDIR "${CMAKE_BINARY_DIR}/lib/${CMAKE_CFG_INT_DIR}")
 
-  message(STATUS "Detecting LLVM - done")
-  
+    message(STATUS "Detecting LLVM - done")
+  else(LLVM_FOUND)
+    message(FATAL_ERROR "Could not locate LLVM")
+  endif(LLVM_FOUND)
+
+
 endif()

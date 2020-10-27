@@ -28,10 +28,12 @@ jobs :
     before_script:
       - mkdir $LLVM_HOME
       - wget -c https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-      - tar xf clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz -C $HOME/llvm-10
+      - tar xf clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz -C $HOME/llvm-10 --strip-components=1
       - chmod +x scripts/travis/install_boost.sh
       - scripts/travis/install_boost.sh
     script:
+      - echo $LLVM_HOME
+      - ls $LLVM_HOME
       - mkdir build && cd build && cmake ..
       - make
 
@@ -51,10 +53,12 @@ jobs :
     before_script:
       - mkdir $LLVM_HOME
       - wget -c https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-      - tar xf clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz -C $HOME/llvm-10
+      - tar xf clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz -C $HOME/llvm-10 --strip-components=1
       - chmod +x scripts/travis/install_boost.sh
       - scripts/travis/install_boost.sh
     script:
+      - echo $LLVM_HOME
+      - ls $LLVM_HOME
       - mkdir build && cd build
       - cmake -DCMAKE_C_COMPILER=$CLANG -DCMAKE_CXX_COMPILER=$CLANGPP ..
       - make
