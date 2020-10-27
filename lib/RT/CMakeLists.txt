@@ -23,9 +23,9 @@ set_target_properties(KermaRTUtils PROPERTIES COMPILE_FLAGS "-fno-rtti")
 ##===--------------------------------------------------------------------------
 ## DeviceRT
 ##===--------------------------------------------------------------------------
-if (KERMA_CI_BUILD)
+if (${KERMA_CI_BUILD})
     message("[+] Skipping DeviceRT in TRAVIS build")
-else(KERMA_CI_BUILD)
+else()
     add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/libKermaDeviceRT.bc"
         COMMAND $ENV{LLVM_HOME}/bin/clang++ -S -x cuda --cuda-device-only -emit-llvm --cuda-gpu-arch=${KERMA_CUDA_ARCH} -o libKermaDeviceRT.bc -std=c++11 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceRT.cpp"
         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
@@ -37,4 +37,4 @@ else(KERMA_CI_BUILD)
     ## Copy to both lib and out
     add_custom_command(TARGET KermaRT COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/libKermaDeviceRT.bc ${KERMA_LIBRARY_OUTPUT_DIRECTORY})
     add_custom_command(TARGET KermaRT COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/libKermaDeviceRT.bc ${KERMA_RUNTIME_OUTPUT_DIRECTORY})
-endif(KERMA_CI_BUILD)
+endif()
