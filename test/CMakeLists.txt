@@ -1,4 +1,5 @@
 message(STATUS "Configuring tests")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test)
 add_subdirectory(unit)
 # add_subdirectory(scratch)
 message(STATUS "Configuring tests -- done")

@@ -1,7 +1,6 @@
 #include "kerma/Transforms/Instrument/InstrumentPrintf.h"
 
 #include "kerma/Analysis/DetectKernels.h"
-#include "kerma/Analysis/InferDimensions.h"
 #include "kerma/Analysis/InferAddressSpaces.h"
 #include "kerma/Analysis/Names.h"
 #include "kerma/Analysis/Typecheck.h"

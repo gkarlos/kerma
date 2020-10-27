@@ -4,8 +4,7 @@ configure_file(version.h.in ${CMAKE_SOURCE_DIR}/include/kerma/Support/Version.h 
 set(Support_SOURCES Demangle.cpp
                     FileSystem.cpp
                     FileUtils.cpp
-                    Parse.cpp
-                    Version.cpp )
+                    Parse.cpp)
 
 add_library(KermaSupportOpt SHARED ${Support_SOURCES})
 

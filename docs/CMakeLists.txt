@@ -9,11 +9,9 @@ if (DOXYGEN_FOUND)
     configure_file(${DOXYFILE_IN} ${DOXYFILE} @ONLY)
 
     add_custom_target(docs ALL
-        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating Doxygen documentation")
-
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs DESTINATION html)
 else()
     message(STATUS "Doxygen not found. Building docs skipped")
 endif()
