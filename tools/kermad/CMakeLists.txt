@@ -8,5 +8,6 @@ target_compile_options(kermad PUBLIC "-fPIC")
 target_link_libraries(kermad KermaSupport)
 
 target_link_libraries(kermad
+    LLVMCore
     LLVMOption
 )
