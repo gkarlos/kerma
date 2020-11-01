@@ -26,6 +26,8 @@ jobs :
       - LLVM_HOME=/usr/lib/llvm-10
       - BOOST_ROOT=$HOME/boost/172
     before_script:
+      - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+      - sudo apt-get update
       - sudo apt-get install libllvm10 llvm-10 llvm-10-dev llvm-10-runtime
       - sudo apt-get install clang-11 clang-tools-11 libclang-common-11-dev libclang-11-dev libclang1-11 clang-format-11 python-clang-11 clangd-11
       - sudo apt-get install libomp-11-dev
@@ -51,6 +53,8 @@ jobs :
       - CLANG=$LLVM_HOME/bin/clang
       - BOOST_ROOT=$HOME/boost/172
     before_script:
+      - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+      - sudo apt-get update
       - sudo apt-get install libllvm10 llvm-10 llvm-10-dev llvm-10-runtime
       - sudo apt-get install clang-11 clang-tools-11 libclang-common-11-dev libclang-11-dev libclang1-11 clang-format-11 python-clang-11 clangd-11
       - sudo apt-get install libomp-11-dev
