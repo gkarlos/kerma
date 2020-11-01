@@ -13,7 +13,7 @@ target_link_libraries(KermaSupportOpt LLVMDemangle stdc++fs)
 
 add_library(KermaSupport SHARED ${Support_SOURCES})
 set_target_properties(KermaSupport PROPERTIES COMPILE_FLAGS "-fno-rtti")
-target_link_libraries(KermaSupport PUBLIC stdc++fs)
+target_link_libraries(KermaSupport PUBLIC stdc++fs LLVMCore LLVMOption)
 
 # Clean up config auto-generated files
 set_property(TARGET KermaSupport
