@@ -1,5 +1,5 @@
-SM   = sm_52
-CP   = compute_52
+SM   = sm_30
+CP   = compute_30
 SRC  = input.cu
 EXE  = input
 DEBUG = -g
@@ -11,9 +11,9 @@ OPT = ${LLVM_BIN}/opt
 LLC = ${LLVM_BIN}/llc
 PTXAS = ptxas
 FATBIN = fatbinary
-KERMA_HOME = /home/gkarlos/Projects/kerma/build
-RT_LIB=/home/gkarlos/Projects/kerma/build/lib/libKermaRT.bc
-RT_LINK=/home/gkarlos/Projects/kerma/build/tools/rt-link/rt-link
+KERMA_HOME = /home/gkarlos/Projects/kerma/build/out
+RT_LIB=$(KERMA_HOME)/lib/libKermaDeviceRT.bc
+RT_LINK=$(KERMA_HOME)/bin/rt-link
 
 PASS_LIB=
 
@@ -41,7 +41,7 @@ device.canonical.bc: device.rt.bc
 
 device.instr.bc: device.canonical.bc
 	$(info ## Generating device.instr.bc)
-	@$(OPT) -S -O0 -load $(KERMA_HOME)/lib/Transforms/libKermaTransformsPlugin.so -kerma-instru --kerma-instru-mode=warp device.canonical.bc > device.instr.bc
+	@$(OPT) -S -O0 -load $(KERMA_HOME)/lib/libKermaTransformsPlugin.so -kerma-instru --kerma-instru-mode=warp device.canonical.bc > device.instr.bc
 	@echo
 
 device.ptx : device.instr.bc
