@@ -11,6 +11,7 @@ addons :
       - cmake
       - git
       - doxygen
+      - libcxxtools-dev
       - libllvm10
       - llvm-10
       - llvm-10-dev
