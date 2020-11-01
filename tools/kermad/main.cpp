@@ -1,45 +1,63 @@
-#include "kerma/Support/Version.h"
-#include "kerma/Support/FileSystem.h"
 
+#include "boost/filesystem/operations.hpp"
+#include "boost/filesystem/path.hpp"
+#include "spdlog/spdlog.h"
 #include "llvm/Config/llvm-config.h"
-#include "llvm/Support/FileSystem.h"
+#if LLVM_VERSION_MAJOR < 9
+  #error LLVM version >= 9 is required
+#endif
+
+#include "clang/Basic/Version.h"
+
+#include <llvm/Support/CommandLine.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/ManagedStatic.h>
+#include <llvm/Support/Process.h>
+#include <llvm/Support/Program.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/VersionTuple.h>
+
+#include "kerma/Support/FileSystem.h"
+#include "kerma/Support/Log.h"
+#include "kerma/Support/Version.h"
+#include "Options.h"
+#include "Server.h"
+#include "Util.h"
+
+#include <boost/filesystem.hpp>
+
 #include <cstdio>
 #include <ctime>
 #include <exception>
 #include <stdexcept>
 #include <string>
-
-#if LLVM_VERSION_MAJOR < 9
-  #error LLVM version >= 9 is required
-#endif
-
-#include "llvm/Support/CommandLine.h"
-#include "llvm/Support/VersionTuple.h"
-#include "llvm/Support/Process.h"
-
-#include "clang/Basic/Version.h"
-
-#include "KermadOptions.h"
-#include "KermadServer.h"
-
+#include <signal.h>
 #include <cstdlib>
 #include <iostream>
 #include <unistd.h>
+#include <signal.h>
+
 
 
 /// https://stackoverflow.com/questions/47361538/use-clang-tidy-on-cuda-source-files
 /// https://github.com/ROCm-Developer-Tools/HIPIFY/blob/master/src/main.cpp
 /// https://github.com/llvm/llvm-project/blob/master/clang-tools-extra/clangd/tool/ClangdMain.cpp
 
+namespace fs = boost::filesystem;
+
 using namespace kerma;
 using namespace kerma::kermad;
 using namespace llvm;
 
 cl::OptionCategory GeneralOptions("kermad options");
-cl::opt<std::string> OptDirectory("d",
+cl::opt<bool> OptPreserve("preserve",
   cl::cat(GeneralOptions),
-  cl::desc("Specify a working directory. By default one is created at the same directory as the executable"),
-  cl::value_desc("dir"));
+  cl::desc("Preserve generated files and directories"),
+  cl::init(false));
+// cl::opt<std::string> OptDirectory("d",
+//   cl::cat(GeneralOptions),
+//   cl::desc("Specify a working directory. By default one is created at the same directory as the executable"),
+//   cl::value_desc("dir"));
 
 cl::OptionCategory ConnectionOptions("kermad connection options");
 cl::opt<unsigned> OptPort("p",
@@ -64,61 +82,86 @@ For more information, see:
 kermad accepts flags on the commandline and in the KERMAD_FLAGS environment variable.
     )";
 
-void configureLLVMAndClang(KermadOptions &options) {
-  if ( (options.LLVMPath = std::string(std::getenv(options.LLVMEnv.c_str()))).empty() )
-    throw std::runtime_error(std::string("Could not find env var $") + options.LLVMEnv);
+void configureLLVMAndClang(Options &Options) {
+  Options.LLVMEnv = Options.Default.LLVMEnv;
+  Options.LLVMPath = std::getenv(Options.LLVMEnv.c_str());
 
-  // options.ClangLibPath = options.LLVMPath + "/lib/clang" + "/" + getLLVMVersion();
-  options.ClangLibIncludePath = options.ClangLibPath + "/include";
+  if ( (Options.LLVMPath = std::string(std::getenv(Options.LLVMEnv.c_str()))).empty() )
+    throw std::runtime_error(std::string("Could not find env var $") + Options.LLVMEnv);
 
-  if ( !kerma::directoryExists(options.ClangLibIncludePath))
-    throw std::runtime_error(std::string("Could not find ") + options.ClangLibIncludePath);
+  Options.ClangLibPath = Options.LLVMPath + "/lib/clang/10.0.0";
+  Options.ClangLibIncludePath = Options.ClangLibPath + "/include";
 
-  if ( kerma::isEmpty(options.ClangLibIncludePath))
-    throw std::runtime_error(options.ClangLibIncludePath + " is empty");
+  if ( !kerma::directoryExists(Options.ClangLibIncludePath))
+    throw std::runtime_error(std::string("Could not find ") + Options.ClangLibIncludePath);
+
+  if ( kerma::isEmpty(Options.ClangLibIncludePath))
+    throw std::runtime_error(Options.ClangLibIncludePath + " is empty");
+
+  auto P = llvm::sys::findProgramByName("clang++");
+  if ( P->empty())
+    throw std::runtime_error("Could not locate Clang executable");
+  Options.ClangExePath = P.get();
 }
 
-int main(int argc, const char** argv) {
+void shutdown(Server& Server) {
+  Server.stop();
+  llvm::llvm_shutdown();
+}
 
-//   using namespace kerma::kermad;
+void configure(int argc, const char **argv, Options &Options) {
+  configureLLVMAndClang(Options);
 
-  KermadOptions Options;
+  Options.InvocationID = "kerma-"+getTimestamp();
+  Options.FlagsEnv = Options.Default.FlagsEnv;
+  Options.IP = Options.Default.IP;
+  Options.Port = Options.Default.Port;
+  Options.PID = getpid();
 
-  Options.LLVMEnv = "LLVM_HOME";
-  Options.FlagsEnv = "KERMAD_FLAGS";
+  Options.ExeDir = fs::canonical(fs::system_complete(fs::path( argv[0]))).parent_path().string();
+  Options.WorkingDir = Options.Default.WorkingDir;
 
-  /// Set up CLI
+  // Set up CLI
   llvm::cl::SetVersionPrinter(VersionPrinter);
   llvm::cl::HideUnrelatedOptions(KermadCategories);
   llvm::cl::ParseCommandLineOptions(argc, argv, Overview, nullptr, Options.FlagsEnv.c_str());
   llvm::errs().SetBuffered(); // stream can cause significant (non-deterministic) latency for the logger.
 
-  llvm::errs() << "localhost:" << 8080 << '\n';
-  llvm::errs().flush();
-//   Options.PID          = getpid();
-//   Options.InvocationId = std::to_string(std::time(0)) + "-" + std::to_string(Options.PID);
-//   Options.WorkingDir   = OptDirectory.empty()? kerma::get_cwd() : OptDirectory;
-//   Options.TmpDir       = std::string("tmp-") + Options.InvocationId;
-//   Options.Port         = OptPort;
+  Log::info("Invocation id: {} (pid: {})", Options.InvocationID, Options.PID);
+  Log::info("Listening on: {}:{}", Options.IP, Options.Port);
+  Log::info("Using clang executable: {}", Options.ClangExePath);
+}
 
-//   try {
-//     configureLLVMAndClang(Options);
 
-//     KermadServer server(Options);
+struct Options Opts;
 
-//     server.start();
+void cleanup() {
+  if ( !OptPreserve.getValue())
+    for ( auto& dir : Opts.CleanupDirs) {
+      llvm::errs() << "Removing " << dir << '\n';
+      fs::remove_all(dir);
+    }
+  Opts.Server->stop();
+  llvm::llvm_shutdown();
+}
 
-//     dumpKermadOptionsJSON(Options);
-//   } catch ( const std::runtime_error& e) {
-//     errs() << e.what() << "\n";
-//     return 1;
-//   } catch ( const std::exception& e) {
-//     errs() << e.what() << "\n";
-//     return 1;
-//   } catch ( ... ) {
-//     errs() << "Unknown error occured. Exiting..." << "\n";
-//     return 1;
-//   }
-//   // std::cout << std::getenv("LLVM_HOME2")).size() << "\n";
-//   return 0;
+void killHandler(int s) {
+  cleanup();
+  std::exit(s);
+}
+
+int main(int argc, const char** argv) {
+  signal(SIGINT, killHandler);
+  configure(argc, argv, Opts);
+  Server Server(Opts);
+
+  Opts.Server = &Server;
+
+  try { Server.start(); }
+  catch ( const std::exception& E ) { Log::error(E.what()); }
+  catch ( const std::string& E) { Log::error(E); }
+  catch ( const std::runtime_error& E) { Log::error(E.what()); }
+  catch ( const std::ios::failure& F) { Log::error(F.what()); }
+  cleanup();
+  return 0;
 }
