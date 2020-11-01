@@ -23,6 +23,8 @@ set(KERMA_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 include(cmake/llvm.cmake)
 include(cmake/boost.cmake)
 include(cmake/gtest.cmake)
+include(cmake/spdlog.cmake)
+include(cmake/json.cmake)
 
 set(CMAKE_C_COMPILER ${LLVM_BIN}/clang)
 set(CMAKE_CXX_COMPILER ${LLVM_BIN}/clang++)
