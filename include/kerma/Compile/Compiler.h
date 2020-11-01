@@ -29,6 +29,9 @@ private:
 public:
   Compiler(const std::string& ClangPath);
 
+  /// Generate device side LLVM IR.
+  /// On success a file named device.ll will be created in the current dir
+  /// @returns true on success. false otherwise
   bool getDeviceIR(const std::string& SourcePath);
 };
 

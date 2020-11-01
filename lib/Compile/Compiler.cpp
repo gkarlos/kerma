@@ -68,11 +68,6 @@ static struct {
 } Args;
 
 
-
-
-/// Generate device side LLVM IR.
-/// On Support a file named device.ll
-/// will be created in the current dir
 bool Compiler::getDeviceIR(const std::string& SourcePath) {
 
   std::vector<const char*> Arguments{ ClangPath.c_str(), SourcePath.c_str()};
