@@ -4,6 +4,7 @@
 
 #include "llvm/Support/FileSystem.h"
 
+#include <clang/Tooling/CompilationDatabase.h>
 #include <memory>
 #include <stdexcept>
 #include <iostream>
