@@ -20,7 +20,6 @@ addons :
       - libclang-common-10-dev
       - libclang-10-dev
       - libclang1-10
-      - python-clang-10
       - clangd-10
       - libomp-10-dev
 stages :
