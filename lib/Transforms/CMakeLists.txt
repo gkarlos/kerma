@@ -37,7 +37,6 @@ set_target_properties(KermaTransforms PROPERTIES COMPILE_FLAGS "-fno-rtti")
 target_link_libraries(KermaTransforms KermaAnalysis
                                       KermaBase
                                       KermaNVVM
-                                      KermaSupport
                                       KermaUtils
                                       LLVMIRReader
                                       LLVMLinker)

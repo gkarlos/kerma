@@ -25,4 +25,4 @@ target_link_libraries(KermaAnalysisPlugin KermaSupportOpt KermaUtilsPlugin Kerma
 add_library(KermaAnalysis SHARED ${Analysis_SOURCES})
 target_include_directories(KermaAnalysis PUBLIC ${KERMA_INCLUDE_DIR})
 set_target_properties(KermaAnalysis PROPERTIES COMPILE_FLAGS "-fno-rtti")
-target_link_libraries(KermaAnalysis KermaSupport KermaUtils KermaNVVM KermaBase)
+target_link_libraries(KermaAnalysis PUBLIC KermaSupport KermaUtils KermaNVVM KermaBase)
