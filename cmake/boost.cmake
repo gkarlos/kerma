@@ -1,4 +1,4 @@
-message(STATUS "Detecting Boost")
+message(STATUS "Configuring Boost")
 
 set(KERMA_BOOST_MIN_VERSION "1.72.0")
 
@@ -36,4 +36,4 @@ if (Boost_FOUND)
     link_directories(${Boost_LIBRARY_DIRS})
 endif()
 
-message(STATUS "Detecting Boost - done")
+message(STATUS "Configuring Boost - done")
