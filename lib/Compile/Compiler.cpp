@@ -11,8 +11,8 @@
 // #include <clang/Frontend/CompilerInvocation.h>
 #include <clang/Driver/Compilation.h>
 #include <clang/Driver/Job.h>
-#include <llvm-10/llvm/ADT/ArrayRef.h>
-#include <llvm-10/llvm/Support/Host.h>
+#include <llvm/ADT/ArrayRef.h>
+#include <llvm/Support/Host.h>
 #include <llvm/Support/raw_ostream.h>
 #include <memory>
 
