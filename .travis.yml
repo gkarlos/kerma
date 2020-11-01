@@ -6,10 +6,23 @@ addons :
   apt :
     sources :
       - sourceline: "ppa:ubuntu-toolchain-r/test"
+      - llvm-toolchain-bionic-10
     packages:
       - cmake
       - git
       - doxygen
+      - libllvm10
+      - llvm-10
+      - llvm-10-dev
+      - llvm-10-runtime
+      - clang-10
+      - clang-tools-10
+      - libclang-common-10-dev
+      - libclang-10-dev
+      - libclang1-10
+      - python-clang-10
+      - clangd-10
+      - libomp-10-dev
 stages :
   - build
 
@@ -26,16 +39,10 @@ jobs :
       - LLVM_HOME=/usr/lib/llvm-10
       - BOOST_ROOT=$HOME/boost/172
     before_script:
-      - deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main
-      - deb-src http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main
-      - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-      - sudo apt-get update
-      - sudo apt-get install libllvm10 llvm-10 llvm-10-dev llvm-10-runtime
-      - sudo apt-get install clang-11 clang-tools-11 libclang-common-11-dev libclang-11-dev libclang1-11 clang-format-11 python-clang-11 clangd-11
-      - sudo apt-get install libomp-11-dev
       - chmod +x scripts/travis/install_boost.sh
       - scripts/travis/install_boost.sh
     script:
+      - locate clang
       - echo $LLVM_HOME
       - ls $LLVM_HOME
       - mkdir build && cd build && cmake ..
@@ -55,13 +62,6 @@ jobs :
       - CLANG=$LLVM_HOME/bin/clang
       - BOOST_ROOT=$HOME/boost/172
     before_script:
-      - deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main
-      - deb-src http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main
-      - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-      - sudo apt-get update
-      - sudo apt-get install libllvm10 llvm-10 llvm-10-dev llvm-10-runtime
-      - sudo apt-get install clang-11 clang-tools-11 libclang-common-11-dev libclang-11-dev libclang1-11 clang-format-11 python-clang-11 clangd-11
-      - sudo apt-get install libomp-11-dev
       - chmod +x scripts/travis/install_boost.sh
       - scripts/travis/install_boost.sh
     script:
