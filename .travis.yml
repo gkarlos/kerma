@@ -26,6 +26,8 @@ jobs :
       - LLVM_HOME=/usr/lib/llvm-10
       - BOOST_ROOT=$HOME/boost/172
     before_script:
+      - deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main
+      - deb-src http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main
       - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
       - sudo apt-get update
       - sudo apt-get install libllvm10 llvm-10 llvm-10-dev llvm-10-runtime
@@ -53,6 +55,8 @@ jobs :
       - CLANG=$LLVM_HOME/bin/clang
       - BOOST_ROOT=$HOME/boost/172
     before_script:
+      - deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main
+      - deb-src http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main
       - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
       - sudo apt-get update
       - sudo apt-get install libllvm10 llvm-10 llvm-10-dev llvm-10-runtime
