@@ -10,6 +10,7 @@ addons :
     packages:
       - cmake
       - git
+      - graphviz
       - doxygen
       - libcxxtools-dev
       - libllvm10
