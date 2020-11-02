@@ -43,7 +43,8 @@ Server::StartSession(const std::string& SourceDir, const std::string& Source, co
   CurrSession = std::make_unique<Session>(Options, SourceDir, Source);
   SIExtractor = std::make_unique<SourceInfoExtractor>(CurrSession->getSourcePath());
 
-  if ( Compiler.getDeviceIR(CurrSession->getSourcePath()) ) {
+  Log::info("Cmpl. {} -> {}", CurrSession->getSourcePath(), DEVICE_IR);
+  if ( Compiler.EmitDeviceIR(CurrSession->getSourcePath()) ) {
     // TODO: set Session.DeviceIR
   }
 
