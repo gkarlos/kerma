@@ -43,7 +43,6 @@ jobs :
       - chmod +x scripts/travis/install_boost.sh
       - scripts/travis/install_boost.sh
     script:
-      - locate clang
       - echo $LLVM_HOME
       - ls $LLVM_HOME
       - mkdir build && cd build && cmake ..
