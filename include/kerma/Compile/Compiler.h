@@ -13,10 +13,11 @@
 #include <llvm/Support/Path.h>
 #include <memory>
 
-namespace kerma {
 
 #define DEVICE_IR "device.ll"
 #define HOST_IR "host.ll"
+
+namespace kerma {
 
 class Compiler {
 private:
@@ -30,9 +31,10 @@ public:
   Compiler(const std::string& ClangPath);
 
   /// Generate device side LLVM IR.
-  /// On success a file named device.ll will be created in the current dir
+  /// On success a file named \p Out will be created in the current dir
   /// @returns true on success. false otherwise
-  bool getDeviceIR(const std::string& SourcePath);
+  bool EmitDeviceIR(const std::string& SourcePath, const std::string& Out=DEVICE_IR);
+  bool EmitHostIR(const std::string& SourcePath, const std::string& Out=HOST_IR);
 };
 
 } // namespace kerma

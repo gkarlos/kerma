@@ -58,21 +58,26 @@ Compiler::Compiler(const std::string& ClangPath)
 /// They must be prepented by clang binary path
 /// and source file path
 static struct {
-  /// These args are used to compile Device IR
   const std::vector<const char *> DeviceIR = {
     "-g", "-O0", "-std=c++11", "-S", "-emit-llvm",
     "--cuda-device-only", "--cuda-gpu-arch=sm_30",
     "-Xclang", "-disable-O0-optnone", "-fno-discard-value-names",
-    "-o", DEVICE_IR
+    "-o"
   };
 } Args;
 
+static auto GetEmitDeviceIRArgs =
+  [](const std::string& ClangPath, const std::string& SourcePath, const std::string& Out) {
+    std::vector<const char *> Res(Args.DeviceIR);
+    Res.insert(Res.begin(), SourcePath.c_str());
+    Res.insert(Res.begin(), ClangPath.c_str());
+    Res.push_back(Out.c_str());
+    return Res;
+  };
 
-bool Compiler::getDeviceIR(const std::string& SourcePath) {
+bool Compiler::EmitDeviceIR(const std::string& SourcePath, const std::string& Out) {
 
-  std::vector<const char*> Arguments{ ClangPath.c_str(), SourcePath.c_str()};
-
-  Arguments.insert(Arguments.end(), Args.DeviceIR.begin(), Args.DeviceIR.end());
+  auto Arguments = GetEmitDeviceIRArgs(ClangPath, SourcePath, Out);
 
   std::unique_ptr<Compilation> Compilation( Driver.BuildCompilation(Arguments));
 
@@ -82,8 +87,11 @@ bool Compiler::getDeviceIR(const std::string& SourcePath) {
   int Res = 0;
   SmallVector<std::pair<int, const Command *>, 4> FailingCommands;
   Res = Driver.ExecuteCompilation(*Compilation, FailingCommands);
-  Log::info("Compiling {}", SourcePath);
   return Res > 0;
+}
+
+bool Compiler::EmitHostIR(const std::string &SourcePath, const std::string& Out) {
+  return false;
 }
 
 } // namespace kerma
