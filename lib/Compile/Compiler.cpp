@@ -54,6 +54,9 @@ Compiler::Compiler(const std::string& ClangPath)
 //   };
 // }
 
+const std::string Compiler::DefaultDeviceIRFile = "device.ll";
+const std::string Compiler::DefaultHostIRFile = "host.ll";
+
 /// The arg lists of these struct are incomplete.
 /// They must be prepented by clang binary path
 /// and source file path
@@ -87,7 +90,7 @@ bool Compiler::EmitDeviceIR(const std::string& SourcePath, const std::string& Ou
   int Res = 0;
   SmallVector<std::pair<int, const Command *>, 4> FailingCommands;
   Res = Driver.ExecuteCompilation(*Compilation, FailingCommands);
-  return Res > 0;
+  return Res >= 0;
 }
 
 bool Compiler::EmitHostIR(const std::string &SourcePath, const std::string& Out) {

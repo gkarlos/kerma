@@ -13,10 +13,6 @@
 #include <llvm/Support/Path.h>
 #include <memory>
 
-
-#define DEVICE_IR "device.ll"
-#define HOST_IR "host.ll"
-
 namespace kerma {
 
 class Compiler {
@@ -27,14 +23,18 @@ private:
   clang::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID;
   clang::DiagnosticsEngine Diags;
   clang::driver::Driver Driver;
+
 public:
+  static const std::string DefaultDeviceIRFile;
+  static const std::string DefaultHostIRFile;
+
   Compiler(const std::string& ClangPath);
 
   /// Generate device side LLVM IR.
   /// On success a file named \p Out will be created in the current dir
   /// @returns true on success. false otherwise
-  bool EmitDeviceIR(const std::string& SourcePath, const std::string& Out=DEVICE_IR);
-  bool EmitHostIR(const std::string& SourcePath, const std::string& Out=HOST_IR);
+  bool EmitDeviceIR(const std::string& SourcePath, const std::string& Out=DefaultDeviceIRFile);
+  bool EmitHostIR(const std::string& SourcePath, const std::string& Out=DefaultHostIRFile);
 };
 
 } // namespace kerma
