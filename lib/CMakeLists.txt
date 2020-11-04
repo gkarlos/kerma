@@ -33,8 +33,8 @@ set(Kerma_SOURCES
     SourceInfo/Functions.cpp
     # SourceInfo/FunctionRangeExtractor.cpp
     SourceInfo/SourceInfo.cpp
-    # SourceInfo/SourceInfoExtractor.cpp
-    SourceInfo/SourceInfoLocator.cpp
+    SourceInfo/SourceInfoBuilder.cpp
+    # SourceInfo/SourceInfoLocator.cpp
     SourceInfo/SourceLoc.cpp
     SourceInfo/SourceRange.cpp
     SourceInfo/Util.cpp
@@ -60,19 +60,20 @@ set(Kerma_SOURCES
  )
 
 add_library(Kerma SHARED ${Kerma_SOURCES})
-target_link_libraries(Kerma  stdc++fs
-                                   LLVM
-                                   clangFrontend
-                                   clangSerialization
-                                   clangDriver
-                                   clangParse
-                                   clangSema
-                                   clangAnalysis
-                                   clangAST
-                                   clangBasic
-                                   clangEdit
-                                   clangLex
-                                   clangTooling)
+target_link_libraries(Kerma  ${Boost_LIBRARIES}
+                             LLVM
+                             clangFrontend
+                             clangSerialization
+                             clangDriver
+                             clangParse
+                             clangSema
+                             clangAnalysis
+                             clangAST
+                             clangBasic
+                             clangEdit
+                             clangLex
+                             clangTooling
+                             stdc++fs)
 
 set(KermaOpt_SOURCES
     Analysis/DetectKernels.cpp
@@ -124,3 +125,4 @@ set(KermaOpt_SOURCES
 
  add_library(KermaOpt SHARED ${KermaOpt_SOURCES})
  target_compile_definitions(KermaOpt PUBLIC KERMA_OPT_PLUGIN)
+ target_link_libraries(KermaOpt ${Boost_LIBRARIES})
