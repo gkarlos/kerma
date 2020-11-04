@@ -28,18 +28,3 @@ Kernel::Kernel(unsigned int ID, llvm::Function *F) : ID(ID), F(F) {
 Kernel::Kernel(const Kernel& Other)
 : F(Other.F), DemangledName(Other.DemangledName), ID(Other.ID) {}
 
-Kernel& Kernel::operator=(const Kernel &Other) {
-  F = Other.F;
-  DemangledName = Other.DemangledName;
-  ID = Other.ID;
-  return *this;
-}
-
-bool Kernel::operator==(const Kernel &Other) { return ID == Other.ID; }
-bool Kernel::operator==(const Function& F) { return this->F == &F; }
-
-Function * Kernel::getFunction() const { return F; }
-
-std::string Kernel::getDemangledName() const { return DemangledName; }
-
-unsigned int Kernel::getID() const { return ID; }
