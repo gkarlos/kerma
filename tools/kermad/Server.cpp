@@ -1,21 +1,23 @@
-#include "Server.h"
 
 #include <cxxtools/json/rpcserver.h>
 #include <cxxtools/log/cxxtools.h>
-
+#include <llvm-10/llvm/Support/SourceMgr.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IRReader/IRReader.h>
 #include <llvm/Support/raw_ostream.h>
-
 #include <spdlog/spdlog.h>
-
-#include "Session.h"
-#include "kerma/SourceInfo/SourceInfoExtractor.h"
+#include <memory>
+#include <stdexcept>
+#include "kerma/Analysis/DetectKernels.h"
 #include "kerma/Support/Json.h"
 #include "kerma/Support/Log.h"
-
 #include "Options.h"
+#include "Server.h"
+#include "Session.h"
 #include "spdlog/fmt/bundled/core.h"
 
-#include <memory>
+
+
 
 #define IN "<--"
 #define OUT "-->"
@@ -32,36 +34,78 @@ Server *  Callback(void *thisPtr) {
   return self;
 }
 
+#define _ERROR_(f, ...) {                                     \
+  Log::error(f, ##__VA_ARGS__);                               \
+  throw std::runtime_error(fmt::format(f, ##__VA_ARGS__));    \
+}
+
+bool Server::killSession() {
+  if ( hasActiveSession()) {
+    CurrSession.reset();
+    return true;
+  }
+  return false;
+}
+
+
+void Server::initSession(const std::string& SourceDir, const std::string& Source) {
+  CurrSession = std::make_unique<Session>(Options, SourceDir, Source);
+  // SIExtractor = std::make_unique<SourceInfoExtractor>(CurrSession->getSourcePath());
+  SIB = std::make_unique<SourceInfoBuilder>(CurrSession->getSourcePath());
+
+  // Generate device IR
+  Log::info("Cmpl. {} -> {}", CurrSession->getSourcePath(), CurrSession->DeviceIRModuleName);
+
+  if ( !Compiler.EmitDeviceIR(CurrSession->getSourcePath(),
+                              CurrSession->DeviceIRModuleName)) {
+    Log::error("Compilation failed");
+    throw std::runtime_error("Failed to compile LLVM IR");
+    killSession();
+  }
+
+  SMDiagnostic Err;
+  CurrSession->DeviceModule = llvm::parseIRFile(CurrSession->getDeviceIRModulePath(),
+                                                Err, CurrSession->Context);
+
+  if ( !CurrSession->DeviceModule)
+    _ERROR_("Failed to parse device IR: {}", CurrSession->getDeviceIRModulePath());
+
+  CurrSession->Kernels = getKernels(*CurrSession->DeviceModule);
+  CurrSession->SI = SIB->getSourceInfo();
+  for ( auto &Kernel : CurrSession->Kernels) {
+    Kernel.setSourceRange(CurrSession->SI.getFunctionRange(Kernel.getName()));
+    Log::info("Kernel #{}. {} @{}", Kernel.getID(), Kernel.getName(),
+                                   Kernel.getSourceRange().getStart().getLine());
+  }
+}
+
+
 /// Start a new session for a specific file
 KermaRes
-Server::StartSession(const std::string& SourceDir, const std::string& Source, const std::string& CompileDb) {
+Server::StartSession(const std::string& SourceDir, const std::string& Source,
+                     const std::string& CompileDb) {
   if ( hasActiveSession())
-    throw fmt::format("Busy in another session ({})", CurrSession->getID());
+    _ERROR_("Busy in another session ({})", CurrSession->getID());
 
   Log::info("{} StartSession({}, {}) ", IN, SourceDir, Source);
 
-  CurrSession = std::make_unique<Session>(Options, SourceDir, Source);
-  SIExtractor = std::make_unique<SourceInfoExtractor>(CurrSession->getSourcePath());
-
-  Log::info("Cmpl. {} -> {}", CurrSession->getSourcePath(), DEVICE_IR);
-  if ( Compiler.EmitDeviceIR(CurrSession->getSourcePath()) ) {
-    // TODO: set Session.DeviceIR
-  }
+  initSession(SourceDir, Source);
 
   Json Res;
-  Res["kernels"] = {
-    {
-      {"name", "my_kernel_1"},
-      {"id", 0},
-      {"range", {50, 0, 61, 0}}
-    },
-    {
-      {"name", "my_kernel_2"},
-      {"id", 1},
-      {"range", {70, 0, 81, 0}}
-    }
-  };
-  Log::info("{} {} kernels", OUT, Res["kernels"].size());
+  Res["kernels"] = Json::array();
+  for ( auto& Kernel : CurrSession->Kernels) {
+    auto Range = Kernel.getSourceRange();
+    Res["kernels"].push_back({
+      {"name", Kernel.getName()},
+      {"id", Kernel.getID()},
+      {"range", {Range.getStart().getLine(),
+                 Range.getStart().getCol(),
+                 Range.getEnd().getLine(),
+                 Range.getEnd().getCol()}}
+    });
+  }
+
+  Log::info("{} StartSession({} kernels)", OUT, Res["kernels"].size());
   return Res.dump();
 }
 

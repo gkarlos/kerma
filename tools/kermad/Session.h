@@ -2,12 +2,20 @@
 #define KERMA_TOOLS_KERMAD_SESSION_H
 
 #include "Options.h"
+#include "kerma/Base/Kernel.h"
+#include "kerma/Compile/Compiler.h"
+#include "kerma/SourceInfo/SourceInfo.h"
+
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
 #include <string>
 
 namespace kerma {
 namespace kermad {
 
-
+namespace fs = boost::filesystem;
 
 class Session {
 private:
@@ -31,6 +39,27 @@ public:
   std::string CompileDb;
   std::string SourcePath;
   std::string CompileDbPath;
+  std::string HostIRModuleName   = Compiler::DefaultHostIRFile;
+  std::string DeviceIRModuleName = Compiler::DefaultDeviceIRFile;
+
+
+  llvm::LLVMContext Context;
+  std::unique_ptr<llvm::Module> DeviceModule;
+  std::vector<Kernel> Kernels;
+  SourceInfo SI;
+
+
+
+
+  std::string getDeviceIRModuleName() { return DeviceIRModuleName; }
+  std::string getHostIRModuleName() { return HostIRModuleName; }
+  std::string getHostIRModulePath() {
+    return (fs::path(WorkingDir) / fs::path(HostIRModuleName)).string();
+  }
+  std::string getDeviceIRModulePath() {
+    return (fs::path(WorkingDir) / fs::path(DeviceIRModuleName)).string();
+  }
+
 
   unsigned int getID() const { return ID; }
   std::string getSource() const { return Source; }

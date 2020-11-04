@@ -2,10 +2,16 @@ file(GLOB_RECURSE KermadSources "*.cpp")
 
 add_executable(kermad ${KermadSources})
 
-target_compile_options(kermad PUBLIC "-fPIC")
+# target_compile_options(kermad PUBLIC "-fPIC")
 
-target_link_libraries(kermad ${Boost_LIBRARIES}
-                             cxxtools
-                             cxxtools-json
-                             KermaCompile
-                             KermaSourceInfo)
+# message(${LLVMIRReader})
+target_link_libraries(kermad PUBLIC ${Boost_LIBRARIES}
+                                    cxxtools
+                                    cxxtools-json
+                                    Kerma
+                                    )
+# target_link_libraries(kermad PRIVATE KermaAnalysis
+#                                      KermaBase
+#                                      KermaCompile
+#                                      KermaSourceInfo
+#                                      KermaSupport)

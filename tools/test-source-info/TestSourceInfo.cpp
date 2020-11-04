@@ -1,5 +1,4 @@
-#include "kerma/SourceInfo/SourceInfoExtractor.h"
-
+#include "kerma/SourceInfo/SourceInfoBuilder.h"
 
 #include <iostream>
 
@@ -27,31 +26,19 @@ int main(int argc, const char** argv) {
 
   // CompileDBAdjuster::appendClangIncludes(*CompileDB);
 
-  SourceInfoExtractor SIE(argv[1]);
+  SourceInfoBuilder SIB(argv[1]);
 
-  std::string Target = "mm2_kernel1";
+  // SourceInfoLocator SIE()
 
-  auto ranges = SIE.getFunctionRange(Target);
+  std::string Target = "bpnn_layerforward_CUDA";
 
-  if ( ranges.empty())
-    std::cout << "No ranges found for " << Target << '\n';
-  else
-    for ( auto& entry : ranges) {
-      std::cout << entry.first << '\n';
-      for ( auto& range : entry.second)
-        std::cout << " \\_ " << range << '\n';
-    }
+  // auto ranges = SIE.getFunctionRange(Target);
 
+  auto SI = SIB.getSourceInfo();
+  auto Range = SI.getFunctionRange(Target);
 
-  // std::cout << "Running tool on: " << SIE.getSource() << '\n';
-  // for ( auto CC : CompileDB->getAllCompileCommands()) {
-
-  //   for ( auto arg : CC.CommandLine) {
-  //     std::cout << arg << "\n";
-  //   }
-  // }
-
-  // SIE.getFunctionRanges("asd");
+  std::cout << Target << '\n';
+  std::cout << " \\_ " << Range << '\n';
 
   return 0;
 }

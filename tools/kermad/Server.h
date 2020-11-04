@@ -4,7 +4,7 @@
 #include "Options.h"
 
 #include "kerma/Compile/Compiler.h"
-#include "kerma/SourceInfo/SourceInfoExtractor.h"
+#include "kerma/SourceInfo/SourceInfoBuilder.h"
 
 #include <cxxtools/eventloop.h>
 #include <cxxtools/log.h>
@@ -26,8 +26,13 @@ private:
   cxxtools::EventLoop Loop;
   std::unique_ptr<cxxtools::json::RpcServer> RpcServer;
   std::unique_ptr<Session> CurrSession;
-  std::unique_ptr<SourceInfoExtractor> SIExtractor;
+  std::unique_ptr<SourceInfoBuilder> SIB;
 
+  /// Start a new session
+  void initSession(const std::string& SourceDir, const std::string& Source);
+  /// Kill the active session. no-op if no active session
+  /// @returns true - session killed. false otherwise
+  bool killSession();
 public:
   Server(struct Options &Options);
   /// Start the server
@@ -46,26 +51,19 @@ public:
   /// Check if the server is on an active session currently
   bool hasActiveSession() const { return CurrSession.get(); }
 
-  /// Kill the active session
-  /// no-op if no active session currently
-  /// @returns true - session killed. false otherwise
-  bool killSession() {
-    if ( hasActiveSession()) {
-      CurrSession.reset();
-      return true;
-    }
-    return false;
-  }
+
+  // Rpc interface below
 
   /**
-   * @brief Start a new Kerma Session
-   *
-   * @param Source          path to the .cu file
-   * @param CompileCommands path to the compile_commands.json file
-   * @return KermaRes
-   */
+    * @brief Start a new Kerma Session
+    *
+    * @param Source          path to the .cu file
+    * @param CompileCommands path to the compile_commands.json file
+    * @return KermaRes
+    */
   KermaRes StartSession(const std::string& Dir, const std::string& Source, const std::string& CompileCommands);
   KermaRes StopSession(bool exit);
+
 };
 
 } // end namespace kermad

@@ -25,14 +25,15 @@ Session::Session(struct Options &Options,
   // Once a session is create we chdir to the
   // session's dir as our working directory
   chdir(WorkingDir.c_str());
-  Log::info("✔ Session {}, CWD: {}", ID, WorkingDir);
+
   Log::info(LOG_SEP);
+  Log::info("✔ Session {}, CWD: {}", ID, WorkingDir);
 }
 
 Session::~Session() {
   chdir(Options.WorkingDir.c_str());
-  Log::info(LOG_SEP);
   Log::info("✘ Session {}, CWD: {}", ID, Options.WorkingDir);
+  Log::info(LOG_SEP);
 }
 
 void
