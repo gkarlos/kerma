@@ -1,5 +1,6 @@
 #include "kerma/SourceInfo/Util.h"
 #include "kerma/SourceInfo/SourceLoc.h"
+#include "kerma/SourceInfo/SourceRange.h"
 
 #include <sstream>
 
@@ -22,7 +23,7 @@ SourceLoc parseClangSrcLocStr( const std::string& LocStr) {
   return res;
 }
 
-SourceRange readClangSrcRange(const clang::SourceRange &Range, clang::SourceManager& SourceManager) {
+SourceRange readClangSourceRange(const clang::SourceRange &Range, clang::SourceManager& SourceManager) {
   std::string BeginLocStr = Range.getBegin().printToString(SourceManager);
   std::string EndLocStr = Range.getEnd().printToString(SourceManager);
 
@@ -30,17 +31,13 @@ SourceRange readClangSrcRange(const clang::SourceRange &Range, clang::SourceMana
                                     BeginLocStr.find(' ') - (BeginLocStr.find(':')? BeginLocStr.find(':') + 1 : 0));
   EndLocStr = EndLocStr.substr(EndLocStr.find(':') + 1,
                                 EndLocStr.find(' ') - (EndLocStr.find(':')? EndLocStr.find(':') + 1 : 0));
-
-  SourceRange res;
-
   try {
-    parseClangSrcLocStr(BeginLocStr, res.getStart());
-    parseClangSrcLocStr(EndLocStr, res.getEnd());
+    auto Start = parseClangSrcLocStr(BeginLocStr);
+    auto End = parseClangSrcLocStr(EndLocStr);
+    return SourceRange(Start, End);
   } catch (...) {
     return SourceRange::Unknown;
   }
-
-  return res;
 }
 
 } // namespace kerma

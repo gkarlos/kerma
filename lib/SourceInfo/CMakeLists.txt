@@ -27,11 +27,12 @@ target_link_libraries(KermaSourceInfo PUBLIC
     clangTooling
     LLVMFrontendOpenMP
     LLVMIRReader
-    # LLVMSupport
+    LLVMSupport
     LLVMMC
     LLVMMCParser
     LLVMOption
     LLVMProfileData
-    KermaCompile
-    KermaSupport
 )
+
+target_link_libraries(KermaSourceInfo PRIVATE KermaCompile
+                                              KermaSupport)

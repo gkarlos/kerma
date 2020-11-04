@@ -3,46 +3,45 @@
 
 #include "kerma/SourceInfo/SourceRange.h"
 #include <string>
+#include <unordered_map>
 
 namespace kerma {
 
 class SourceInfo {
+  friend class SourceInfoBuilder;
+
 private:
-  std::string Filename;
-  std::string Directory;
-  std::string Path;
-  std::string Text;
-  SourceRange Range;
+  std::unordered_map<std::string, SourceRange> FunctionRanges;
+
+protected:
+  void clear() {
+    FunctionRanges.clear();
+  }
+
+  void addFunction(const std::string& Name, const SourceRange& Range) {
+    FunctionRanges[Name] = Range;
+  }
+
+  void addFunctions( const std::unordered_map<std::string, SourceRange> FunctionRangeMap) {
+    FunctionRanges.insert(FunctionRangeMap.begin(), FunctionRangeMap.end());
+  }
+  // void AddStmt(const std::);
 
 
 public:
-  SourceInfo();
-  SourceInfo( const std::string& path, 
-              const SourceRange& range=SourceRange::Unknown, 
-              const std::string& text="");
+  SourceInfo()=default;
+  ~SourceInfo()=default;
 
-  std::string getFilename() const;
+  SourceInfo& operator=(const SourceInfo& O) {
+    FunctionRanges = O.FunctionRanges;
+    return *this;
+  }
 
-  std::string getDirectory() const;
+  const std::string& getFunctionOfLine(unsigned int Line) const;
+  const SourceRange& getFunctionRange(const std::string& FunctionName) const;
 
-  std::string getPath() const;
-  SourceInfo& setPath(std::string& path);
-  SourceInfo& setPath(const char *path);
-
-  SourceRange getRange() const;
-  SourceInfo& setRange(SourceRange& range) const;
-
-  std::string& getText();
-  SourceInfo& setText(std::string& text);
-  SourceInfo& setText(const char* text);
-
-  bool operator==(const SourceInfo &other) const;
-  bool operator!=(const SourceInfo &other) const;
-
-
-private:
-  void splitPath();
-
+  const std::pair<std::string, SourceRange> getFunctionRangePair(const std::string& FunctionName);
+  const std::unordered_map<std::string, SourceRange> getFunctionRanges() const { return FunctionRanges; }
 };
 
 } // namespace kerma

@@ -20,7 +20,7 @@ SourceLoc parseClangSrcLocStr( const std::string& LocStr);
 // At the moment we extract the substr between the first ':' and the
 // first space. If no space exists, then until the end of the string.
 // This may fail on malformed strings so a more robust way is needed.
-SourceRange readClangSrcRange( const clang::SourceRange &Range, clang::SourceManager& SourceManager);
+SourceRange readClangSourceRange( const clang::SourceRange &Range, clang::SourceManager& SourceManager);
 // void readClangSrcRange( const clang::SourceRange &Range, SourceLoc& Res);
 
 }
