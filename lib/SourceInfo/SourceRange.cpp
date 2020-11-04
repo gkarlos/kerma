@@ -3,9 +3,6 @@
 
 namespace kerma {
 
-SourceRange::SourceRange() : S(0), E(0)
-{}
-
 SourceRange::SourceRange(SourceLoc start)
 : S(start), E(start)
 {}
@@ -13,10 +10,6 @@ SourceRange::SourceRange(SourceLoc start)
 SourceRange::SourceRange(SourceLoc start, SourceLoc end)
 : S(start), E(end < start? start : end)
 {}
-
-SourceLoc & SourceRange::getStart() { return S; }
-
-SourceLoc & SourceRange::getEnd() { return E; }
 
 bool SourceRange::isValid() const { return S.isValid(); }
 
@@ -37,7 +30,7 @@ std::ostream & operator<<(std::ostream &os, const SourceRange &loc) {
   return os;
 }
 
-llvm::raw_ostream & operator<<(llvm::raw_ostream &os, SourceRange &loc) {
+llvm::raw_ostream & operator<<(llvm::raw_ostream &os, const SourceRange &loc) {
   os << loc.S << "," << loc.E;
   return os;
 }
@@ -45,3 +38,8 @@ llvm::raw_ostream & operator<<(llvm::raw_ostream &os, SourceRange &loc) {
 const SourceRange SourceRange::Unknown(SourceLoc::Unknown);
 
 } // namespace kerma
+
+std::size_t std::hash<kerma::SourceRange>::operator()(const kerma::SourceRange& Range) const {
+  return (std::hash<kerma::SourceLoc>()(Range.getStart())
+          ^ (std::hash<kerma::SourceLoc>()(Range.getEnd()) << 1)) >> 1;
+}

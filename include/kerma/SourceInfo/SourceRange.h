@@ -11,12 +11,15 @@ private:
   SourceLoc E;
 
 public:
-  SourceRange();
+  SourceRange()=default;
   SourceRange(SourceLoc start);
   SourceRange(SourceLoc start, SourceLoc end);
 
-  SourceLoc & getStart();
-  SourceLoc & getEnd();
+  void setStart( const SourceLoc& Start) { S = Start; }
+  void setEnd( const SourceLoc& End) { E = End; }
+
+  const SourceLoc & getStart() const { return S; }
+  const SourceLoc & getEnd() const { return E; }
 
   /// A range is valid if its start location is valid
   /// When the end location is invalid, it generally
@@ -32,11 +35,17 @@ public:
   bool operator!=(const SourceRange& other) const;
 
   friend std::ostream & operator<<(std::ostream &os, const SourceRange &loc);
-  friend llvm::raw_ostream & operator<<(llvm::raw_ostream &os, SourceRange &loc);
+  friend llvm::raw_ostream & operator<<(llvm::raw_ostream &os, const SourceRange &loc);
 
   static const SourceRange Unknown;
 };
 
 } // kerma
+
+namespace std {
+  template<> struct hash<kerma::SourceRange> {
+    std::size_t operator()(const kerma::SourceRange& Range) const;
+  };
+}
 
 #endif // KERMA_SOURCEINFO_SOURCERANGE_H

@@ -18,8 +18,8 @@ public:
   SourceLoc(SourceLoc&& other);
   ~SourceLoc()=default;
 
-  unsigned int getLine() const;
-  unsigned int getCol() const;
+  unsigned int getCol() const { return C; }
+  unsigned int getLine() const { return L; }
 
   /// Set the line and column of this location
   /// If any of the values becomes numeric_limits<int>::max()
@@ -32,13 +32,13 @@ public:
 
   /// Check if this is a valid location
   ///
-  /// Invalid locations are used to represent the absense of a 
-  /// location. For instance if the End of a SourceRange is 
+  /// Invalid locations are used to represent the absense of a
+  /// location. For instance if the End of a SourceRange is
   /// invalid, then the End location is the end of the file
   bool isValid() const;
   bool isInvalid() const;
   SourceLoc& invalidate();
-  
+
   /// Bool operator returns true if the location is valid
   operator bool() const;
 
@@ -53,13 +53,19 @@ public:
   bool operator>=(const SourceLoc &other) const;
 
   friend std::ostream & operator<<(std::ostream &os, const SourceLoc &loc);
-  friend llvm::raw_ostream & operator<<(llvm::raw_ostream &os, SourceLoc &loc);
+  friend llvm::raw_ostream & operator<<(llvm::raw_ostream &os, const SourceLoc &loc);
 
   /// An invalid location to denote the
   /// absence of source location info
   static const SourceLoc Unknown;
 };
 
+} // namespace kerma
+
+namespace std {
+  template<> struct hash<kerma::SourceLoc> {
+    std::size_t operator()(const kerma::SourceLoc& Loc) const;
+  };
 }
 
 #endif // KERMA_SOURCEINFO_SOURCELOC_H

@@ -1,18 +1,19 @@
 #include "kerma/SourceInfo/SourceLoc.h"
+#include "boost/container_hash/hash_fwd.hpp"
 #include <llvm/Support/raw_ostream.h>
 #include <ostream>
 
 namespace kerma {
 
-static unsigned int InvalidVal = std::numeric_limits<int>::max();
+// static unsigned int InvalidVal = std::numeric_limits<int>::max();
 
-const SourceLoc SourceLoc::Unknown( InvalidVal, InvalidVal);
+const SourceLoc SourceLoc::Unknown(0,0);
 
 SourceLoc::SourceLoc(unsigned int line, unsigned int col)
 : L(line), C(col)
 {}
 
-SourceLoc::SourceLoc(const SourceLoc& other) 
+SourceLoc::SourceLoc(const SourceLoc& other)
 : L(other.L), C(other.C)
 {}
 
@@ -20,20 +21,16 @@ SourceLoc::SourceLoc(SourceLoc&& other)
 : L(std::move(other.L)), C(std::move(other.C))
 {}
 
-unsigned int SourceLoc::getCol() const { return C; }
-
-unsigned int SourceLoc::getLine() const { return L; }
-
 SourceLoc& SourceLoc::setLine(unsigned int line) {
   L = line;
-  if ( L == InvalidVal)
+  if ( !L)
     C = L;
   return *this;
 }
 
 SourceLoc& SourceLoc::setCol(unsigned int col) {
   C = col;
-  if ( C == InvalidVal)
+  if ( !C)
     L = C;
   return *this;
 }
@@ -41,21 +38,20 @@ SourceLoc& SourceLoc::setCol(unsigned int col) {
 SourceLoc& SourceLoc::set(unsigned int line, unsigned int col) {
   L = line;
   C = col;
-  if ( L == InvalidVal || C == InvalidVal)
-    L = C = InvalidVal;
+  if ( !L || !C)
+    L = C = 0;
   return *this;
 }
 
 SourceLoc& SourceLoc::invalidate() {
-  L = InvalidVal;
-  C = InvalidVal;
+  L = C = 0;
   return *this;
 }
 
 bool SourceLoc::isValid() const {
   // dont need to check C too. By construction they
   // are either both invalid or none is.
-  return L != InvalidVal; 
+  return L;
 }
 
 bool SourceLoc::isInvalid() const {
@@ -69,8 +65,8 @@ SourceLoc::operator bool() const {
 SourceLoc& SourceLoc::operator=(const SourceLoc& other) {
   L = other.L;
   C = other.C;
-  if ( L == InvalidVal || C == InvalidVal)
-    L = C = InvalidVal;
+  if ( !L || !C)
+    L = C = 0;
   return *this;
 }
 
@@ -104,9 +100,13 @@ std::ostream& operator<<(std::ostream& os, const SourceLoc& loc) {
   return os;
 }
 
-llvm::raw_ostream& operator<<(llvm::raw_ostream& os, SourceLoc& loc) {
+llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const SourceLoc& loc) {
   os << loc.L << ':' << loc.C;
   return os;
 }
 
 } // namespace kerma
+
+std::size_t std::hash<kerma::SourceLoc>::operator()(const kerma::SourceLoc& Loc) const {
+  return (Loc.getLine() ^ (Loc.getCol() << 1)) >> 1;
+}
