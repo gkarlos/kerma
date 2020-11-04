@@ -315,18 +315,16 @@ InstrumentPrintfPass::instrumentCopy(const Kernel& K, MemCpyInst *I, Instruction
                                   : IRB.CreatePtrToInt(DestPtr,  IRB.getInt64Ty());
 
     SourceLoc Loc;
-    if ( auto& DL = I->getDebugLoc()) {
-      Loc.line = DL->getLine();
-      Loc.col = DL.getCol();
-    }
+    if ( auto& DL = I->getDebugLoc())
+      Loc.set(DL.getLine(), DL->getColumn());
 
     // IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0), IRB.getInt8PtrTy())
 
     if ( Mode == BLOCK_MODE)
       Args = {/*status*/ TraceStatus,
               /* bid  */ ConstantInt::get(IRB.getInt32Ty(), 0),
-              /* line */ ConstantInt::get(IRB.getInt32Ty(), Loc.line),
-              /* col  */ ConstantInt::get(IRB.getInt32Ty(), Loc.col),
+              /* line */ ConstantInt::get(IRB.getInt32Ty(), Loc.getLine()),
+              /* col  */ ConstantInt::get(IRB.getInt32Ty(), Loc.getCol()),
               /* sname*/ SourceLocal? IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0), IRB.getInt8PtrTy())
                                     : GlobalVariableForSymbol[SourceName],
               /* soff */ SourceOffset,
@@ -338,8 +336,8 @@ InstrumentPrintfPass::instrumentCopy(const Kernel& K, MemCpyInst *I, Instruction
       Args = {/*status*/ TraceStatus,
               /* bid  */ ConstantInt::get(IRB.getInt32Ty(), 0),
               /* wid  */ ConstantInt::get(IRB.getInt32Ty(), 0),
-              /* line */ ConstantInt::get(IRB.getInt32Ty(), Loc.line),
-              /* col  */ ConstantInt::get(IRB.getInt32Ty(), Loc.col),
+              /* line */ ConstantInt::get(IRB.getInt32Ty(), Loc.getLine()),
+              /* col  */ ConstantInt::get(IRB.getInt32Ty(), Loc.getCol()),
               /* sname*/ SourceLocal? IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0), IRB.getInt8PtrTy())
                                     : GlobalVariableForSymbol[SourceName],
               /* soff */ SourceOffset,
@@ -351,8 +349,8 @@ InstrumentPrintfPass::instrumentCopy(const Kernel& K, MemCpyInst *I, Instruction
       Args = {/*status*/ TraceStatus,
               /* bid  */ ConstantInt::get(IRB.getInt32Ty(), 0),
               /* tid  */ ConstantInt::get(IRB.getInt32Ty(), 0),
-              /* line */ ConstantInt::get(IRB.getInt32Ty(), Loc.line),
-              /* col  */ ConstantInt::get(IRB.getInt32Ty(), Loc.col),
+              /* line */ ConstantInt::get(IRB.getInt32Ty(), Loc.getLine()),
+              /* col  */ ConstantInt::get(IRB.getInt32Ty(), Loc.getCol()),
               /* sname*/ SourceLocal? IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0), IRB.getInt8PtrTy())
                                     : GlobalVariableForSymbol[SourceName],
               /* soff */ SourceOffset,
@@ -388,8 +386,8 @@ InstrumentPrintfPass::insertCallForAccess(AccessType AT,  const Kernel& Kernel,
       Args = {/* stat*/ TraceStatus,
               /* ty  */ ConstantInt::get(IRB.getInt8Ty(), AT),
               /* bid */ ConstantInt::get(IRB.getInt32Ty(), 0),
-              /* line*/ ConstantInt::get(IRB.getInt32Ty(), Loc.line),
-              /* col */ ConstantInt::get(IRB.getInt32Ty(), Loc.col),
+              /* line*/ ConstantInt::get(IRB.getInt32Ty(), Loc.getLine()),
+              /* col */ ConstantInt::get(IRB.getInt32Ty(), Loc.getCol()),
               /* name*/ GlobalVariableForSymbol[Name],
               /* off */ Offset,
               /* sz  */ ConstantInt::get(IRB.getInt32Ty(), Size)};
@@ -398,8 +396,8 @@ InstrumentPrintfPass::insertCallForAccess(AccessType AT,  const Kernel& Kernel,
               /* ty  */ ConstantInt::get(IRB.getInt8Ty(), AT),
               /* bid */ ConstantInt::get(IRB.getInt32Ty(), 0),
               /* wid */ ConstantInt::get(IRB.getInt32Ty(), 0),
-              /* line*/ ConstantInt::get(IRB.getInt32Ty(), Loc.line),
-              /* col */ ConstantInt::get(IRB.getInt32Ty(), Loc.col),
+              /* line*/ ConstantInt::get(IRB.getInt32Ty(), Loc.getLine()),
+              /* col */ ConstantInt::get(IRB.getInt32Ty(), Loc.getCol()),
               /* name*/ GlobalVariableForSymbol[Name],
               /* off */ Offset,
               /* sz  */ ConstantInt::get(IRB.getInt32Ty(), Size)};
@@ -408,8 +406,8 @@ InstrumentPrintfPass::insertCallForAccess(AccessType AT,  const Kernel& Kernel,
               /* ty  */ ConstantInt::get(IRB.getInt8Ty(), AT),
               /* bid */ ConstantInt::get(IRB.getInt32Ty(), 0),
               /* tid */ ConstantInt::get(IRB.getInt32Ty(), 0),
-              /* line*/ ConstantInt::get(IRB.getInt32Ty(), Loc.line),
-              /* col */ ConstantInt::get(IRB.getInt32Ty(), Loc.col),
+              /* line*/ ConstantInt::get(IRB.getInt32Ty(), Loc.getLine()),
+              /* col */ ConstantInt::get(IRB.getInt32Ty(), Loc.getCol()),
               /* name*/ GlobalVariableForSymbol[Name],
               /* off */ Offset,
               /* sz  */ ConstantInt::get(IRB.getInt32Ty(), Size)};
@@ -478,10 +476,8 @@ bool InstrumentPrintfPass::instrumentAccess(const Kernel& K, Instruction *I, Ins
   // Later one we will replace this with something like
   // a stmt ID, after we extract stmts with clang
   SourceLoc Loc;
-  if ( auto& DL = I->getDebugLoc()) {
-    Loc.line = DL->getLine();
-    Loc.col = DL.getCol();
-  }
+  if ( auto& DL = I->getDebugLoc())
+    Loc.set(DL->getLine(), DL.getCol());
 
   auto Success = insertCallForAccess(Type, K, getName(Obj), Ptr, getSize(*M, Ptr), Loc, I, TraceStatus);
 

@@ -40,7 +40,7 @@ struct PassStats {
   }
 };
 
-struct SourceLoc { unsigned int line; unsigned int col; };
+// struct SourceLoc { unsigned int line; unsigned int col; };
 
 enum Mode : unsigned char {
   BLOCK_MODE ='b',

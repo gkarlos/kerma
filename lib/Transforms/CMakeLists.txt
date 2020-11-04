@@ -34,9 +34,9 @@ add_library(KermaTransforms SHARED ${Canonicalize_SOURCES}
                                    ${Instrument_SOURCES})
 target_include_directories(KermaTransforms PUBLIC ${KERMA_INCLUDE_DIR})
 set_target_properties(KermaTransforms PROPERTIES COMPILE_FLAGS "-fno-rtti")
-target_link_libraries(KermaTransforms KermaAnalysis
-                                      KermaBase
-                                      KermaNVVM
-                                      KermaUtils
-                                      LLVMIRReader
-                                      LLVMLinker)
+target_link_libraries(KermaTransforms PRIVATE KermaAnalysis
+                                              KermaBase
+                                              KermaNVVM
+                                              KermaUtils)
+target_link_libraries(KermaTransforms PUBLIC LLVMIRReader
+                                             LLVMLinker)
