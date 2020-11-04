@@ -300,12 +300,12 @@ bool isSimpleStruct(StructType *Ty) {
   return true;
 }
 
-Type* stripPointers(Type *Ty) {
-  Type *tmp = Ty;
-  while ( auto *ptr = dyn_cast<PointerType>(tmp))
-    tmp = ptr->getElementType();
-  return tmp;
-}
+// Type* stripPointers(Type *Ty) {
+//   Type *tmp = Ty;
+//   while ( auto *ptr = dyn_cast<PointerType>(tmp))
+//     tmp = ptr->getElementType();
+//   return tmp;
+// }
 
 Type *stripArrayNest(Type *Ty) {
   Type *tmp = Ty;
