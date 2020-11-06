@@ -5,6 +5,7 @@
 #include "kerma/Base/Kernel.h"
 #include "kerma/Compile/Compiler.h"
 #include "kerma/SourceInfo/SourceInfo.h"
+#include "kerma/SourceInfo/SourceInfoBuilder.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -20,15 +21,13 @@ namespace fs = boost::filesystem;
 class Session {
 private:
   unsigned int ID;
-  struct Options& Options;
-  void setInput(const std::string& SourceDir,
-                const std::string& Source);
+  struct Options &Options;
+  void setInput(const std::string &SourceDir, const std::string &Source);
   void createWorkingDir();
 
 public:
-  Session(struct Options& Options,
-          const std::string& Dir,
-          const std::string& Source);
+  Session(struct Options &Options, const std::string &Dir,
+          const std::string &Source);
 
   ~Session();
 
@@ -39,17 +38,14 @@ public:
   std::string CompileDb;
   std::string SourcePath;
   std::string CompileDbPath;
-  std::string HostIRModuleName   = Compiler::DefaultHostIRFile;
+  std::string HostIRModuleName = Compiler::DefaultHostIRFile;
   std::string DeviceIRModuleName = Compiler::DefaultDeviceIRFile;
-
 
   llvm::LLVMContext Context;
   std::unique_ptr<llvm::Module> DeviceModule;
   std::vector<Kernel> Kernels;
+  std::unique_ptr<SourceInfoBuilder> SIB;
   SourceInfo SI;
-
-
-
 
   std::string getDeviceIRModuleName() { return DeviceIRModuleName; }
   std::string getHostIRModuleName() { return HostIRModuleName; }
@@ -60,7 +56,6 @@ public:
     return (fs::path(WorkingDir) / fs::path(DeviceIRModuleName)).string();
   }
 
-
   unsigned int getID() const { return ID; }
   std::string getSource() const { return Source; }
   std::string getSourceDir() const { return Source; }
@@ -69,10 +64,9 @@ public:
   std::string getCompileDbPath() const { return CompileDbPath; }
 
   std::string getWorkingDir() const { return WorkingDir; }
-
 };
 
-}
-}
+} // namespace kermad
+} // namespace kerma
 
 #endif // KERMA_TOOLS_KERMAD_SESSION_H

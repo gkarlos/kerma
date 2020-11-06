@@ -25,7 +25,8 @@ Session::Session(struct Options &Options,
   // Once a session is create we chdir to the
   // session's dir as our working directory
   chdir(WorkingDir.c_str());
-
+  // Create the SourceInfoBuilder
+  SIB = std::make_unique<SourceInfoBuilder>(getSourcePath());
   Log::info(LOG_SEP);
   Log::info("✔ Session {}, CWD: {}", ID, WorkingDir);
 }

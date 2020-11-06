@@ -54,6 +54,7 @@ public:
 
   // Rpc interface below
 
+protected:
   /**
     * @brief Start a new Kerma Session
     *
