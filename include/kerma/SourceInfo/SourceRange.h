@@ -27,6 +27,18 @@ public:
   bool isValid() const;
   bool isInvalid() const;
 
+  /// Check if the range contains a location
+  bool contains(const SourceLoc &Loc);
+
+  /// Check if the range fully contains
+  /// another range
+  bool contains(const SourceRange &Range);
+
+  /// Check if the  range overlaps with another
+  /// range. That is, whether either range
+  /// fully or partially contains the other
+  bool overlaps(const SourceRange &Range);
+
   /// Returns true if the end of the range is
   /// strictly greater than the start
   bool isEmpty() const;

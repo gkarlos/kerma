@@ -5,6 +5,7 @@
 #include "kerma/SourceInfo/SourceRange.h"
 
 #include "clang/Basic/SourceLocation.h"
+#include "clang/AST/Decl.h"
 
 namespace kerma {
 
@@ -23,6 +24,8 @@ SourceLoc parseClangSrcLocStr( const std::string& LocStr);
 SourceRange readClangSourceRange( const clang::SourceRange &Range, clang::SourceManager& SourceManager);
 // void readClangSrcRange( const clang::SourceRange &Range, SourceLoc& Res);
 
+SourceRange GetSourceRange(clang::SourceManager& SM, clang::Decl &D);
+SourceRange GetSourceRange(clang::SourceManager& SM, clang::Stmt &S);
 }
 
 #endif // KERMA_SOURCEINFO_UTIL_H

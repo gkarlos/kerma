@@ -1,17 +1,11 @@
 #ifndef KERMA_SOURCEINFO_SOURCE_INFO_BUILDER_H
 #define KERMA_SOURCEINFO_SOURCE_INFO_BUILDER_H
 
-#include "kerma/SourceInfo/Functions.h"
-#include "kerma/SourceInfo/SourceInfo.h"
+#include "kerma/SourceInfo/SourceInfoAction.h"
 #include "kerma/SourceInfo/SourceRange.h"
-// #include "clang/Tooling/Tooling.h"
-#include "clang/AST/ASTContext.h"
-// #include <clang/AST/RecursiveASTVisitor.h>
-#include <clang/Basic/SourceManager.h>
-#include <clang/Frontend/CompilerInstance.h>
-#include <clang/Frontend/FrontendAction.h>
-// #include <clang/Tooling/CompilationDatabase.h>
-// #include <clang/Tooling/Tooling.h>
+#include <clang/AST/ASTContext.h>
+#include <clang/Tooling/CompilationDatabase.h>
+#include <clang/Tooling/Tooling.h>
 
 #include <memory>
 #include <string>
@@ -19,35 +13,30 @@
 
 namespace kerma {
 
-// class StmtInfoActionFactory : public clang::tooling::FrontendActionFactory {
-// private:
-//   std::vector<std::string> Targets;
-// };
-
+/// A facade, hiding  all the underlying mechanisms
+/// required to create a SourceInfo object.
+/// A SourceInfoBuilder is associated with a single
+/// File/CompileDB
+/// The API is a single function getSourceInfo()
+/// which does all the work and returns a SourceInfo
+/// object by value. The function is meant to be
+/// called infrequently
 class SourceInfoBuilder {
 public:
-  SourceInfoBuilder( const std::string &SourcePath,
-                     clang::tooling::CompilationDatabase *DB = nullptr);
+  SourceInfoBuilder(const std::string &SourcePath,
+                    clang::tooling::CompilationDatabase *DB = nullptr);
 
 private:
   SourceInfo SI;
   clang::tooling::CompilationDatabase *CompileDB;
   std::vector<std::string> SourcePaths;
   std::unique_ptr<clang::tooling::ClangTool> Tool;
-  // std::unique_ptr<StmtInfoActionFactory> StmtInfos;
-  FunctionRangeActionFactory FunctionRanges;
+  SourceInfoActionFactory ActionFactory;
 
 public:
   SourceInfo getSourceInfo();
-  // SourceInfo getSourceInfo() {
-  //   SourceInfo SI;
-  //   Tool->run(FunctionRanges.get());
-  //   SI.addFunctions(FunctionRanges->getResults());
-  //   return SI;
-  // }
-
 };
 
 } // namespace kerma
 
-#endif // KERMA_SOURCEINFO_SOURCE_INFO_LOCATOR_H
+#endif // KERMA_SOURCEINFO_SOURCE_INFO_BUILDER_H

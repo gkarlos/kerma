@@ -21,6 +21,20 @@ bool SourceRange::operator==(const SourceRange &other) const {
   return  S == other.S && E == other.E;
 }
 
+bool SourceRange::contains(const SourceLoc &Loc) {
+  return S <= Loc && Loc <= E;
+}
+
+bool SourceRange::contains(const SourceRange &Range) {
+  return contains(Range.getStart())
+      && contains(Range.getEnd());
+}
+
+bool SourceRange::overlaps(const SourceRange &Range) {
+  return contains(Range.getStart())
+      || contains(Range.getEnd());
+}
+
 bool SourceRange::operator!=(const SourceRange &other) const {
   return !(*this == other);
 }

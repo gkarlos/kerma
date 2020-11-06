@@ -1,6 +1,10 @@
 #include "kerma/SourceInfo/Util.h"
 #include "kerma/SourceInfo/SourceLoc.h"
 #include "kerma/SourceInfo/SourceRange.h"
+#include "clang/AST/Decl.h"
+#include "clang/AST/Stmt.h"
+#include "clang/Basic/SourceLocation.h"
+#include "clang/Basic/SourceManager.h"
 
 #include <sstream>
 
@@ -21,6 +25,22 @@ SourceLoc parseClangSrcLocStr( const std::string& LocStr) {
   SourceLoc res;
   parseClangSrcLocStr(LocStr, res);
   return res;
+}
+
+SourceRange GetSourceRange(clang::SourceManager& SM, clang::Stmt &S) {
+  SourceLoc Begin( SM.getPresumedLineNumber(S.getBeginLoc()),
+                   SM.getPresumedColumnNumber(S.getBeginLoc()));
+  SourceLoc End( SM.getPresumedLineNumber(S.getEndLoc()),
+                 SM.getPresumedColumnNumber(S.getEndLoc()));
+  return SourceRange(Begin, End);
+}
+
+SourceRange GetSourceRange(clang::SourceManager& SM, clang::Decl &D) {
+  SourceLoc Begin( SM.getPresumedLineNumber(D.getBeginLoc()),
+                   SM.getPresumedColumnNumber(D.getBeginLoc()));
+  SourceLoc End( SM.getPresumedLineNumber(D.getEndLoc()),
+                 SM.getPresumedColumnNumber(D.getEndLoc()));
+  return SourceRange(Begin, End);
 }
 
 SourceRange readClangSourceRange(const clang::SourceRange &Range, clang::SourceManager& SourceManager) {

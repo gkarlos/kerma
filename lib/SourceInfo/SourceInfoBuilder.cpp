@@ -1,8 +1,14 @@
 #include "kerma/SourceInfo/SourceInfoBuilder.h"
+// #include "kerma/SourceInfo/Functions.h"
+#include "kerma/SourceInfo/SourceInfoAction.h"
 #include "kerma/Support/FileSystem.h"
+// #include "clang/Frontend/CompilerInstance.h"
 
 #include <boost/filesystem.hpp>
 #include <memory>
+
+
+// #include <clang/Frontend/TextDiagnosticPrinter.h>
 
 namespace fs = boost::filesystem;
 namespace kerma {
@@ -39,12 +45,10 @@ SourceInfoBuilder::SourceInfoBuilder( const std::string &SourcePath,
   // FunctionRanges = std::make_unique<FunctionRangeActionFactory>();
 }
 
-SourceInfo SourceInfoBuilder::getSourceInfo() {
-  SourceInfo SI;
-  Tool->run(&FunctionRanges);
-  SI.addFunctions(FunctionRanges.getResults());
-  return SI;
-}
 
+SourceInfo SourceInfoBuilder::getSourceInfo() {
+  Tool->run(&ActionFactory);
+  return ActionFactory.getSourceInfo();
+}
 
 } // namespace kerma

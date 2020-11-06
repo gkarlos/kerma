@@ -30,11 +30,9 @@ set(Kerma_SOURCES
 
     RT/Util.cpp
 
-    SourceInfo/Functions.cpp
-    # SourceInfo/FunctionRangeExtractor.cpp
     SourceInfo/SourceInfo.cpp
+    SourceInfo/SourceInfoAction.cpp
     SourceInfo/SourceInfoBuilder.cpp
-    # SourceInfo/SourceInfoLocator.cpp
     SourceInfo/SourceLoc.cpp
     SourceInfo/SourceRange.cpp
     SourceInfo/Util.cpp
