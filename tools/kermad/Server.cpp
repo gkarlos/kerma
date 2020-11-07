@@ -121,10 +121,13 @@ void Server::initSession(const std::string &SourceDir,
   // next: canonicalize ir
 }
 
+#define SYNC std::lock_guard<std::mutex> Guard(Mutex)
+
 /// Start a new session for a specific file
 KermaRes Server::StartSession(const std::string &SourceDir,
                               const std::string &Source,
                               const std::string &CompileDb) {
+  SYNC;
   if (hasActiveSession())
     _ERROR_("Busy in another session ({})", CurrSession->getID());
 
@@ -143,6 +146,7 @@ KermaRes Server::StartSession(const std::string &SourceDir,
 }
 
 KermaRes Server::StopSession(bool exit) {
+  SYNC;
   Log::info("{} StopSession({})", IN, exit);
   if (!killSession())
     throw "No active session to stop";

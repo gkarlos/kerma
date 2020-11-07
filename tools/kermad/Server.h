@@ -10,6 +10,7 @@
 #include <cxxtools/log.h>
 #include <cxxtools/json/rpcserver.h>
 #include <memory>
+#include <mutex>
 
 #include "Session.h"
 #include "Response.h"
@@ -29,6 +30,7 @@ private:
   std::unique_ptr<Session> CurrSession;
   std::unique_ptr<SourceInfoBuilder> SIB;
   ResponseBuilder RB;
+  std::mutex Mutex;
 
   /// Start a new session
   void initSession(const std::string& SourceDir, const std::string& Source);
