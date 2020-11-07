@@ -12,6 +12,7 @@
 #include <memory>
 
 #include "Session.h"
+#include "Response.h"
 
 namespace kerma {
 namespace kermad {
@@ -27,6 +28,7 @@ private:
   std::unique_ptr<cxxtools::json::RpcServer> RpcServer;
   std::unique_ptr<Session> CurrSession;
   std::unique_ptr<SourceInfoBuilder> SIB;
+  ResponseBuilder RB;
 
   /// Start a new session
   void initSession(const std::string& SourceDir, const std::string& Source);
@@ -53,7 +55,6 @@ public:
 
 
   // Rpc interface below
-
 protected:
   /**
     * @brief Start a new Kerma Session

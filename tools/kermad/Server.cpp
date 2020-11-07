@@ -39,10 +39,41 @@ Server *Callback(void *thisPtr) {
 bool Server::killSession() {
   if (hasActiveSession()) {
     CurrSession.reset();
+    RB.clearSession();
     return true;
   }
   return false;
 }
+
+bool Server::start() {
+  if (!isRunning()) {
+    Started = true;
+    RpcServer->registerMethod("StartSession", *this, &Server::StartSession);
+    RpcServer->registerMethod("StopSession", *this, &Server::StopSession);
+    Started = true;
+    Loop.run();
+    return true;
+  }
+  return false;
+}
+
+bool Server::stop() {
+  if (isRunning()) {
+    CurrSession.reset();
+    Loop.exit();
+    return true;
+  }
+  return false;
+}
+
+Server::Server(struct Options &Options)
+    : Options(Options), Compiler(Options.ClangExePath), Started(false) {
+  RpcServer = std::make_unique<json::RpcServer>(Loop, Options.IP, Options.Port);
+}
+
+
+// RPC handlers impl. and utility functions
+
 
 static void getDeviceIR(Session &Session, Compiler &Compiler) {
   Log::info("Cmpl. {} -> {}", Session.SourcePath, Session.DeviceIRModuleName);
@@ -80,6 +111,8 @@ static void getSourceInfo(Session &Session) {
 void Server::initSession(const std::string &SourceDir,
                          const std::string &Source) {
   CurrSession = std::make_unique<Session>(Options, SourceDir, Source);
+  RB.setSession(*CurrSession);
+
   // order is important
   getDeviceIR(*CurrSession, Compiler);
   getSourceInfo(*CurrSession);
@@ -99,62 +132,21 @@ KermaRes Server::StartSession(const std::string &SourceDir,
 
   try {
     initSession(SourceDir, Source);
+    auto Res = RB.getForStartSession();
+    Log::info("{} StartSession({} kernels, {} device functions)", OUT,
+              Res["kernels"].size(), Res["device_functions"].size());
+    return Res.dump();
   } catch (...) {
     killSession();
     throw;
   }
-
-  Json Res;
-  Res["kernels"] = Json::array();
-  for (auto &Kernel : CurrSession->Kernels) {
-    auto Range = Kernel.getSourceRange();
-    Res["kernels"].push_back(
-        {{"name", Kernel.getName()},
-         {"id", Kernel.getID()},
-         {"range",
-          {Range.getStart().getLine(), Range.getStart().getCol(),
-           Range.getEnd().getLine(), Range.getEnd().getCol()}}});
-  }
-
-  Log::info("{} StartSession({} kernels)", OUT, Res["kernels"].size());
-  return Res.dump();
 }
 
 KermaRes Server::StopSession(bool exit) {
-  if (!hasActiveSession())
-    throw "No active session to stop";
-
   Log::info("{} StopSession({})", IN, exit);
-  CurrSession.reset();
-  Json Res;
-  Res["status"] = "success";
-  return Res.dump();
-}
-
-bool Server::start() {
-  if (!isRunning()) {
-    Started = true;
-    RpcServer->registerMethod("StartSession", *this, &Server::StartSession);
-    RpcServer->registerMethod("StopSession", *this, &Server::StopSession);
-    Started = true;
-    Loop.run();
-    return true;
-  }
-  return false;
-}
-
-bool Server::stop() {
-  if (isRunning()) {
-    CurrSession.reset();
-    Loop.exit();
-    return true;
-  }
-  return false;
-}
-
-Server::Server(struct Options &Options)
-    : Options(Options), Compiler(Options.ClangExePath), Started(false) {
-  RpcServer = std::make_unique<json::RpcServer>(Loop, Options.IP, Options.Port);
+  if (!killSession())
+    throw "No active session to stop";
+  return RB.getForStopSession().dump();
 }
 
 } // end namespace kermad
