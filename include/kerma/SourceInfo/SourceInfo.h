@@ -21,6 +21,7 @@ private:
   std::vector<SourceRange> WhileConditions;
   std::vector<SourceRange> ForHeaders;
   std::vector<SourceRange> Stmts;
+  std::vector<SourceRange> Exprs;
 
 protected:
   void clear() {

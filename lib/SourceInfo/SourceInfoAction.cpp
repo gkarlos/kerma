@@ -45,7 +45,16 @@ public:
     return true;
   }
 
+  bool VisitExpr(Expr *E) {
+    if ( !E) return true;
+    // llvm::errs() << E->getStmtClassName() << " - " << GetSourceRange(SourceManager, *E) << '\n';
+    SI.Exprs.push_back(GetSourceRange(SourceManager, *E));
+    return true;
+  }
+
   bool VisitStmt(Stmt *S) {
+    if ( !S) return true;
+
     if (auto *Compound = dyn_cast<CompoundStmt>(S)) {
       for (auto *C : Compound->body())
         VisitStmt(C);
@@ -66,7 +75,9 @@ public:
       SI.WhileConditions.push_back(GetSourceRange(SourceManager, *While->getCond()));
       if ( While->getBody())
         VisitStmt(While->getBody());
-    }else {
+    } else {
+      // llvm::errs() << S->getStmtClassName() << " - " << GetSourceRange(SourceManager, *S) << '\n';
+      SI.Stmts.push_back(GetSourceRange(SourceManager, *S));
     }
     return true;
   }
@@ -97,7 +108,7 @@ class SourceInfoConsumer : public ASTConsumer {
 public:
   SourceInfoConsumer(CompilerInstance &CI, SourceInfo &SI,
                      std::set<std::string> &Targets)
-      : Visitor(CI, SI, Targets) //, CI(CI)
+      : Visitor(CI, SI, Targets)
   {
     SI.clear();
     CI.getDiagnosticOpts().ShowCarets = true;
