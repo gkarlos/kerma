@@ -136,6 +136,7 @@ void configure(int argc, const char **argv, Options &Options) {
 struct Options Opts;
 
 void cleanup() {
+  llvm::errs() << "cleaning up\n";
   if ( !OptPreserve.getValue())
     for ( auto& dir : Opts.CleanupDirs) {
       llvm::errs() << "Removing " << dir << '\n';
@@ -145,13 +146,13 @@ void cleanup() {
   llvm::llvm_shutdown();
 }
 
-void killHandler(int s) {
+void die(int s) {
   cleanup();
   std::exit(s);
 }
 
 int main(int argc, const char** argv) {
-  signal(SIGINT, killHandler);
+  signal(SIGINT, die);
   configure(argc, argv, Opts);
   Server Server(Opts);
 
