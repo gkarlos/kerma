@@ -36,7 +36,7 @@ public:
     return *this;
   }
   SourceRange& getSourceRange() { return Range; }
-  const std::string& getName() { return DemangledName; }
+  const std::string& getName() const { return DemangledName; }
   const std::string& getDemangledName() const { return DemangledName; };
 };
 
