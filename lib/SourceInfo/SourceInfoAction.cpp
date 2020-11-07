@@ -1,6 +1,7 @@
 #include "kerma/SourceInfo/SourceInfoAction.h"
 #include "kerma/SourceInfo/SourceInfo.h"
 #include "kerma/SourceInfo/Util.h"
+#include "clang/Basic/SourceLocation.h"
 
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/Attr.h>
@@ -10,7 +11,7 @@
 #include <clang/AST/StmtVisitor.h>
 #include <clang/Basic/Cuda.h>
 #include <clang/Frontend/CompilerInstance.h>
-#include <llvm-10/llvm/Support/Casting.h>
+#include <llvm/Support/Casting.h>
 #include <memory>
 
 namespace kerma {
@@ -49,17 +50,29 @@ public:
       for (auto *C : Compound->body())
         VisitStmt(C);
     } else if (auto *If = dyn_cast<IfStmt>(S)) {
+      SI.IfConditions.push_back(GetSourceRange(SourceManager, *If->getCond()));
       VisitStmt(If->getThen());
       if (auto *Else = If->getElse())
         VisitStmt(Else);
     } else if (auto *For = dyn_cast<ForStmt>(S)) {
-      VisitStmt(For->getBody());
-    } else {
+      SI.ForHeaders.push_back(GetForStmtHeaderRange(SourceManager, *For));
+      if( For->getBody())
+        VisitStmt(For->getBody());
+    } else if ( auto *DoWhile = dyn_cast<DoStmt>(S)) {
+      SI.DoConditions.push_back(GetSourceRange(SourceManager, *DoWhile->getCond()));
+      if ( DoWhile->getBody())
+        VisitStmt(DoWhile->getBody());
+    } else if ( auto *While = dyn_cast<WhileStmt>(S) ) {
+      SI.WhileConditions.push_back(GetSourceRange(SourceManager, *While->getCond()));
+      if ( While->getBody())
+        VisitStmt(While->getBody());
+    }else {
     }
     return true;
   }
 
   bool VisitTranslationUnit(TranslationUnitDecl *TU) {
+
     for (auto *D : TU->decls())
       if (SourceManager.isInMainFile(D->getBeginLoc())) {
         if (auto *F = dyn_cast<FunctionDecl>(D))
