@@ -23,7 +23,9 @@ char CanonicalizerPass::ID = 111;
 CanonicalizerPass::CanonicalizerPass() : ModulePass(ID) {}
 
 void CanonicalizerPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
+#ifdef KERMA_OPT_PLUGIN
   AU.addRequired<DetectKernelsPass>();
+#endif
   AU.setPreservesAll();
 }
 
@@ -46,7 +48,14 @@ bool CanonicalizerPass::runOnModule(llvm::Module& M) {
   WithColor(errs(), HighlightColor::Note) << "]\n";
 #endif
 
-  for ( auto& K : getAnalysis<DetectKernelsPass>().getKernels()) {
+
+#ifdef KERMA_OPT_PLUGIN
+  auto Kernels = getAnalysis<DetectKernelsPass>().getKernels();
+#else
+  auto Kernels = getKernels(M);
+#endif
+
+  for ( auto &K : Kernels) {
     ++Checked;
 
     Changes[0] = GepifyMem.runOnFunction(*K.getFunction());
