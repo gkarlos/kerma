@@ -88,10 +88,11 @@ bool BreakConstantGEPPass::runOnFunction(Function &F) {
     }
   }
 
+#ifdef KERMA_OPT_PLUGIN
   WithColor::note();
   WithColor(errs(), raw_ostream::Colors::CYAN) << "BreakConstantGEP: ";
   errs() << demangle(F.getName()) << ": " << changed << '\n';
-
+#endif
   return changed;
 }
 

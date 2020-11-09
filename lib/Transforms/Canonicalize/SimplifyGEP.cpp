@@ -164,9 +164,11 @@ bool SimplifyGEPPass::runOnFunction(llvm::Function &F) {
     Changes += Changed;
   } while ( Changed );
 
+#ifdef KERMA_OPT_PLUGIN
   WithColor::note();
   WithColor(errs(), raw_ostream::Colors::CYAN) << "SimplifyGEP: ";
   errs() << demangle(F.getName()) << ": " << Changes << '\n';
+#endif
   return Changed;
 }
 

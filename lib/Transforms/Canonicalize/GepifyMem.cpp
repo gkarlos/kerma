@@ -159,9 +159,11 @@ bool GepifyMemPass::runOnFunction(Function &F) {
     }
   }
 
+#ifdef KERMA_OPT_PLUGIN
   WithColor::note();
   WithColor(errs(), raw_ostream::Colors::CYAN) << "Gepify: ";
   errs() << demangle(F.getName()) << ": " << Changes << '\n';
+#endif
   return Changes;
 }
 

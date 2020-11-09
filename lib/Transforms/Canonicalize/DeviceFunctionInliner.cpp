@@ -128,17 +128,24 @@ bool DeviceFunctionInliner::runOnModule(Module& M) {
   // step 2: perform the inlining
   doInline(M);
 
+#ifdef KERMA_OPT_PLUGIN
   WithColor(errs(), HighlightColor::Note) << '[';
   WithColor(errs(), raw_ostream::Colors::GREEN) << formatv("{0,15}", "DeviceInliner");
   WithColor(errs(), HighlightColor::Note) << ']';
   errs() << ' ' << FunctionsMarkedForInlining.size() << " functions";
+#endif
+
   if ( FunctionsMarkedForInlining.size()) {
+#ifdef KERMA_OPT_PLUGIN
     errs() << ", " << CallsInlined << '/' << CallsChecked << " calls\n";
     for ( auto *F : FunctionsMarkedForInlining)
       WithColor::note() << demangleFnWithoutArgs(*F) << '\n';
+#endif
     return CallsInlined;
   } else {
+#ifdef KERMA_OPT_PLUGIN
     errs() << '\n';
+#endif
     return false;
   }
 }
