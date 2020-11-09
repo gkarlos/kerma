@@ -6,6 +6,7 @@
 #include <iostream>
 #include <memory>
 #include <ostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -83,7 +84,9 @@ unsigned int Dim::operator()(unsigned int idx) const {
 }
 
 std::ostream &operator<<(std::ostream &os, const Dim &dim) {
-  if (dim.is1D())
+  if ( dim.isUnknown())
+    os << "<>";
+  else if (dim.is1D())
     os << "<" << dim.x << ">";
   else if (dim.is2D())
     os << "<" << dim.y << "," << dim.x << ">";
@@ -93,13 +96,28 @@ std::ostream &operator<<(std::ostream &os, const Dim &dim) {
 }
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &os, const Dim &dim) {
-  if (dim.is1D())
+  if ( dim.isUnknown())
+    os << "<>";
+  else if (dim.is1D())
     os << "<" << dim.x << ">";
   else if (dim.is2D())
     os << "<" << dim.y << "," << dim.x << ">";
   else
     os << "<" << dim.z << "," << dim.y << "," << dim.x << ">";
   return os;
+}
+
+std::string Dim::toString() const {
+  std::stringstream ss;
+  if ( isUnknown())
+    ss << "<>";
+  else if (is1D())
+    ss << "<" << x << ">";
+  else if (is2D())
+    ss << "<" << y << "," << x << ">";
+  else
+    ss << "<" << z << "," << y << "," << x << ">";
+  return ss.str();
 }
 
 bool Dim::isUnknown() const { return !*this; }

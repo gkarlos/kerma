@@ -122,6 +122,8 @@ public:
   virtual unsigned int height() const;
   virtual unsigned int depth() const;
 
+  virtual std::string toString() const;
+
 public:
   unsigned int x, y, z;
 
