@@ -8,11 +8,12 @@
 #include "kerma/Transforms/Canonicalize/GepifyMem.h"
 #include "kerma/Transforms/Canonicalize/SimplifyGEP.h"
 
-
 #include <llvm/Demangle/Demangle.h>
 #include <llvm/Support/FormatVariadic.h>
 #include <llvm/Support/WithColor.h>
+#include <llvm/Transforms/Utils.h>
 
+#include <memory>
 #include <numeric>
 
 using namespace kerma;
@@ -29,11 +30,11 @@ void CanonicalizerPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
   AU.setPreservesAll();
 }
 
-bool CanonicalizerPass::runOnModule(llvm::Module& M) {
+bool CanonicalizerPass::runOnModule(llvm::Module &M) {
 
   bool Changed = false;
   unsigned Checked = 0;
-  std::vector<bool> Changes(3, false);
+  std::vector<bool> Changes(4, false);
 
   DeviceFunctionInliner Inliner;
   Changed = Inliner.runOnModule(M);
@@ -42,12 +43,15 @@ bool CanonicalizerPass::runOnModule(llvm::Module& M) {
   BreakConstantGEPPass BreakConstantGEP;
   SimplifyGEPPass SimplifyGEP;
 
-#ifdef KERMA_OPT_PLUGIN
-  WithColor(errs(), HighlightColor::Note) << '[';
-  WithColor(errs(), HighlightColor::String) << formatv("{0,15}", "Canonicalizer");
-  WithColor(errs(), HighlightColor::Note) << "]\n";
+#ifndef KERMA_OPT_PLUGIN
 #endif
 
+#ifdef KERMA_OPT_PLUGIN
+  WithColor(errs(), HighlightColor::Note) << '[';
+  WithColor(errs(), HighlightColor::String)
+      << formatv("{0,15}", "Canonicalizer");
+  WithColor(errs(), HighlightColor::Note) << "]\n";
+#endif
 
 #ifdef KERMA_OPT_PLUGIN
   auto Kernels = getAnalysis<DetectKernelsPass>().getKernels();
@@ -55,12 +59,11 @@ bool CanonicalizerPass::runOnModule(llvm::Module& M) {
   auto Kernels = getKernels(M);
 #endif
 
-  for ( auto &K : Kernels) {
+  for (auto &K : Kernels) {
     ++Checked;
-
-    Changes[0] = GepifyMem.runOnFunction(*K.getFunction());
-    Changes[1] = BreakConstantGEP.runOnFunction(*K.getFunction());
-    Changes[2] = SimplifyGEP.runOnFunction(*K.getFunction());
+    Changes[1] = GepifyMem.runOnFunction(*K.getFunction());
+    Changes[2] = BreakConstantGEP.runOnFunction(*K.getFunction());
+    Changes[3] = SimplifyGEP.runOnFunction(*K.getFunction());
 
     Checked |= std::accumulate(Changes.begin(), Changes.end(), 0);
     std::fill(Changes.begin(), Changes.end(), false);
@@ -70,8 +73,8 @@ bool CanonicalizerPass::runOnModule(llvm::Module& M) {
 
 namespace {
 static RegisterPass<CanonicalizerPass> RegisterCanonicalizerPass(
-        /* pass arg  */   "kerma-canon",
-        /* pass name */   "Canonicalize the IR",
-        /* modifies CFG */ false,
-        /* analysis pass*/ false);
+    /* pass arg  */ "kerma-canon",
+    /* pass name */ "Canonicalize the IR",
+    /* modifies CFG */ false,
+    /* analysis pass*/ false);
 }
