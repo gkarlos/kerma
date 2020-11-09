@@ -12,9 +12,9 @@
 namespace kerma {
 
 Dim::Dim() : Dim(1) {}
-Dim::Dim(unsigned x) : Dim(x? 1 : 0, x) {}
-Dim::Dim(unsigned y, unsigned x) : Dim(y & x ? 1 : 0, y, x) {}
-Dim::Dim(unsigned x, unsigned y, unsigned z) : x(x), y(y), z(z) {
+Dim::Dim(unsigned x) : Dim((bool) x, x) {}
+Dim::Dim(unsigned y, unsigned x) : Dim(y && x, y, x) {}
+Dim::Dim(unsigned z, unsigned y, unsigned x) : x(x), y(y), z(z) {
   if ( !x || !y || !z) {
     this->x = 0;
     this->y = 0;
@@ -106,7 +106,7 @@ bool Dim::isUnknown() const { return !*this; }
 
 unsigned long long Dim::size() const { return this->x * this->y * this->z; }
 
-bool Dim::is1D() const { return this->y == 1; }
+bool Dim::is1D() const { return this->y == 1 && this->z == 1; }
 
 bool Dim::is2D() const { return this->y > 1 && this->z == 1; }
 

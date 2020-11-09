@@ -11,9 +11,31 @@ namespace {
 
 TEST(DimTest, Init) {
   Dim dim(1,2,3);
-  ASSERT_EQ(dim.x, 1);
+  ASSERT_EQ(dim.x, 3);
   ASSERT_EQ(dim.y, 2);
-  ASSERT_EQ(dim.z, 3);
+  ASSERT_EQ(dim.z, 1);
+
+  Dim dim1(0);
+  ASSERT_EQ(dim1.x, 0);
+  ASSERT_EQ(dim1.y, 0);
+  ASSERT_EQ(dim1.z, 0);
+
+  Dim dim2(1,2);
+  ASSERT_EQ(dim2.x, 2);
+  ASSERT_EQ(dim2.y, 1);
+  ASSERT_EQ(dim2.z, 1);
+}
+
+TEST(DimTest, InitWithZero) {
+  Dim dim(1,2,0);
+  ASSERT_EQ(dim.x, 0);
+  ASSERT_EQ(dim.y, 0);
+  ASSERT_EQ(dim.z, 0);
+
+  Dim dim1(2,0);
+  ASSERT_EQ(dim1.x, 0);
+  ASSERT_EQ(dim1.y, 0);
+  ASSERT_EQ(dim1.z, 0);
 }
 
 TEST(DimTest, InitEmpty) {
@@ -60,9 +82,9 @@ TEST(DimTest, is2D) {
   Dim dim3(10,10);
   EXPECT_TRUE(dim3.is2D());
   Dim dim4(1,10);
-  EXPECT_TRUE(dim4.is2D());
+  EXPECT_FALSE(dim4.is2D());
   Dim dim5(1,2,3);
-  EXPECT_FALSE(dim5.is2D());
+  EXPECT_TRUE(dim5.is2D());
   EXPECT_FALSE(Dim::None.is2D());
 }
 
@@ -74,9 +96,9 @@ TEST(DimTest, is3D) {
   Dim dim3(1,2);
   EXPECT_FALSE(dim3.is3D());
   Dim dim4(1,1,10);
-  EXPECT_TRUE(dim4.is3D());
+  EXPECT_FALSE(dim4.is3D());
   Dim dim5(1,10,10);
-  EXPECT_TRUE(dim5.is3D());
+  EXPECT_FALSE(dim5.is3D());
   Dim dim6(10,10,10);
   EXPECT_TRUE(dim6.is3D());
   EXPECT_FALSE(Dim::None.is3D());
@@ -87,10 +109,10 @@ TEST(DimTest, isEffective1D) {
   EXPECT_TRUE(dim1.isEffective1D());
   Dim dim2(2);
   EXPECT_TRUE(dim2.isEffective1D());
-  Dim dim3(1,2);
+  Dim dim3(2,1);
   EXPECT_TRUE(dim3.isEffective1D());
   EXPECT_TRUE(dim3.is2D());
-  Dim dim4(1,1,2);
+  Dim dim4(2,1,1);
   EXPECT_TRUE(dim4.isEffective1D());
   EXPECT_TRUE(dim4.is3D());
   Dim dim5(2,1,2);
@@ -174,7 +196,6 @@ TEST(DimTest, getMinLinearIndex) {
   EXPECT_EQ(Dim::Linear1024.getMinLinearIndex(), 0);
   EXPECT_EQ(Dim::Square512.getMinLinearIndex(), 0);
   EXPECT_EQ(Dim::Square1024.getMinLinearIndex(), 0);
-  EXPECT_EQ(Dim::Cube1.getMinLinearIndex(), 0);
   EXPECT_EQ(Dim::Cube2.getMinLinearIndex(), 0);
   EXPECT_EQ(Dim::Cube4.getMinLinearIndex(), 0);
   EXPECT_EQ(Dim::Cube8.getMinLinearIndex(), 0);
@@ -213,15 +234,15 @@ TEST(DimTest, operatorUnsignedLongLong) {
   EXPECT_FALSE(dimG < dimH);
   EXPECT_FALSE(dimH < dimG);
 
-  EXPECT_TRUE(Dim::Cube1 <= Dim::Cube1);
-  EXPECT_TRUE(Dim::Cube1 <= Dim::Cube2);
+  EXPECT_TRUE(Dim::Cube2 <= Dim::Cube2);
+  EXPECT_TRUE(Dim::Cube4 <= Dim::Cube8);
   EXPECT_FALSE(Dim::Cube4 <= Dim::Cube2);
 
-  EXPECT_TRUE(Dim::Cube1 < Dim::Cube2);
-  EXPECT_TRUE(Dim::Cube2 > Dim::Cube1);
+  EXPECT_TRUE(Dim::Cube2 < Dim::Cube4);
+  EXPECT_TRUE(Dim::Cube4 > Dim::Cube2);
 
   EXPECT_TRUE(Dim::Cube2 >= Dim::Cube2);
-  EXPECT_TRUE(Dim::Cube2 >= Dim::Cube1);
+  EXPECT_TRUE(Dim::Cube4 >= Dim::Cube2);
 }
 
 TEST(DimTest, operatorIndexBrackets) {
