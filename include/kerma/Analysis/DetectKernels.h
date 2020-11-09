@@ -11,6 +11,22 @@
 
 namespace kerma {
 
+class KernelInfo {
+private:
+  std::vector<Kernel> Kernels;
+
+public:
+  KernelInfo()=default;
+  KernelInfo(const std::vector<Kernel> &Kernels) : Kernels(Kernels) {}
+  KernelInfo(std::vector<Kernel> &Kernels) : Kernels(Kernels) {}
+  Kernel *getKernelByID(unsigned ID);
+  std::vector<Kernel> &getKernels() { return Kernels; }
+  KernelInfo& operator=(const KernelInfo &O) {
+    Kernels = O.Kernels;
+    return *this;
+  }
+};
+
 class DetectKernelsPass : public llvm::ModulePass {
 public:
   static char ID;

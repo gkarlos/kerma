@@ -21,6 +21,17 @@
 
 namespace kerma {
 
+
+Kernel *KernelInfo::getKernelByID(unsigned int ID) {
+  for ( auto &K : Kernels)
+    if ( K.getID() == ID)
+      return &K;
+  return nullptr;
+}
+
+
+// Pass
+
 using namespace llvm;
 
 char DetectKernelsPass::ID = 1;
