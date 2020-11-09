@@ -2,108 +2,106 @@
 #define KERMA_BASE_MEMORY_H
 
 #include "kerma/Base/Dim.h"
+#include "kerma/Base/Kernel.h"
 #include "kerma/NVVM/NVVM.h"
 
 #include <llvm/IR/Argument.h>
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/Instructions.h>
 
+#include <set>
+
 namespace kerma {
 
+/// Represents the various memories used by a kernel
 class Memory {
 public:
-  enum Pos: unsigned { Arg, Global, Alloca, Unknown};
+  enum Kind : unsigned { Unknown = 0, Arg, Global, Alloca};
 
 private:
   unsigned int ID;
-  Pos Pos=Unknown;
   std::string Name;
-  bool DimAssumed;
-  Dim D;
+  Kind Kind;
+  Dim KnownDim;
+  Dim AssumedDim;
   nvvm::AddressSpace::Ty AddrSpace;
-  llvm::Value *V=nullptr;
-
+  llvm::Value *V = nullptr;
+  llvm::Type *T = nullptr;
+  std::set<unsigned> KernelUsers;
+  unsigned TySize = 0;
 
 public:
-  Memory(unsigned int ID, const std::string& Name, nvvm::AddressSpace::Ty AddrSpace, const Dim& D, bool DimAssumed=false)
-  : ID(ID), Name(Name), AddrSpace(AddrSpace), D(D), DimAssumed(DimAssumed) {}
+  Memory(const std::string &Name,
+         nvvm::AddressSpace::Ty AddrSpace = nvvm::AddressSpace::Unknown);
+  Memory(unsigned ID, const std::string &Name,
+         nvvm::AddressSpace::Ty AddrSpace = nvvm::AddressSpace::Unknown);
+  Memory(const std::string &Name, nvvm::AddressSpace::Ty AddrSpace,
+         const Dim &KnownDim, const Dim &AssumedDim, llvm::Value *V);
+  Memory(unsigned ID, const std::string &Name, nvvm::AddressSpace::Ty AddrSpace,
+         const Dim &KnownDim, const Dim &AssumedDim, llvm::Value *V);
 
-  Memory(unsigned int ID, const std::string& Name, nvvm::AddressSpace::Ty AddrSpace)
-  : Memory(ID, Name, AddrSpace, Dim::None) {}
+  unsigned getID() const { return ID; }
 
-  Memory(const std::string& Name, nvvm::AddressSpace::Ty AddrSpace)
-  : Memory(Name, AddrSpace, Dim::None) {}
+  const std::string getName() const { return Name; }
+  Memory &setName(const std::string &Name);
+  Memory &setName(const char *Name);
+  Memory &setName(const llvm::StringRef &Name);
 
-  Memory(const std::string& Name, nvvm::AddressSpace::Ty AddrSpace, const Dim& D, bool DimAssumed=false);
+  llvm::Value *getValue() const { return V; }
+  llvm::Type *getType() const { return T; }
 
-  unsigned int getID() const { return ID; }
+  unsigned getTypeSize() const { return TySize; }
 
-  Memory& setName(const std::string& Name) {
-    this->Name = Name;
+  Memory &setValue(llvm::Value *V);
+  Memory &setType(llvm::Type *T);
+  Memory &setTypeSize(unsigned SZ);
+
+  Memory &addKernelUser(const Kernel& Kernel);
+  Memory &addKernelUser(unsigned int KernelID);
+  Memory &removeKernelUser(const Kernel& Kernel);
+  Memory &removeKernelUser(unsigned int KernelID);
+
+  bool hasKernelUser(const Kernel& Kernel);
+  bool hasKernelUser(unsigned int KernelID);
+
+
+  const Dim& getKnownDim() const { return KnownDim; }
+  const Dim& getAssumedDim() const { return AssumedDim; }
+  const Dim& getDim() const { return AssumedDim? AssumedDim : KnownDim; }
+  Memory &setKnownDim(const Dim& Dim);
+  Memory &setAssumedDim(const Dim& Dim);
+  Memory &assumeDim(const Dim &Dim);
+
+  const nvvm::AddressSpace::Ty &getAddrSpace() const { return AddrSpace; }
+
+  bool isArgument() const { return Kind == Arg; }
+  bool isGlobal() const { return Kind == Global; }
+  bool isAlloca() const { return Kind == Alloca; }
+
+  enum Kind getKind() const { return Kind; }
+  Memory &setKind(enum Kind Kind) {
+    this->Kind = Kind;
     return *this;
   }
 
-  Memory& setName(const char *Name) {
-    this->Name = Name? Name : "";
-    return *this;
-  }
-
-  Memory& setName(const llvm::StringRef& Name) {
-    this->Name = Name.str();
-    return *this;
-  }
-
-  const std::string& getName() const { return Name; }
-
-  Memory& setDim(const Dim& Dim) {
-    D = Dim;
-    return *this;
-  }
-
-  Memory& setDim(unsigned int x, unsigned int y=1, unsigned int z=3) {
-    D = Dim(x,y,z);
-    return *this;
-  }
-
-  const Dim& getDim() const { return D; }
-
-  bool dimIsAssumed() const { return DimAssumed; }
-
-  const nvvm::AddressSpace::Ty& getAddrSpace() const { return AddrSpace; }
-
-  Memory& setValue(llvm::Value *V) {
-    this->V = V;
-    return *this;
-  }
-
-  const llvm::Value *getValue() const { return V; }
-  bool hasValue() const { return V != nullptr; }
-
-  bool isArgument() const { return Pos == Arg; }
-  bool isGlobal() const { return Pos == Global; }
-  bool isAlloca() const { return Pos == Alloca; }
-
-  enum Pos getPos() const { return Pos; }
-  Memory& setPos(enum Pos Pos) {
-    this->Pos = Pos;
-    return *this;
-  }
-
-  bool operator==(const Memory& Other) { return ID = Other.ID; }
-  bool operator<(const Memory& Other) { return ID < Other.ID; }
-  Memory& operator=(const Memory& Other) {
+  bool operator==(const Memory &Other) { return ID = Other.ID; }
+  bool operator<(const Memory &Other) { return ID < Other.ID; }
+  Memory &operator=(const Memory &Other) {
     ID = Other.ID;
-    Pos = Other.Pos;
+    Kind = Other.Kind;
     Name = Other.Name;
-    DimAssumed = Other.DimAssumed;
-    D = Other.D;
+    AssumedDim = Other.AssumedDim;
+    KnownDim = Other.KnownDim;
     AddrSpace = Other.AddrSpace;
     V = Other.V;
     return *this;
   }
+
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &os, const Memory &M);
+
+  friend std::ostream &operator<<(std::ostream &os, const Memory &M);
 };
 
-}
-
+} // namespace kerma
 
 #endif // KERMA_BASE_MEMORY_H
