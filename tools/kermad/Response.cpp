@@ -10,7 +10,7 @@ Json ResponseBuilder::getForStartSession() {
 
   Json Res;
   Res["kernels"] = Json::array();
-  for (auto &Kernel : Session->Kernels) {
+  for (auto &Kernel : Session->KI.getKernels()) {
     auto Range = Kernel.getSourceRange();
     Res["kernels"].push_back(
         {{"name", Kernel.getName()},

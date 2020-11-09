@@ -2,6 +2,8 @@
 #define KERMA_TOOLS_KERMAD_SESSION_H
 
 #include "Options.h"
+#include "kerma/Analysis/DetectKernels.h"
+#include "kerma/Analysis/DetectMemories.h"
 #include "kerma/Base/Kernel.h"
 #include "kerma/Compile/Compiler.h"
 #include "kerma/SourceInfo/SourceInfo.h"
@@ -38,14 +40,20 @@ public:
   std::string CompileDb;
   std::string SourcePath;
   std::string CompileDbPath;
+
   std::string HostIRModuleName = Compiler::DefaultHostIRFile;
   std::string DeviceIRModuleName = Compiler::DefaultDeviceIRFile;
+  std::string DeviceIRCanonModuleName = "canon." + DeviceIRModuleName;
+  std::string DeviceIRCanonModule;
+
+  std::unique_ptr<SourceInfoBuilder> SIB;
 
   llvm::LLVMContext Context;
   std::unique_ptr<llvm::Module> DeviceModule;
-  std::vector<Kernel> Kernels;
-  std::unique_ptr<SourceInfoBuilder> SIB;
+  // std::vector<Kernel> Kernels;
+  KernelInfo KI;
   SourceInfo SI;
+  MemoryInfo MI;
 
   std::string getDeviceIRModuleName() { return DeviceIRModuleName; }
   std::string getHostIRModuleName() { return HostIRModuleName; }

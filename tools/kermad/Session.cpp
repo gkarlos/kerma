@@ -5,6 +5,7 @@
 #include "kerma/Support/Log.h"
 #include "kerma/Support/FileSystem.h"
 #include "spdlog/spdlog.h"
+#include <llvm/IR/LegacyPassManager.h>
 #include <unistd.h>
 
 #include <spdlog/fmt/fmt.h>
