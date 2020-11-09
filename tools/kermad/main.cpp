@@ -1,6 +1,8 @@
 
 #include "boost/filesystem/operations.hpp"
 #include "boost/filesystem/path.hpp"
+#include "spdlog/common.h"
+#include "spdlog/pattern_formatter.h"
 #include "spdlog/spdlog.h"
 #include "llvm/Config/llvm-config.h"
 #if LLVM_VERSION_MAJOR < 9
@@ -127,6 +129,9 @@ void configure(int argc, const char **argv, Options &Options) {
   llvm::cl::ParseCommandLineOptions(argc, argv, Overview, nullptr, Options.FlagsEnv.c_str());
   llvm::errs().SetBuffered(); // stream can cause significant (non-deterministic) latency for the logger.
 
+  Log::set_pattern("[%H:%M:%S.%e][%^%L%$] %v");
+  Log::set_level(Log::level::debug);
+
   Log::info("Invocation id: {} (pid: {})", Options.InvocationID, Options.PID);
   Log::info("Listening on: {}:{}", Options.IP, Options.Port);
   Log::info("Using clang executable: {}", Options.ClangExePath);
@@ -136,10 +141,10 @@ void configure(int argc, const char **argv, Options &Options) {
 struct Options Opts;
 
 void cleanup() {
-  llvm::errs() << "cleaning up\n";
+  Log::warn("Caught CTRL-C (SIGINT). Cleaning up...");
   if ( !OptPreserve.getValue())
     for ( auto& dir : Opts.CleanupDirs) {
-      llvm::errs() << "Removing " << dir << '\n';
+      Log::warn("Removing {}", dir);
       fs::remove_all(dir);
     }
   Opts.Server->stop();
