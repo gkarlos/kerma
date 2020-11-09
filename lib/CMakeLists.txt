@@ -11,6 +11,7 @@ add_subdirectory(RT)
 
 set(Kerma_SOURCES
     Analysis/DetectKernels.cpp
+    Analysis/DetectMemories.cpp
     Analysis/InferAddressSpaces.cpp
     Analysis/Names.cpp
     Analysis/Typecheck.cpp
@@ -60,6 +61,7 @@ set(Kerma_SOURCES
 add_library(Kerma SHARED ${Kerma_SOURCES})
 target_link_libraries(Kerma  ${Boost_LIBRARIES}
                              LLVM
+                             LLVMTransformUtils
                              clangFrontend
                              clangSerialization
                              clangDriver
