@@ -20,6 +20,7 @@ public:
   KernelInfo(const std::vector<Kernel> &Kernels) : Kernels(Kernels) {}
   KernelInfo(std::vector<Kernel> &Kernels) : Kernels(Kernels) {}
   Kernel *getKernelByID(unsigned ID);
+  Kernel *getKernelByLLVMFn(llvm::Function *F);
   std::vector<Kernel> &getKernels() { return Kernels; }
   KernelInfo& operator=(const KernelInfo &O) {
     Kernels = O.Kernels;

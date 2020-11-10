@@ -29,6 +29,15 @@ Kernel *KernelInfo::getKernelByID(unsigned int ID) {
   return nullptr;
 }
 
+Kernel *KernelInfo::getKernelByLLVMFn(llvm::Function *F) {
+  if ( F) {
+    for ( auto &K : Kernels)
+      if ( K.getFunction() == F)
+        return &K;
+  }
+  return nullptr;
+}
+
 
 // Pass
 
