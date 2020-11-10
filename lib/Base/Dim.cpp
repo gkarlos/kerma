@@ -55,14 +55,14 @@ Dim &Dim::operator=(const Dim &other) {
   return *this;
 }
 
-unsigned int Dim::operator[](unsigned int idx) const {
+unsigned& Dim::operator[](unsigned int idx)  {
   switch (idx) {
   case 0:
-    return this->x;
+    return x;
   case 1:
-    return this->y;
+    return y;
   case 2:
-    return this->z;
+    return z;
   default:
     throw std::out_of_range(std::string("Index ") + std::to_string(idx) +
                             " is out of range");
@@ -182,39 +182,37 @@ unsigned int Dim::height() const { return this->y; }
 unsigned int Dim::depth() const { return this->z; }
 
 
-const Dim Dim::None(0);
-const Dim Dim::Unit = Dim();
+Dim Dim::None(0);
+Dim Dim::Unit = Dim();
+Dim Dim::Linear2(2);
+Dim Dim::Linear4(4);
+Dim Dim::Linear8(8);
+Dim Dim::Linear16(16);
+Dim Dim::Linear32(32);
+Dim Dim::Linear64(64);
+Dim Dim::Linear128(128);
+Dim Dim::Linear256(256);
+Dim Dim::Linear512(512);
+Dim Dim::Linear1024(1024);
+Dim Dim::Square2(2, 2);
+Dim Dim::Square4(4, 4);
+Dim Dim::Square8(8, 8);
+Dim Dim::Square16(16, 16);
+Dim Dim::Square32(32, 32);
+Dim Dim::Square64(64, 64);
+Dim Dim::Square128(128, 128);
+Dim Dim::Square256(256, 256);
+Dim Dim::Square512(512, 512);
+Dim Dim::Square1024(1024, 1024);
+Dim Dim::Cube2(2, 2, 2);
+Dim Dim::Cube4(4, 4, 4);
+Dim Dim::Cube8(8, 8, 8);
+Dim Dim::Cube16(16, 16, 16);
+Dim Dim::Cube32(32, 32, 32);
+Dim Dim::Cube64(64, 64, 64);
+Dim Dim::Cube128(128, 128, 128);
+Dim Dim::Cube256(256, 256, 256);
+Dim Dim::Cube512(512, 512, 512);
+Dim Dim::Cube1024(1024, 1024, 1024);
 
-const Dim Dim::Linear2(2);
-const Dim Dim::Linear4(4);
-const Dim Dim::Linear8(8);
-const Dim Dim::Linear16(16);
-const Dim Dim::Linear32(32);
-const Dim Dim::Linear64(64);
-const Dim Dim::Linear128(128);
-const Dim Dim::Linear256(256);
-const Dim Dim::Linear512(512);
-const Dim Dim::Linear1024(1024);
-
-const Dim Dim::Square2(2, 2);
-const Dim Dim::Square4(4, 4);
-const Dim Dim::Square8(8, 8);
-const Dim Dim::Square16(16, 16);
-const Dim Dim::Square32(32, 32);
-const Dim Dim::Square64(64, 64);
-const Dim Dim::Square128(128, 128);
-const Dim Dim::Square256(256, 256);
-const Dim Dim::Square512(512, 512);
-const Dim Dim::Square1024(1024, 1024);
-
-const Dim Dim::Cube2(2, 2, 2);
-const Dim Dim::Cube4(4, 4, 4);
-const Dim Dim::Cube8(8, 8, 8);
-const Dim Dim::Cube16(16, 16, 16);
-const Dim Dim::Cube32(32, 32, 32);
-const Dim Dim::Cube64(64, 64, 64);
-const Dim Dim::Cube128(128, 128, 128);
-const Dim Dim::Cube256(256, 256, 256);
-const Dim Dim::Cube512(512, 512, 512);
-const Dim Dim::Cube1024(1024, 1024, 1024);
 } // namespace kerma

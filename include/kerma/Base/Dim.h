@@ -38,7 +38,7 @@ public:
   /// Index 0 refers to the x-dimension, 1 to the y-dimension and 2 to the
   /// z-dimension.
   /// @throw std::out_of_range {}
-  virtual unsigned operator[](unsigned int idx) const;
+  virtual unsigned& operator[](unsigned int idx);
 
   /// Index 0 refers to the x-dimension, 1 to the y-dimension and 2 to the
   /// z-dimension.
@@ -130,43 +130,41 @@ public:
 public:
   /// Special DIM used to indicated erroneous 
   /// dim or  unknown dim
-  static const Dim None;
+  static Dim None;
 
   /// The unit dim
-  static const Dim Unit;
+  static Dim Unit;
 
-  static const Dim Linear2;
-  static const Dim Linear4;
-  static const Dim Linear8;
-  static const Dim Linear16;
-  static const Dim Linear32;
-  static const Dim Linear64;
-  static const Dim Linear128;
-  static const Dim Linear256;
-  static const Dim Linear512;
-  static const Dim Linear1024;
-
-  static const Dim Square2;
-  static const Dim Square4;
-  static const Dim Square8;
-  static const Dim Square16;
-  static const Dim Square32;
-  static const Dim Square64;
-  static const Dim Square128;
-  static const Dim Square256;
-  static const Dim Square512;
-  static const Dim Square1024;
-
-  static const Dim Cube2;
-  static const Dim Cube4;
-  static const Dim Cube8;
-  static const Dim Cube16;
-  static const Dim Cube32;
-  static const Dim Cube64;
-  static const Dim Cube128;
-  static const Dim Cube256;
-  static const Dim Cube512;
-  static const Dim Cube1024;
+  static Dim Linear2;
+  static Dim Linear4;
+  static Dim Linear8;
+  static Dim Linear16;
+  static Dim Linear32;
+  static Dim Linear64;
+  static Dim Linear128;
+  static Dim Linear256;
+  static Dim Linear512;
+  static Dim Linear1024;
+  static Dim Square2;
+  static Dim Square4;
+  static Dim Square8;
+  static Dim Square16;
+  static Dim Square32;
+  static Dim Square64;
+  static Dim Square128;
+  static Dim Square256;
+  static Dim Square512;
+  static Dim Square1024;
+  static Dim Cube2;
+  static Dim Cube4;
+  static Dim Cube8;
+  static Dim Cube16;
+  static Dim Cube32;
+  static Dim Cube64;
+  static Dim Cube128;
+  static Dim Cube256;
+  static Dim Cube512;
+  static Dim Cube1024;
 };
 
 } // namespace kerma
