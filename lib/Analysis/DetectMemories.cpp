@@ -1,4 +1,5 @@
 #include "kerma/Analysis/DetectMemories.h"
+#include "kerma/Analysis/DetectKernels.h"
 #include "kerma/Analysis/Names.h"
 #include "kerma/Base/Memory.h"
 #include "kerma/NVVM/NVVM.h"
@@ -32,7 +33,38 @@ std::vector<Memory> MemoryInfo::getArgMemoriesForKernel(unsigned KernelID) {
   return Res;
 }
 
+Memory *MemoryInfo::getMemoryForArg(llvm::Argument *Arg) {
+  auto *F = Arg->getParent();
+  for ( auto &E : M) {
+    for ( auto &Mem : E.second) {
+      if ( Mem.isArgument() && Mem.getValue() == Arg)
+        return &Mem;
+    }
+  }
+  return nullptr;
+}
 
+unsigned MemoryInfo::getArgMemCount() {
+  unsigned Res = 0;
+  for ( auto &E : M) {
+    for ( auto &Mem : E.second) {
+      if ( isa<Argument>(Mem.getValue()))
+        Res++;
+    }
+  }
+  return Res;
+}
+
+unsigned MemoryInfo::getGVMemCount() {
+  unsigned Res = 0;
+  for ( auto &E : M) {
+    for ( auto &Mem : E.second) {
+      if ( isa<GlobalVariable>(Mem.getValue()))
+        Res++;
+    }
+  }
+  return Res;
+}
 
 
 // Pass

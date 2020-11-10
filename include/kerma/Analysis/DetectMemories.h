@@ -31,6 +31,11 @@ public:
   }
   std::vector<Memory> getArgMemoriesForKernel(unsigned KernelID);
 
+  Memory *getMemoryForArg(llvm::Argument *Arg);
+
+  unsigned getArgMemCount();
+  unsigned getGVMemCount();
+
 };
 
 class DetectMemoriesPass : public llvm::ModulePass {
