@@ -10,12 +10,14 @@ add_subdirectory(RT)
 
 
 set(Kerma_SOURCES
+    Analysis/DetectAssumptions.cpp
     Analysis/DetectKernels.cpp
     Analysis/DetectMemories.cpp
     Analysis/InferAddressSpaces.cpp
     Analysis/Names.cpp
     Analysis/Typecheck.cpp
 
+    Base/Assumption.cpp
     Base/Dim.cpp
     Base/Index.cpp
     Base/Kernel.cpp
@@ -81,6 +83,7 @@ set(KermaOpt_SOURCES
     Analysis/Names.cpp
     Analysis/Typecheck.cpp
 
+    Base/Assumption.cpp
     Base/Dim.cpp
     Base/Index.cpp
     Base/Kernel.cpp
