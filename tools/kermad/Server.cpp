@@ -1,22 +1,25 @@
 #include "Server.h"
 #include "Options.h"
 #include "Session.h"
+#include "kerma/Analysis/DetectAssumptions.h"
 #include "kerma/Analysis/DetectKernels.h"
 #include "kerma/Analysis/DetectMemories.h"
 #include "kerma/Support/Json.h"
 #include "kerma/Support/Log.h"
 #include "kerma/Transforms/Canonicalize/Canonicalizer.h"
+#include "kerma/Transforms/StripAnnotations.h"
 
 #include <boost/filesystem/path.hpp>
 #include <cxxtools/json/rpcserver.h>
 #include <cxxtools/log/cxxtools.h>
-#include <llvm-10/llvm/IR/Function.h>
-#include <llvm-10/llvm/IR/LegacyPassManager.h>
-#include <llvm-10/llvm/Transforms/Utils.h>
+#include <llvm/IR/Function.h>
 #include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Transforms/Scalar.h>
+#include <llvm/Transforms/Utils.h>
 #include <memory>
 #include <spdlog/fmt/bundled/core.h>
 #include <spdlog/spdlog.h>
@@ -81,10 +84,10 @@ Server::Server(struct Options &Options)
 // RPC handlers impl. and utility functions
 
 static void getDeviceIR(Session &Session, Compiler &Compiler) {
-  Log::info("Cmpl. {} -> {}", Session.SourcePath, Session.DeviceIRModuleName);
+  Log::info("Cmpl. {} -> {}", Session.SourcePath, Session.DeviceIRName);
 
   // Compiler source to an IR file
-  if (!Compiler.EmitDeviceIR(Session.SourcePath, Session.DeviceIRModuleName)) {
+  if (!Compiler.EmitDeviceIR(Session.SourcePath, Session.DeviceIRName)) {
     Log::error("Compilation failed");
     throw std::runtime_error("Failed to compile LLVM IR");
   }
@@ -92,32 +95,9 @@ static void getDeviceIR(Session &Session, Compiler &Compiler) {
   // Read the IR file into memory
   SMDiagnostic Err;
   Session.DeviceModule =
-      llvm::parseIRFile(Session.getDeviceIRModulePath(), Err, Session.Context);
+      llvm::parseIRFile(Session.getDeviceIRPath(), Err, Session.Context);
   if (!Session.DeviceModule)
-    _ERROR_("Failed to parse device IR: {}", Session.getDeviceIRModulePath());
-
-  // Canonicalize the IR
-  // for now run Mem2Reg here but we should do something better
-  llvm::legacy::PassManager PM;
-  PM.add(createPromoteMemoryToRegisterPass());
-  PM.run(*Session.DeviceModule);
-
-  CanonicalizerPass Canonicalize;
-  Log::info("Cano. {}/{} -> {}", Session.WorkingDir, Session.DeviceIRModuleName,
-            Session.DeviceIRCanonModuleName);
-  Canonicalize.runOnModule(*Session.DeviceModule);
-
-  // Write canon. IR to a file
-  Session.DeviceIRCanonModule =
-      (fs::path(Session.WorkingDir) / fs::path(Session.DeviceIRCanonModuleName))
-          .string();
-  std::error_code err;
-  llvm::raw_fd_ostream F(Session.DeviceIRCanonModule, err);
-  if (err)
-    Log::error("Failed to create {}. ({})", Session.DeviceIRCanonModuleName,
-               err.message());
-  else
-    Session.DeviceModule->print(F, nullptr);
+    _ERROR_("Failed to parse device IR: {}", Session.getDeviceIRPath());
 }
 
 static void getSourceInfo(Session &Session) {
@@ -131,7 +111,7 @@ static void getSourceInfo(Session &Session) {
 
 static void getKernels(Session &Session) {
   Session.KI = KernelInfo(kerma::getKernels(*Session.DeviceModule));
-  Log::info("DetKer. Found {} kernels", Session.KI.getKernels().size());
+  Log::info("DetKern. Found {} kernels", Session.KI.getKernels().size());
   for (auto &Kernel : Session.KI.getKernels()) {
     Kernel.setSourceRange(Session.SI.getFunctionRange(Kernel.getName()));
     Log::debug("  Kernel #{}. {} @{}", Kernel.getID(), Kernel.getName(),
@@ -140,15 +120,14 @@ static void getKernels(Session &Session) {
 }
 
 static void getMemoryInfo(Session &Session) {
-  DetectMemoriesPass DMP(Session.KI.getKernels());
+  DetectMemoriesPass DMP(Session.KI);
   DMP.runOnModule(*Session.DeviceModule);
   Session.MI = DMP.getMemoryInfo();
 
-  unsigned count = 0;
-  for ( auto &K : Session.KI.getKernels())
-    count += Session.MI.getForKernel(K).size();
+  auto Args = Session.MI.getArgMemCount();
+  auto GVs = Session.MI.getGVMemCount();
 
-  Log::info("DetMem. Found {} memories", count);
+  Log::info("DetMem. Found {} memories (A: {}, G: {})", Args + GVs, Args, GVs);
 
   for (auto &K : Session.KI.getKernels()) {
     auto Mem = Session.MI.getForKernel(K);
@@ -157,6 +136,40 @@ static void getMemoryInfo(Session &Session) {
       Log::debug("    {}. {}:{} @{} {}", M.getID(), M.getName(),
                  M.getTypeSize(), M.getAddrSpace(), M.getDim().toString());
   }
+}
+
+static void getAssumptionInfo(Session &Session) {
+  DetectAsumptionsPass DAP(&Session.KI, &Session.MI);
+  DAP.runOnModule(*Session.DeviceModule);
+  Session.AI = DAP.getAssumptionInfo();
+
+  Log::info("Found {} assumptions (D: {}, V: {})", Session.AI.getSize(),
+            Session.AI.getDimCount(), Session.AI.getValCount());
+}
+
+static void canonicalize(Session &Session) {
+  Log::info("Cano. {}/{} -> {}", Session.WorkingDir, Session.DeviceIRName,
+            Session.DeviceIRCanonName);
+
+  llvm::legacy::PassManager PM;
+  PM.add(new StripAnnotationsPass(Session.KI));
+  PM.add(createPromoteMemoryToRegisterPass());
+  PM.add(createDeadCodeEliminationPass());
+  PM.add(new CanonicalizerPass());
+  PM.run(*Session.DeviceModule);
+
+  // Write the canonicalized IR to a file
+  Session.DeviceIRCanon =
+      (fs::path(Session.WorkingDir) / fs::path(Session.DeviceIRCanonName))
+          .string();
+  std::error_code err;
+  llvm::raw_fd_ostream F(Session.DeviceIRCanon, err);
+
+  if (err)
+    Log::error("Failed to create {}. ({})", Session.DeviceIRCanonName,
+               err.message());
+  else
+    Session.DeviceModule->print(F, nullptr);
 }
 
 void Server::initSession(const std::string &SourceDir,
@@ -169,16 +182,10 @@ void Server::initSession(const std::string &SourceDir,
   getSourceInfo(*CurrSession);
   getKernels(*CurrSession);
 
-  // find memories
   getMemoryInfo(*CurrSession);
+  getAssumptionInfo(*CurrSession);
 
-  // next: extract assumptions
-  //       - validate that all unknown values/dims have
-  //         been provided with an assumed value/dim
-  //       - if an assumption is for a memory whose size
-  //         we found in the previous step, validate the
-  //         the assumed dims
-  // next: canonicalize ir
+  canonicalize(*CurrSession);
 }
 
 #define SYNC std::lock_guard<std::mutex> Guard(Mutex)
