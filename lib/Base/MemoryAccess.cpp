@@ -16,5 +16,8 @@ static unsigned int genID() {
   return id;
 }
 
-MemoryAccess:: MemoryAccess(const Memory& Memory, llvm::Value *Ptr, MemoryAccess::Type Ty)
-: MemoryAccess(genID(), Memory, Ptr, Ty) {}
+MemoryAccess::MemoryAccess(Memory &M, llvm::Value *Ptr, MemoryAccess::Type Ty)
+: MemoryAccess(genID(), M, Ptr, Ty) {}
+MemoryAccess::MemoryAccess(unsigned int ID, Memory& M, llvm::Value *Ptr, MemoryAccess::Type Ty)
+: ID(ID), M(M), Ptr(Ptr), Ty(Ty) {}
+

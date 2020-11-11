@@ -2,10 +2,12 @@
 #define KERMA_BASE_MEMORY_ACCESS
 
 #include "kerma/Base/Memory.h"
+#include "kerma/SourceInfo/SourceLoc.h"
 
 namespace kerma {
 
 class MemoryAccess {
+
 public:
   enum Type : unsigned {
     Load,
@@ -14,10 +16,8 @@ public:
     Cpy
   };
 
-  MemoryAccess(unsigned int ID, const Memory& Memory, llvm::Value *Ptr, MemoryAccess::Type Ty)
-  : ID(ID), M(Memory), Ptr(Ptr), Ty(Ty) {}
-
-  MemoryAccess(const Memory& Memory, llvm::Value *Ptr, MemoryAccess::Type Ty);
+  MemoryAccess(unsigned int ID, Memory& M, llvm::Value *Ptr, MemoryAccess::Type Ty);
+  MemoryAccess(Memory &M, llvm::Value *Ptr, MemoryAccess::Type Ty);
 
   unsigned int getID() { return ID; }
 
@@ -39,10 +39,18 @@ public:
     return *this;
   }
 
+  const SourceLoc &getLoc ()const  { return Loc; }
+
+  MemoryAccess &setLoc(const SourceLoc &Loc) {
+    this->Loc = Loc;
+    return *this;
+  }
+
 private:
   unsigned int ID;
-  Memory M;
+  Memory &M;
   llvm::Value *Ptr;
+  SourceLoc Loc;
   MemoryAccess::Type Ty;
 };
 
