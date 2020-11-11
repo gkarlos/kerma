@@ -71,9 +71,9 @@ unsigned MemoryInfo::getGVMemCount() {
 
 char DetectMemoriesPass::ID = 2;
 
-DetectMemoriesPass::DetectMemoriesPass(std::vector<Kernel> &Kernels,
+DetectMemoriesPass::DetectMemoriesPass(KernelInfo &KI,
                                        bool SkipLocal)
-    : ModulePass(ID), Kernels(Kernels), SkipLocal(SkipLocal) {}
+    : ModulePass(ID), KI(KI), SkipLocal(SkipLocal) {}
 
 static SmallSet<GlobalVariable *, 32> GetGlobalsUsedInKernel(Kernel &Kernel) {
   SmallSet<GlobalVariable *, 32> Globals;
@@ -155,7 +155,7 @@ static Memory GetMemoryFromArg(const Kernel &Kernel, Argument &Arg) {
 }
 
 bool DetectMemoriesPass::runOnModule(llvm::Module &M) {
-  for (auto &Kernel : Kernels) {
+  for (auto &Kernel : KI.getKernels()) {
     MI.M[Kernel.getID()]; // make sure every kernel has an entry
 
     auto GlobalsUsed = GetGlobalsUsedInKernel(Kernel);

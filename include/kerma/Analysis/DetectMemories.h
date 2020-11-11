@@ -1,6 +1,7 @@
 #ifndef KERMA_ANALYSIS_DETECT_MEMORIES_H
 #define KERMA_ANALYSIS_DETECT_MEMORIES_H
 
+#include "kerma/Analysis/DetectKernels.h"
 #include "kerma/Base/Kernel.h"
 #include "kerma/Base/Memory.h"
 #include "kerma/NVVM/NVVM.h"
@@ -44,10 +45,10 @@ public:
   DetectMemoriesPass();
 #endif
 
-  DetectMemoriesPass(std::vector<Kernel> &Kernels, bool SkipLocal = true);
+  DetectMemoriesPass(KernelInfo &KI, bool SkipLocal = true);
 
 private:
-  std::vector<Kernel> &Kernels;
+  KernelInfo &KI;
   bool SkipLocal;
   MemoryInfo MI;
 
