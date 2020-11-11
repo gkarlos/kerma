@@ -53,6 +53,7 @@ set(Kerma_SOURCES
     Transforms/Canonicalize/SimplifyGEP.cpp
     Transforms/Instrument/InstrumentPrintf.cpp
     Transforms/Instrument/LinkDeviceRT.cpp
+    Transforms/StripAnnotations.cpp
     # Transforms/MaterializeDims.cpp
     # Transforms/MaterializeIdx.cpp
 
