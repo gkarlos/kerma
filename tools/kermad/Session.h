@@ -2,6 +2,7 @@
 #define KERMA_TOOLS_KERMAD_SESSION_H
 
 #include "Options.h"
+#include "kerma/Analysis/DetectAssumptions.h"
 #include "kerma/Analysis/DetectKernels.h"
 #include "kerma/Analysis/DetectMemories.h"
 #include "kerma/Base/Kernel.h"
@@ -41,10 +42,10 @@ public:
   std::string SourcePath;
   std::string CompileDbPath;
 
-  std::string HostIRModuleName = Compiler::DefaultHostIRFile;
-  std::string DeviceIRModuleName = Compiler::DefaultDeviceIRFile;
-  std::string DeviceIRCanonModuleName = "canon." + DeviceIRModuleName;
-  std::string DeviceIRCanonModule;
+  std::string HostIRName = Compiler::DefaultHostIRFile;
+  std::string DeviceIRName = Compiler::DefaultDeviceIRFile;
+  std::string DeviceIRCanonName = "canon." + DeviceIRName;
+  std::string DeviceIRCanon;
 
   std::unique_ptr<SourceInfoBuilder> SIB;
 
@@ -54,14 +55,16 @@ public:
   KernelInfo KI;
   SourceInfo SI;
   MemoryInfo MI;
+  AssumptionInfo AI;
 
-  std::string getDeviceIRModuleName() { return DeviceIRModuleName; }
-  std::string getHostIRModuleName() { return HostIRModuleName; }
-  std::string getHostIRModulePath() {
-    return (fs::path(WorkingDir) / fs::path(HostIRModuleName)).string();
+  std::string getHostIRName() { return HostIRName; }
+  std::string getHostIRPath() {
+    return (fs::path(WorkingDir) / fs::path(HostIRName)).string();
   }
-  std::string getDeviceIRModulePath() {
-    return (fs::path(WorkingDir) / fs::path(DeviceIRModuleName)).string();
+
+  std::string getDeviceIRName() { return DeviceIRName; }
+  std::string getDeviceIRPath() {
+    return (fs::path(WorkingDir) / fs::path(DeviceIRName)).string();
   }
 
   unsigned int getID() const { return ID; }
