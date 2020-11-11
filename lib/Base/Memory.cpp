@@ -1,7 +1,7 @@
 #include "kerma/Base/Memory.h"
 #include "kerma/NVVM/NVVM.h"
-#include <llvm-10/llvm/IR/GlobalVariable.h>
-#include <llvm-10/llvm/Support/TypeSize.h>
+#include <llvm/IR/GlobalVariable.h>
+#include <llvm/Support/TypeSize.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/raw_ostream.h>
 #include <mutex>
