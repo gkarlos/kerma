@@ -3,12 +3,12 @@
 #include "kerma/Analysis/DetectMemories.h"
 #include "kerma/Base/Assumption.h"
 #include "kerma/Base/Kernel.h"
-#include "spdlog/fmt/bundled/core.h"
-#include <llvm-10/llvm/Analysis/ValueTracking.h>
-#include <llvm-10/llvm/IR/Argument.h>
-#include <llvm-10/llvm/IR/Constants.h>
-#include <llvm-10/llvm/IR/GlobalVariable.h>
-#include <llvm-10/llvm/IR/Instructions.h>
+#include <llvm/Analysis/ValueTracking.h>
+#include <llvm/IR/Argument.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/GlobalVariable.h>
+#include <llvm/IR/Instructions.h>
+#include <spdlog/fmt/bundled/core.h>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -131,8 +131,6 @@ static void getAssumptionForArg(ConstantDataArray *CDA, Argument *Arg,
 
 static void getArgumentAssumptions(Module &M, KernelInfo &KI, MemoryInfo &MI,
                                    AssumptionInfo &AI) {
-
-  // 2. Get assumptions for kernel Args
   for (auto &Kernel : KI.getKernels()) {
     if (!Kernel.getFunction())
       continue;
@@ -160,27 +158,30 @@ static void getArgumentAssumptions(Module &M, KernelInfo &KI, MemoryInfo &MI,
           if (auto *A = dyn_cast<AllocaInst>(Alloca)) {
             for (auto *User : A->users()) {
               // We are looking for the first StoreInst globering this Alloca
-              // But Gepify has turned the addr into a GEP. So search for that
-              // GEP first. It should be the first one we find.
-              if (auto *GEP = dyn_cast<GetElementPtrInst>(User)) {
+              // It is important to run this pass before the Canonicalizer
+              //
+              // If the pass is run after the Canonicalizer we need to take
+              // additional steps. In particular, Gepify turns the addr of
+              // the StoreInst into a GEP. So search for that GEP first.
+              // It should be the first one we find.
+              //
+              // For now assume the pass runs before the Canonicalizer
+              // so just check for Arg or GV ptr at the StoreInst
+              if (auto *SI = dyn_cast<StoreInst>(User)) {
+                auto *Arg = dyn_cast<Argument>(SI->getOperand(0));
+                assert(Arg && "Annotation is not for argument!");
 
-                // Now search for the store using this GEP as target
-                for (auto *User : GEP->users())
-                  if (auto *SI = dyn_cast<StoreInst>(User)) {
-                    auto *Arg = dyn_cast<Argument>(SI->getOperand(0));
-                    assert(Arg && "Annotation is not for argument!");
+                auto *GV = dyn_cast<GlobalVariable>(Assumption);
+                assert(GV && "Assumption value not a global!");
 
-                    auto *GV = dyn_cast<GlobalVariable>(Assumption);
-                    assert(GV && "Assumption value not a global!");
+                auto *CDA =
+                    dyn_cast<ConstantDataArray>(GV->getInitializer());
+                assert(CDA && "Failed to get Assumption Value initializer");
 
-                    auto *CDA =
-                        dyn_cast<ConstantDataArray>(GV->getInitializer());
-                    assert(CDA && "Failed to get Assumption Value initializer");
-
-                    getAssumptionForArg(CDA, Arg, KI, MI, AI);
-                    goto NEXT;
-                  }
+                getAssumptionForArg(CDA, Arg, KI, MI, AI);
+                goto NEXT;
               }
+              // }
             }
           }
         }
@@ -195,6 +196,7 @@ bool DetectAsumptionsPass::runOnModule(llvm::Module &M) {
   // 1. Get assumptions for globals. This includes locally
   //    defined __shared__ variables
   getGlobalVarAssumptions(M, *KI, *MI, AI);
+  // 2. Get assumptions for kernel Args
   getArgumentAssumptions(M, *KI, *MI, AI);
   return false;
 }
