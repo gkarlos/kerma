@@ -1,4 +1,5 @@
 #include "kerma/Base/Memory.h"
+#include "kerma/Base/Index.h"
 #include "kerma/NVVM/NVVM.h"
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/Support/TypeSize.h>
@@ -134,7 +135,7 @@ static std::string KindToString(enum Memory::Kind K) {
 }
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Memory &M) {
-  OS << M.getName() << ':' << M.TySize << " @" << M.getAddrSpace().getID() << ' ';
+  OS << M.getName() << ':' << M.TySize << " !" << M.getAddrSpace().getID() << ' ';
   OS << M.KnownDim;
   OS << ",";
   OS << M.AssumedDim;
@@ -142,7 +143,7 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Memory &M) {
 }
 
 std::ostream &operator<<(std::ostream &OS, const Memory &M) {
-  OS << M.getName() << ':' << M.TySize << " @" << M.getAddrSpace().getID() << ' ';
+  OS << M.getName() << ':' << M.TySize << " !" << M.getAddrSpace().getID() << ' ';
   OS << M.KnownDim;
   OS << ",";
   OS << M.AssumedDim;
