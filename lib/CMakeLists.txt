@@ -13,6 +13,7 @@ set(Kerma_SOURCES
     Analysis/DetectAssumptions.cpp
     Analysis/DetectKernels.cpp
     Analysis/DetectMemories.cpp
+    Analysis/DetectMemoryAccesses.cpp
     Analysis/InferAddressSpaces.cpp
     Analysis/Names.cpp
     Analysis/Typecheck.cpp
