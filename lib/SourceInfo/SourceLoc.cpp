@@ -11,14 +11,16 @@ const SourceLoc SourceLoc::Unknown(0,0);
 
 SourceLoc::SourceLoc(unsigned int line, unsigned int col)
 : L(line), C(col)
-{}
+{
+  if (!L) C = 0;
+}
 
 SourceLoc::SourceLoc(const SourceLoc& other)
 : L(other.L), C(other.C)
 {}
 
 SourceLoc::SourceLoc(SourceLoc&& other)
-: L(std::move(other.L)), C(std::move(other.C))
+: L(other.L), C(other.C)
 {}
 
 SourceLoc& SourceLoc::setLine(unsigned int line) {
@@ -30,16 +32,14 @@ SourceLoc& SourceLoc::setLine(unsigned int line) {
 
 SourceLoc& SourceLoc::setCol(unsigned int col) {
   C = col;
-  if ( !C)
-    L = C;
   return *this;
 }
 
 SourceLoc& SourceLoc::set(unsigned int line, unsigned int col) {
   L = line;
   C = col;
-  if ( !L || !C)
-    L = C = 0;
+  if ( !L)
+    C = 0;
   return *this;
 }
 
@@ -49,13 +49,15 @@ SourceLoc& SourceLoc::invalidate() {
 }
 
 bool SourceLoc::isValid() const {
-  // dont need to check C too. By construction they
-  // are either both invalid or none is.
   return L;
 }
 
 bool SourceLoc::isInvalid() const {
   return !isValid();
+}
+
+bool SourceLoc::isPrecise() const {
+  return L && C;
 }
 
 SourceLoc::operator bool() const {
