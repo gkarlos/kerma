@@ -1,6 +1,7 @@
 #ifndef KERMA_SOURCEINFO_SOURCELOC_H
 #define KERMA_SOURCEINFO_SOURCELOC_H
 
+#include <llvm/IR/DebugLoc.h>
 #include <llvm/Support/raw_ostream.h>
 
 #include <ostream>
@@ -24,10 +25,11 @@ private:
   unsigned int C;
 
 public:
-  SourceLoc(unsigned int line=0, unsigned int col=0);
-  SourceLoc(const SourceLoc& other);
-  SourceLoc(SourceLoc&& other);
-  ~SourceLoc()=default;
+  SourceLoc(unsigned int line = 0, unsigned int col = 0);
+  SourceLoc(const llvm::DebugLoc &DL);
+  SourceLoc(const SourceLoc &other);
+  SourceLoc(SourceLoc &&other);
+  ~SourceLoc() = default;
 
   unsigned int getCol() const { return C; }
   unsigned int getLine() const { return L; }
@@ -35,12 +37,12 @@ public:
   /// Set the line and column of this location
   /// If the line is set to 0 (unknown), then
   /// the column is also changed.
-  SourceLoc& set(unsigned int line, unsigned int col);
+  SourceLoc &set(unsigned int line, unsigned int col);
 
   /// Set the line of this location
   /// If set to 0, the column is also changed to 0
-  SourceLoc& setLine(unsigned int line);
-  SourceLoc& setCol(unsigned int col);
+  SourceLoc &setLine(unsigned int line);
+  SourceLoc &setCol(unsigned int col);
 
   /// Check if this is a valid location
   ///
@@ -55,7 +57,7 @@ public:
   /// end of the file
   bool isValid() const;
   bool isInvalid() const;
-  SourceLoc& invalidate();
+  SourceLoc &invalidate();
 
   /// Check if the location is precise.
   /// A precise location has both line and
@@ -65,7 +67,7 @@ public:
   /// Bool operator returns true if the location is valid
   operator bool() const;
 
-  SourceLoc& operator=(const SourceLoc &other);
+  SourceLoc &operator=(const SourceLoc &other);
 
   bool operator==(const SourceLoc &other) const;
   bool operator!=(const SourceLoc &other) const;
@@ -75,20 +77,23 @@ public:
   bool operator>(const SourceLoc &other) const;
   bool operator>=(const SourceLoc &other) const;
 
-  friend std::ostream & operator<<(std::ostream &os, const SourceLoc &loc);
-  friend llvm::raw_ostream & operator<<(llvm::raw_ostream &os, const SourceLoc &loc);
+  friend std::ostream &operator<<(std::ostream &os, const SourceLoc &loc);
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &os,
+                                       const SourceLoc &loc);
 
   /// An invalid location to denote the
   /// absence of source location info
   static const SourceLoc Unknown;
+
+  static SourceLoc from(const llvm::DebugLoc &DL);
 };
 
 } // namespace kerma
 
 namespace std {
-  template<> struct hash<kerma::SourceLoc> {
-    std::size_t operator()(const kerma::SourceLoc& Loc) const;
-  };
-}
+template <> struct hash<kerma::SourceLoc> {
+  std::size_t operator()(const kerma::SourceLoc &Loc) const;
+};
+} // namespace std
 
 #endif // KERMA_SOURCEINFO_SOURCELOC_H
