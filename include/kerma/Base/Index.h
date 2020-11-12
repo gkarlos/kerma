@@ -21,6 +21,7 @@ public:
   virtual ~Index()=default;
 
 public:
+  virtual bool operator=(const Index& other);
   //===-------
   // Conversion operators
   //===-------
@@ -53,6 +54,20 @@ public:
   friend llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Index& idx);
 
 public:
+  // Set the x value of the index.
+  // If z and y were unknown, they now become 0.
+  // If x is unknown, z and y become unknown
+  virtual Index& set(unsigned int x) { return set(0, x); }
+
+  // Set the y and x value of the index.
+  // If z was unknown it now becomes 0.
+  // If any of the x, y are unknown z becomes unknown
+  virtual Index& set(unsigned int y, unsigned int x) { return set(0, y, x); }
+
+  // Set the values of the index
+  // If any of the values is unknown then all x,y,z become unknown
+  virtual Index& set(unsigned int z, unsigned int y, unsigned int x);
+
   virtual Index& inc(unsigned int x);
   virtual Index& inc(unsigned int y, unsigned int x);
   virtual Index& inc(unsigned int z, unsigned int y, unsigned int x);
@@ -68,6 +83,8 @@ public:
   virtual unsigned long long getLinear(const Dim& dim) const;
 
   virtual bool isUnknown() const;
+
+  virtual std::string toString();
 
 public:
   unsigned int x;

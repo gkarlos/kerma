@@ -27,6 +27,13 @@ Index::Index(const Index &other) : x(other.x), y(other.y), z(other.z)
 Index::Index(const Index &&other) : x(other.x), y(other.y), z(other.z)
 {}
 
+bool Index::operator=(const Index& other) {
+  this->x = other.x;
+  this->y = other.y;
+  this->z = other.z;
+  return *this;
+}
+
 //===-------
 // Conversion operators
 //===-------
@@ -75,22 +82,26 @@ bool Index::operator>=(const Index &other) const {
 // Inc/Dec operators
 //===-------
 Index& Index::operator++() {
-  this->x++;
+  if ( !this->isUnknown())
+    this->x++;
   return *this;
 }
 
 Index& Index::operator++(int) {
-  this->x++;
+  if ( !this->isUnknown())
+    this->x++;
   return *this;
 }
 
 Index& Index::operator--() {
-  this->x--;
+  if ( !this->isUnknown())
+    this->x--;
   return *this;
 }
 
 Index& Index::operator--(int) {
-  this->x--;
+  if ( !this->isUnknown())
+    this->x--;
   return *this;
 }
 
@@ -106,31 +117,54 @@ Index Index::operator-(const Index& other) const {
 }
 
 Index& Index::operator+=(const Index& other) {
-  this->x += other.x;
-  this->y += other.y;
-  this->z += other.z;
+  if ( !this->isUnknown() && !other.isUnknown()) {
+    this->x += other.x;
+    this->y += other.y;
+    this->z += other.z;
+  }
   return *this;
 }
 
 Index& Index::operator-=(const Index &other) {
-  this->x -= other.x;
-  this->y -= other.y;
-  this->z -= other.z;
+
+  if ( !this->isUnknown() && !other.isUnknown()) {
+    this->x -= other.x;
+    this->y -= other.y;
+    this->z -= other.z;
+  }
   return *this;
 }
 
 std::ostream& operator<<(std::ostream& os, const Index& idx) {
-  os << "(" << idx.z << "," << idx.y << "," << idx.x << ")";
+  if (idx.isUnknown())
+    os << "[]";
+  else
+    os << "[" << idx.z << "," << idx.y << "," << idx.x << "]";
   return os;
 }
 
 llvm::raw_ostream& operator<<(llvm::raw_ostream& os, const Index& idx) {
-  os << "(" << idx.z << "," << idx.y << "," << idx.x << ")";
+  if ( idx.isUnknown())
+    os << "[]";
+  else
+    os << "[" << idx.z << "," << idx.y << "," << idx.x << "]";
   return os;
 }
 
 bool Index::isUnknown() const {
   return *this == Index::Unknown;
+}
+
+Index& Index::set(unsigned int z, unsigned int y, unsigned int x) {
+  if ( z == Unknown.z || y == Unknown.y || x == Unknown.x) {
+    // if any of the new values is unknown, every value is unknown
+    *this = Unknown;
+  } else {
+    this->z = z;
+    this->y = y;
+    this->x = x;
+  }
+  return *this;
 }
 
 inline Index& Index::inc(unsigned int x) {
@@ -142,9 +176,11 @@ inline Index& Index::inc(unsigned int y, unsigned int x) {
 }
 
 inline Index& Index::inc(unsigned int z, unsigned int y, unsigned int x) {
-  this->x += x;
-  this->y += y;
-  this->z += z;
+  if ( !this->isUnknown() ) {
+    this->x += x;
+    this->y += y;
+    this->z += z;
+  }
   return *this;
 }
 
@@ -157,9 +193,11 @@ inline Index& Index::dec(unsigned int y, unsigned int x) {
 }
 
 inline Index& Index::dec(unsigned int z, unsigned int y, unsigned int x) {
-  this->x -= x;
-  this->y -= y;
-  this->z -= z;
+  if ( !this->isUnknown() ) {
+    this->x -= x;
+    this->y -= y;
+    this->z -= z;
+  }
   return *this;
 }
 
@@ -177,6 +215,12 @@ unsigned int Index::layer() const {
 
 unsigned long long Index::getLinear(const Dim& dim) const {
   return Index::linearize(*this, dim);
+}
+
+std::string Index::toString() {
+  std::stringstream ss;
+  ss << "(" << z << "," << y << "," << x << ")";
+  return ss.str();
 }
 
 const Index Index::Zero = Index(0,0,0);
