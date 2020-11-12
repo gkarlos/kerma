@@ -1,10 +1,10 @@
 #ifndef KERMA_PASS_DETECT_KERNELS_H
 #define KERMA_PASS_DETECT_KERNELS_H
 
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Module.h"
-#include "llvm/Pass.h"
 #include <llvm/ADT/SmallSet.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Pass.h>
 #include <vector>
 
 #include "kerma/Base/Kernel.h"
