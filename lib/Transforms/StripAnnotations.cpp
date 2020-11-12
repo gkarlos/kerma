@@ -35,7 +35,6 @@ bool StripAnnotationsPass::runOnModule(llvm::Module &M) {
     while ( !Erase.empty()) {
       Changed = true;
       auto *I = Erase.pop_back_val();
-      llvm::errs() << "Erasing: " << *I << '\n';
       I->replaceAllUsesWith(nullptr);
       I->eraseFromParent();
     }
