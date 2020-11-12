@@ -33,12 +33,41 @@ std::vector<Memory> MemoryInfo::getArgMemoriesForKernel(unsigned KernelID) {
   return Res;
 }
 
-Memory *MemoryInfo::getMemoryForArg(llvm::Argument *Arg) {
-  auto *F = Arg->getParent();
-  for ( auto &E : M) {
-    for ( auto &Mem : E.second) {
-      if ( Mem.isArgument() && Mem.getValue() == Arg)
-        return &Mem;
+Memory *MemoryInfo::getMemoryForArg(llvm::Argument *Arg, Kernel *K) {
+  if ( !Arg) return nullptr;
+  if (K) {
+    auto it = M.find(K->getID());
+    if ( it != M.end())
+      for ( auto &Mem : it->second) {
+        if ( Mem.isArgument() && Mem.getValue() == Arg)
+          return &Mem;
+      }
+  } else {
+    for ( auto &E : M) {
+      for ( auto &Mem : E.second) {
+        if ( Mem.isArgument() && Mem.getValue() == Arg)
+          return &Mem;
+      }
+    }
+  }
+  return nullptr;
+}
+
+Memory *MemoryInfo::getMemoryForVal(llvm::Value *V, Kernel *K) {
+  if ( !V) return nullptr;
+  if (K) {
+    auto it = M.find(K->getID());
+    if ( it != M.end())
+      for ( auto &Mem : it->second) {
+        if ( Mem.getValue() == V)
+          return &Mem;
+      }
+  } else {
+    for ( auto &E : M) {
+      for ( auto &Mem : E.second) {
+        if ( Mem.getValue() == V)
+          return &Mem;
+      }
     }
   }
   return nullptr;

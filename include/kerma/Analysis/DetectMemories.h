@@ -32,7 +32,8 @@ public:
   }
   std::vector<Memory> getArgMemoriesForKernel(unsigned KernelID);
 
-  Memory *getMemoryForArg(llvm::Argument *Arg);
+  Memory *getMemoryForArg(llvm::Argument *Arg, Kernel *K=nullptr);
+  Memory *getMemoryForVal(llvm::Value *V, Kernel *K=nullptr);
 
   unsigned getArgMemCount();
   unsigned getGVMemCount();
