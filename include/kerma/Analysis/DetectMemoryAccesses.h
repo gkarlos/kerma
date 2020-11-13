@@ -99,26 +99,33 @@ public:
     return MAS[ID].size();
   }
 
+  unsigned int getNumLoadsForKernel(Kernel &K) { return L[K.getID()].size(); }
   const std::vector<MemoryAccess> &getLoadsForKernel(const Kernel &K) {
     return L[K.getID()];
   }
 
+  unsigned int getNumStoresForKernel(Kernel &K) { return S[K.getID()].size(); }
   const std::vector<MemoryAccess> &getStoresForKernel(const Kernel &K) {
     return S[K.getID()];
   }
 
+  unsigned int getNumAtomicsForKernel(Kernel &K) { return A[K.getID()].size(); }
   const std::vector<MemoryAccess> &getAtomicsForKernel(const Kernel &K) {
     return A[K.getID()];
   }
 
+  unsigned int getNumMemmovesForKernel(Kernel &K) { return MM[K.getID()].size(); }
   const std::vector<MemoryAccess> &getMemmovesForKernel(const Kernel &K) {
     return MM[K.getID()];
   }
 
+
+  unsigned int getNumMemcpysForKernel(Kernel &K) { return MC[K.getID()].size(); }
   const std::vector<MemoryAccess> &getMemcpysForKernel(const Kernel &K) {
     return MC[K.getID()];
   }
 
+  unsigned int getNumMemsetsForKernel(Kernel &K) { return MS[K.getID()].size(); }
   const std::vector<MemoryAccess> &getMemsetsForKernel(const Kernel &K) {
     return MS[K.getID()];
   }
