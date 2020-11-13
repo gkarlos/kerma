@@ -7,6 +7,7 @@
 
 #include <llvm/ADT/SmallSet.h>
 #include <llvm/Demangle/Demangle.h>
+#include <llvm/IR/Constants.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/Module.h>
@@ -112,12 +113,30 @@ static SmallSet<GlobalVariable *, 32> GetGlobalsUsedInKernel(Kernel &Kernel) {
         if (CI->getCalledFunction()->getName().startswith("llvm.dbg"))
           continue;
       for (Use &U : I.operands())
-        for (auto &GV : Kernel.getFunction()->getParent()->globals())
-          if (&GV == U->stripPointerCasts() &&
-              !GV.getSection().startswith("llvm.metadata")) {
-            Globals.insert(&GV);
-            break;
-          }
+        // FIXME: We only go one level deep. For the most part
+        // this is not needed as const/inline geps are broken by
+        // the canonicalizer. However, if there are still such GEPs
+        // or, other instructions with inlined operands, going just
+        // one level deep may not be enough.
+        // Even though this should be really rare, we should do
+        // something better here
+        if ( auto *CE = dyn_cast<ConstantExpr>(U)) {
+          for ( auto &UU : CE->operands())
+            for (auto &GV : Kernel.getFunction()->getParent()->globals())
+              if (&GV == UU->stripPointerCasts() &&
+                  !GV.getSection().startswith("llvm.metadata")) {
+                Globals.insert(&GV);
+                break;
+              }
+        } else {
+          for (auto &GV : Kernel.getFunction()->getParent()->globals())
+            if (&GV == U->stripPointerCasts() &&
+                !GV.getSection().startswith("llvm.metadata")) {
+              Globals.insert(&GV);
+              break;
+            }
+        }
+
     }
   }
   return Globals;
@@ -188,6 +207,7 @@ bool DetectMemoriesPass::runOnModule(llvm::Module &M) {
     MI.M[Kernel.getID()]; // make sure every kernel has an entry
 
     auto GlobalsUsed = GetGlobalsUsedInKernel(Kernel);
+
     for (auto *G : GlobalsUsed) {
       auto Mem = GetMemoryFromGlobal(Kernel, *G);
       // MI.Memories[Kernel.getID()][Mem.getValue()] = Mem;
