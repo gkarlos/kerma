@@ -24,6 +24,7 @@ set(Kerma_SOURCES
     Base/Kernel.cpp
     Base/Memory.cpp
     Base/MemoryAccess.cpp
+    Base/MemoryStmt.cpp
 
     Compile/CompilationAdjuster.cpp
     Compile/Compiler.cpp
