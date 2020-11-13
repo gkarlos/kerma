@@ -21,16 +21,20 @@ bool SourceRange::operator==(const SourceRange &other) const {
   return  S == other.S && E == other.E;
 }
 
-bool SourceRange::contains(const SourceLoc &Loc) {
+bool SourceRange::contains(const SourceLoc &Loc) const {
   return S <= Loc && Loc <= E;
 }
 
-bool SourceRange::contains(const SourceRange &Range) {
+bool SourceRange::contains(const SourceRange &Range) const {
   return contains(Range.getStart())
       && contains(Range.getEnd());
 }
 
-bool SourceRange::overlaps(const SourceRange &Range) {
+bool SourceRange::containsLine(const SourceLoc &Loc) const {
+  return Loc.getLine() >= S.getLine() && (E? Loc.getLine() <= E.getLine() : true);
+}
+
+bool SourceRange::overlaps(const SourceRange &Range) const {
   return contains(Range.getStart())
       || contains(Range.getEnd());
 }
