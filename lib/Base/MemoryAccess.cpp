@@ -59,7 +59,7 @@ MemoryAccess &MemoryAccess::operator=(const MemoryAccess &Other) {
   return *this;
 }
 
-bool MemoryAccess::operator==(const MemoryAccess &O) {
+bool MemoryAccess::operator==(const MemoryAccess &O) const {
   return M == O.M && Inst == O.Inst && Ptr == O.Ptr && Loc == O.Loc &&
          Ty == O.Ty && Idx == O.Idx;
 }

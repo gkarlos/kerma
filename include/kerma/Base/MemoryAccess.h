@@ -70,7 +70,7 @@ public:
 
   MemoryAccess &operator=(const MemoryAccess &Other);
 
-  bool operator==(const MemoryAccess &O);
+  bool operator==(const MemoryAccess &O) const;
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &os,
                                        const MemoryAccess &MA);
