@@ -19,6 +19,7 @@ public:
   KernelInfo()=default;
   KernelInfo(const std::vector<Kernel> &Kernels) : Kernels(Kernels) {}
   KernelInfo(std::vector<Kernel> &Kernels) : Kernels(Kernels) {}
+  bool isKernel(llvm::Function &F);
   Kernel *getKernelByID(unsigned ID);
   Kernel *getKernelByLLVMFn(llvm::Function *F);
   std::vector<Kernel> &getKernels() { return Kernels; }

@@ -1,5 +1,6 @@
 #include "kerma/Analysis/DetectKernels.h"
 
+#include "kerma/Base/Kernel.h"
 #include "kerma/NVVM/NVVMUtilities.h"
 
 #include "llvm/IR/Metadata.h"
@@ -21,6 +22,7 @@
 
 namespace kerma {
 
+using namespace llvm;
 
 Kernel *KernelInfo::getKernelByID(unsigned int ID) {
   for ( auto &K : Kernels)
@@ -36,6 +38,14 @@ Kernel *KernelInfo::getKernelByLLVMFn(llvm::Function *F) {
         return &K;
   }
   return nullptr;
+}
+
+bool KernelInfo::isKernel(Function &F) {
+  for ( auto &K : Kernels) {
+    if ( K.getFunction() == &F)
+      return true;
+  }
+  return false;
 }
 
 
