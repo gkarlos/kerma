@@ -40,7 +40,7 @@ public:
   Memory(unsigned ID, const std::string &Name, nvvm::AddressSpace::Ty AddrSpace,
          const Dim &KnownDim, const Dim &AssumedDim, llvm::Value *V);
 
-  unsigned getID() const { return ID; }
+  unsigned getID() const { return this->ID; }
 
   const std::string getName() const { return Name; }
   Memory &setName(const std::string &Name);
@@ -84,7 +84,7 @@ public:
     return *this;
   }
 
-  bool operator==(const Memory &Other) { return ID = Other.ID; }
+  bool operator==(const Memory &Other) { return ID == Other.ID; }
   bool operator<(const Memory &Other) { return ID < Other.ID; }
   Memory &operator=(const Memory &Other) {
     ID = Other.ID;

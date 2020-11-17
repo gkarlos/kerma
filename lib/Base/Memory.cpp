@@ -6,6 +6,7 @@
 #include <llvm/IR/Module.h>
 #include <llvm/Support/raw_ostream.h>
 #include <mutex>
+#include <atomic>
 
 namespace kerma {
 
@@ -31,7 +32,7 @@ Memory::Memory(unsigned ID, const std::string &Name,
 
 Memory::Memory(const std::string &Name, nvvm::AddressSpace::Ty AddrSpace,
                const Dim &KnownDim, const Dim &AssumedDim, llvm::Value *V)
-    : Memory(getID(), Name, AddrSpace, KnownDim, AssumedDim, V) {}
+    : Memory(genID(), Name, AddrSpace, KnownDim, AssumedDim, V) {}
 
 Memory::Memory(unsigned ID, const std::string &Name,
                nvvm::AddressSpace::Ty AddrSpace, const Dim &KnownDim,
