@@ -9,6 +9,10 @@ bool DimAssumption::classof(const Assumption *A) {
   return A && A->getKind() == Assumption::AK_DIM;
 }
 
+bool LaunchAssumption::classof(const Assumption *A) {
+  return A && A->getKind() == Assumption::AK_LAUNCH;
+}
+
 bool ValAssumption::classof(const Assumption *A) {
   return A && A->getKind() > Assumption::AK_DIM;
 }

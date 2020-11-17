@@ -15,19 +15,30 @@ class AssumptionInfo {
   friend class DetectAsumptionsPass;
 
 private:
-  std::unordered_map<llvm::Value *, ValAssumption *> Vals;
-  std::unordered_map<llvm::Value *, DimAssumption *> Dims;
+  std::unordered_map<llvm::Value *, ValAssumption> Vals;
+  std::unordered_map<llvm::Value *, DimAssumption> Dims;
+  std::unordered_map<llvm::Function *, LaunchAssumption> Launches;
 
 public:
   AssumptionInfo()=default;
   AssumptionInfo& add(llvm::Value *, Assumption &A);
+  AssumptionInfo& addLaunch(llvm::Function *F, LaunchAssumption &LA);
   unsigned getSize() { return Vals.size() + Dims.size(); }
+  unsigned getLaunchCount() { return Launches.size(); }
   unsigned getValCount() { return Vals.size(); }
   unsigned getDimCount() { return Dims.size(); }
   std::vector<ValAssumption*> getVals();
   std::vector<DimAssumption*> getDims();
+  std::vector<LaunchAssumption*> getLaunches();
   std::vector<Assumption*> getAll();
   Assumption *getForArg(llvm::Argument *Arg);
+  LaunchAssumption *getLaunch(llvm::Function *F) {
+    if ( !F) return nullptr;
+    if ( auto E = Launches.find(F); E != Launches.end())
+      return &E->second;
+    return nullptr;
+  }
+  LaunchAssumption *getLaunch(Kernel &K) { return getLaunch(K.getFunction()); }
 };
 
 class DetectAsumptionsPass : public llvm::ModulePass {
