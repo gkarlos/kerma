@@ -20,7 +20,7 @@ private:
   std::string ClangPath;
   clang::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOptions;
   clang::TextDiagnosticPrinter DiagPrinter;
-  clang::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID;
+  clang::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagIDs;
   clang::DiagnosticsEngine Diags;
   clang::driver::Driver Driver;
 

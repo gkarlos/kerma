@@ -27,10 +27,13 @@ Compiler::Compiler(const std::string& ClangPath)
 : ClangPath(ClangPath),
   DiagOptions(new clang::DiagnosticOptions()),
   DiagPrinter(llvm::errs(), DiagOptions.get()),
-  DiagID(new clang::DiagnosticIDs()),
-  Diags(DiagID, DiagOptions.get(), &DiagPrinter),
+  DiagIDs(new clang::DiagnosticIDs()),
+  // It is important to pass false here to avoid double-free errors
+  Diags(DiagIDs.get(), DiagOptions.get(), &DiagPrinter, false),
   Driver(ClangPath, llvm::sys::getDefaultTargetTriple(), Diags)
-{}
+{
+  DiagOptions = new clang::DiagnosticOptions();
+}
 
 // -working-directory<arg>, -working-directory=<arg>¶
 // Resolve file paths relative to the specified directory
@@ -41,18 +44,6 @@ Compiler::Compiler(const std::string& ClangPath)
 // std::unique_ptr<CompilerInvocation> CI = std::make_unique<CompilerInvocation>();
 // CompilerInvocation::CreateFromArgs(*CI, getDeviceIRArgs(ClangPath, SourcePath), Diags);
 // driver::Driver Driver(ClangPath, llvm::sys::getDefaultTargetTriple(), Diags);
-
-// static std::vector<const char *> getDeviceIRArgs(const std::string& ClangPath,
-//                                                  const std::string& SourcePath,
-//                                                  const std::string& OutputPath) {
-//   return {
-//     ClangPath.c_str(), SourcePath.c_str(),
-//     "-g", "-O0", "-std=c++11", "-S", "-emit-llvm",
-//     "--cuda-device-only", "--cuda-gpu-arch=sm_30",
-//     "-Xclang", "-disable-O0-optnone", "-fno-discard-value-names"
-//     "-o", DEVICE_IR
-//   };
-// }
 
 const std::string Compiler::DefaultDeviceIRFile = "device.ll";
 const std::string Compiler::DefaultHostIRFile = "host.ll";
