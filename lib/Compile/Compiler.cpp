@@ -56,45 +56,85 @@ Compiler::Compiler(const std::string& ClangPath)
 
 const std::string Compiler::DefaultDeviceIRFile = "device.ll";
 const std::string Compiler::DefaultHostIRFile = "host.ll";
+const std::string Compiler::DefaultDeviceBCFile = "device.bc";
+const std::string Compiler::DefaultHostBCFile = "host.bc";
 
 /// The arg lists of these struct are incomplete.
 /// They must be prepented by clang binary path
 /// and source file path
-static struct {
-  const std::vector<const char *> DeviceIR = {
-    "-g", "-O0", "-std=c++11", "-S", "-emit-llvm",
-    "--cuda-device-only", "--cuda-gpu-arch=sm_30",
-    "-Xclang", "-disable-O0-optnone", "-fno-discard-value-names",
-    "-o"
-  };
-} Args;
+
+const std::vector<const char *> BaseArgsCuda = {
+  "-g", "-O0", "-std=c++11", "-emit-llvm", "--cuda-gpu-arch=sm_30",
+  "-Xclang", "-disable-O0-optnone", "-fno-discard-value-names",
+};
 
 static auto GetEmitDeviceIRArgs =
   [](const std::string& ClangPath, const std::string& SourcePath, const std::string& Out) {
-    std::vector<const char *> Res(Args.DeviceIR);
+    std::vector<const char *> Res;
+    Res.push_back("-S");
+    Res.push_back("--cuda-device-only");
+    Res.push_back("-o");
+    Res.push_back(Out.c_str());
+    Res.insert(Res.begin(), BaseArgsCuda.begin(), BaseArgsCuda.end());
     Res.insert(Res.begin(), SourcePath.c_str());
     Res.insert(Res.begin(), ClangPath.c_str());
-    Res.push_back(Out.c_str());
     return Res;
   };
 
-bool Compiler::EmitDeviceIR(const std::string& SourcePath, const std::string& Out) {
+static auto GetEmitDeviceBCArgs =
+  [](const std::string& ClangPath, const std::string& SourcePath, const std::string& Out) {
+    std::vector<const char *> Res(BaseArgsCuda);
+    Res.push_back("--cuda-device-only");
+    Res.push_back("-o");
+    Res.push_back(Out.c_str());
+    Res.insert(Res.begin(), SourcePath.c_str());
+    Res.insert(Res.begin(), ClangPath.c_str());
+    return Res;
+  };
 
-  auto Arguments = GetEmitDeviceIRArgs(ClangPath, SourcePath, Out);
-
-  std::unique_ptr<Compilation> Compilation( Driver.BuildCompilation(Arguments));
-
+static bool RunClang(clang::driver::Driver &Driver, const std::vector<const char *> &Args ) {
+  std::unique_ptr<Compilation> Compilation( Driver.BuildCompilation(Args));
   if ( !Compilation)
     return false;
-
   int Res = 0;
   SmallVector<std::pair<int, const Command *>, 4> FailingCommands;
   Res = Driver.ExecuteCompilation(*Compilation, FailingCommands);
   return Res >= 0;
 }
 
+bool Compiler::EmitDeviceIR(const std::string& SourcePath, const std::string& Out) {
+  auto Arguments = GetEmitDeviceIRArgs(ClangPath, SourcePath, Out);
+  // std::unique_ptr<Compilation> Compilation( Driver.BuildCompilation(Arguments));
+  // if ( !Compilation)
+  //   return false;
+  // int Res = 0;
+  // SmallVector<std::pair<int, const Command *>, 4> FailingCommands;
+  // Res = Driver.ExecuteCompilation(*Compilation, FailingCommands);
+  // return Res >= 0;
+  return RunClang(Driver, Arguments);
+}
+
+bool Compiler::EmitDeviceBC(const std::string& SourcePath, const std::string& Out) {
+  auto Arguments = GetEmitDeviceBCArgs(ClangPath, SourcePath, Out);
+  // std::unique_ptr<Compilation> Compilation( Driver.BuildCompilation(Arguments));
+  // if ( !Compilation)
+  //   return false;
+  // int Res = 0;
+  // SmallVector<std::pair<int, const Command *>, 4> FailingCommands;
+  // Res = Driver.ExecuteCompilation(*Compilation, FailingCommands);
+  // return Res >= 0;
+  return RunClang(Driver, Arguments);
+}
+
 bool Compiler::EmitHostIR(const std::string &SourcePath, const std::string& Out) {
+  llvm::errs() << "***WARNING*** EmitHostIR() is not implemented!\n";
   return false;
 }
+
+bool Compiler::EmitHostBC(const std::string &SourcePath, const std::string& Out) {
+  llvm::errs() << "***WARNING*** EmitHostBC() is not implemented!\n";
+  return false;
+}
+
 
 } // namespace kerma

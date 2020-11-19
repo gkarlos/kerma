@@ -27,6 +27,9 @@ private:
 public:
   static const std::string DefaultDeviceIRFile;
   static const std::string DefaultHostIRFile;
+  static const std::string DefaultDeviceBCFile;
+  static const std::string DefaultHostBCFile;
+
 
   Compiler(const std::string& ClangPath);
 
@@ -35,6 +38,8 @@ public:
   /// @returns true on success. false otherwise
   bool EmitDeviceIR(const std::string& SourcePath, const std::string& Out=DefaultDeviceIRFile);
   bool EmitHostIR(const std::string& SourcePath, const std::string& Out=DefaultHostIRFile);
+  bool EmitDeviceBC(const std::string& SourcePath, const std::string &Out=DefaultDeviceBCFile);
+  bool EmitHostBC(const std::string& SourcePath, const std::string &Out=DefaultHostBCFile);
 };
 
 } // namespace kerma
