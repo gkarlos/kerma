@@ -14,6 +14,7 @@ public:
   SourceRange()=default;
   SourceRange(SourceLoc start);
   SourceRange(SourceLoc start, SourceLoc end);
+  SourceRange(const SourceRange &O) : S(O.S), E(O.E) {}
 
   void setStart( const SourceLoc& Start) { S = Start; }
   void setEnd( const SourceLoc& End) { E = End; }
