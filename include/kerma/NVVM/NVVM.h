@@ -121,6 +121,7 @@ extern const std::vector<std::string>& Intrinsics;
 
 
 extern const std::vector<std::string> CudaAPI;
+extern const std::vector<std::string> CudaInternals;
 
 
 } // namespace nvvm

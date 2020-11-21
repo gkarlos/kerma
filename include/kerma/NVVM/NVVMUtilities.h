@@ -37,6 +37,8 @@ bool isAtomic(const std::string& F);
 /// Check if the name names a CUDA intrinsic function
 bool isIntrinsic(const std::string& F);
 
+bool isCudaInternal(const llvm::Function &F);
+
 bool isNVVMSymbol(const std::string& Symbol);
 
 } // namespace nvvm

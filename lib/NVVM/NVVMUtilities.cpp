@@ -159,6 +159,15 @@ bool isReadOnlyCacheFunction(const llvm::Function &F) {
       || Name.startswith("__stwt");
 }
 
+bool isCudaInternal(const llvm::Function &F) {
+  std::string Name = demangle(F.getName());
+  for ( auto &I : CudaInternals) {
+    if ( Name == I)
+      return true;
+  }
+  return false;
+}
+
 bool isAtomicFunction(const llvm::Function &F) {
   if ( isAtomic(demangle(F.getName()))) {
     return true;

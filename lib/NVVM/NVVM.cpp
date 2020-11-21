@@ -30,6 +30,10 @@ const std::vector<std::string> CudaAPI = {
   "cudaOccupancyMaxActiveBlocksPerMultiprocessorWithFlags"
 };
 
+const std::vector<std::string> CudaInternals = {
+  "__internal_trig_reduction_slowpathd"
+};
+
 namespace cc30 {
   const std::vector<std::string> Atomics{
     "atomicAdd(int*, int)",
