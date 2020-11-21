@@ -12,6 +12,7 @@ public:
   static char ID;
   StripAnnotationsPass(KernelInfo &KI);
   bool runOnModule(llvm::Module &M) override;
+  llvm::StringRef getPassName() const override { return "StripAnnotationsPass"; }
 private:
   KernelInfo &KI;
 };
