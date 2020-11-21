@@ -149,7 +149,7 @@ static void getGlobalVarAssumptions(Module &M, KernelInfo &KI, MemoryInfo &MI,
                 StringRef AS = AInit->getAsString();
 
                 if (auto *F = dyn_cast<Function>(G)) {
-                  if (auto *Kernel = KI.getKernelByLLVMFn(F)) {
+                  if (auto *Kernel = KI.find(F)) {
                     auto Grid = parseDim(AS.substr(0, AS.find(':')));
                     auto Block = parseDim(AS.substr(AS.find(':') + 1, AS.size()));
                     LaunchAssumption LA(Grid, Block, Kernel->getFunction());
@@ -191,7 +191,7 @@ static void getGlobalVarAssumptions(Module &M, KernelInfo &KI, MemoryInfo &MI,
 static void getAssumptionForArg(ConstantDataArray *CDA, Argument *Arg,
                                 KernelInfo &KI, MemoryInfo &MI,
                                 AssumptionInfo &AI) {
-  auto *Kernel = KI.getKernelByLLVMFn(Arg->getParent());
+  auto *Kernel = KI.find(Arg->getParent());
   assert(Kernel && "Assumption for Arg of non-kernel function!");
 
   try {

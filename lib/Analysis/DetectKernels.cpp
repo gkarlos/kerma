@@ -24,14 +24,14 @@ namespace kerma {
 
 using namespace llvm;
 
-Kernel *KernelInfo::getKernelByID(unsigned int ID) {
+Kernel *KernelInfo::findByID(unsigned int ID) {
   for ( auto &K : Kernels)
     if ( K.getID() == ID)
       return &K;
   return nullptr;
 }
 
-Kernel *KernelInfo::getKernelByLLVMFn(llvm::Function *F) {
+Kernel *KernelInfo::find(llvm::Function *F) {
   if ( F) {
     for ( auto &K : Kernels)
       if ( K.getFunction() == F)
