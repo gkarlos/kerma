@@ -57,6 +57,7 @@ public:
   static char ID;
   bool runOnModule(llvm::Module &M) override;
   const MemoryInfo& getMemoryInfo() { return MI; }
+  llvm::StringRef getPassName() const override { return "DetectMemoriesPass"; }
 };
 
 

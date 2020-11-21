@@ -20,8 +20,8 @@ public:
   KernelInfo(const std::vector<Kernel> &Kernels) : Kernels(Kernels) {}
   KernelInfo(std::vector<Kernel> &Kernels) : Kernels(Kernels) {}
   bool isKernel(llvm::Function &F);
-  Kernel *getKernelByID(unsigned ID);
-  Kernel *getKernelByLLVMFn(llvm::Function *F);
+  Kernel *findByID(unsigned ID);
+  Kernel *find(llvm::Function *F);
   std::vector<Kernel> &getKernels() { return Kernels; }
   KernelInfo& operator=(const KernelInfo &O) {
     Kernels = O.Kernels;
@@ -46,6 +46,7 @@ public:
   /// manipulated
   const std::vector<Kernel> & getKernels();
   void getKernels(std::vector<Kernel>& Kernels);
+  llvm::StringRef getPassName() const override { return "DetectKernelsPass"; }
 private:
   std::vector<Kernel> Kernels;
 };

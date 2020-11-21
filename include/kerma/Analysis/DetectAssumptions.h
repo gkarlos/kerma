@@ -51,6 +51,7 @@ public:
 
   bool runOnModule(llvm::Module &M) override;
   AssumptionInfo getAssumptionInfo() { return AI; }
+  llvm::StringRef getPassName() const override { return "DetectAssumptionsPass"; }
 
 private:
   KernelInfo *KI;

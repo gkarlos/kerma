@@ -85,6 +85,7 @@ public:
   void dumpErrors();
   bool moduleTypechecks();
   llvm::SmallVector<TypeCheckError, 32> getErrors();
+  llvm::StringRef getPassName() const override { return "TypeCheckerPass"; }
 
 };
 
