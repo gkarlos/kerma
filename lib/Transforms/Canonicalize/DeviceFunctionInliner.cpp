@@ -111,14 +111,18 @@ bool DeviceFunctionInliner::runOnModule(Module& M) {
   // step 1: Mark for inline
   for ( auto& F : M) {
     if ( F.isDeclaration() || F.isIntrinsic()
+                           || nvvm::isCudaInternal(F)
                            || nvvm::isKernelFunction(F)
                            || nvvm::isCudaAPIFunction(F)
                            || nvvm::isAtomicFunction(F)
                            || nvvm::isIntrinsicFunction(F)
                            || nvvm::isReadOnlyCacheFunction(F)
-                           || StringRef(demangle(F.getName())).startswith("__kerma"))
-      continue;
+                           || StringRef(demangle(F.getName())).startswith("__kerma")) {
+                             llvm::errs() <<F.getName() << " skipping\n";
+                             continue;
+                           }
 
+    llvm::errs() << F.getName() << " not skipping\n";
     F.removeFnAttr(Attribute::AttrKind::OptimizeNone);
     F.removeFnAttr(Attribute::AttrKind::NoInline);
     F.addFnAttr(Attribute::AttrKind::AlwaysInline);
@@ -128,24 +132,24 @@ bool DeviceFunctionInliner::runOnModule(Module& M) {
   // step 2: perform the inlining
   doInline(M);
 
-#ifdef KERMA_OPT_PLUGIN
+// #ifdef KERMA_OPT_PLUGIN
   WithColor(errs(), HighlightColor::Note) << '[';
   WithColor(errs(), raw_ostream::Colors::GREEN) << formatv("{0,15}", "DeviceInliner");
   WithColor(errs(), HighlightColor::Note) << ']';
   errs() << ' ' << FunctionsMarkedForInlining.size() << " functions";
-#endif
+// #endif
 
   if ( FunctionsMarkedForInlining.size()) {
-#ifdef KERMA_OPT_PLUGIN
+// #ifdef KERMA_OPT_PLUGIN
     errs() << ", " << CallsInlined << '/' << CallsChecked << " calls\n";
     for ( auto *F : FunctionsMarkedForInlining)
       WithColor::note() << demangleFnWithoutArgs(*F) << '\n';
-#endif
+// #endif
     return CallsInlined;
   } else {
-#ifdef KERMA_OPT_PLUGIN
+// #ifdef KERMA_OPT_PLUGIN
     errs() << '\n';
-#endif
+// #endif
     return false;
   }
 }
