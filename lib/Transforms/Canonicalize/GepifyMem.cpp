@@ -92,8 +92,9 @@ static unsigned int Gepify(Instruction *I) {
   else if ( auto *SI = dyn_cast<StoreInst>(I))
     Ptr = SI->getPointerOperand();
   else if ( auto *CI = dyn_cast<CallInst>(I)) {
-    if ( nvvm::isAtomicFunction(*CI->getCalledFunction())
-      || nvvm::isReadOnlyCacheFunction(*CI->getCalledFunction()))
+    if ( !CI->isInlineAsm())
+      if ( nvvm::isAtomicFunction(*CI->getCalledFunction())
+        || nvvm::isReadOnlyCacheFunction(*CI->getCalledFunction()))
     Ptr = CI->getArgOperand(0);
   }
 
