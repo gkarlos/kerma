@@ -1,9 +1,12 @@
 #include "kerma/Base/MemoryStmt.h"
+#include "kerma/Base/Loop.h"
 #include "kerma/Base/Memory.h"
 #include "kerma/Base/MemoryAccess.h"
 #include "kerma/SourceInfo/SourceRange.h"
 #include <mutex>
+#include <ostream>
 
+using namespace llvm;
 namespace kerma {
 
 static std::mutex mtx;
@@ -17,9 +20,11 @@ static unsigned int genID() {
   return id;
 }
 
-MemoryStmt::MemoryStmt(SourceRange R, Type Ty) : MemoryStmt(genID(), R, Ty) {}
-MemoryStmt::MemoryStmt(unsigned int ID, SourceRange R, Type Ty)
-    : ID(ID), R(R), Ty(Ty) {}
+MemoryStmt::MemoryStmt(SourceRange R, Type Ty, KermaNode *Parent)
+    : MemoryStmt(genID(), R, Ty, Parent) {}
+MemoryStmt::MemoryStmt(unsigned int ID, SourceRange R, Type Ty,
+                       KermaNode *Parent)
+    : KermaNode(NK_MemStmt, R, Parent), ID(ID), Ty(Ty) {}
 
 MemoryStmt &MemoryStmt::setRange(const SourceRange &R) {
   this->R = R;
@@ -51,8 +56,7 @@ bool MemoryStmt::addMemoryAccess(MemoryAccess &MA, SourceInfo &SI) {
         this->Ty = RD;
       else
         this->Ty = (this->Ty == WR) ? RDWR : this->Ty;
-    }
-    break;
+    } break;
     case MemoryAccess::Type::Store:
     case MemoryAccess::Type::Memset:
       if (this->Ty == UKN)
@@ -82,20 +86,22 @@ static std::string tystr(MemoryStmt::Type Ty) {
     return "U";
 }
 
-std::ostream &operator<<(std::ostream &os, const MemoryStmt &S) {
-  os << '(' << tystr(S.getType()) << ") " << S.getRange() << " { ";
-  for (auto &MA : S.getAccesses())
-    os << "#" << MA.getID() << ' ';
-  os << "} #" << S.getID();
-  return os;
+void MemoryStmt::print(llvm::raw_ostream &O) {
+  O << std::string(getNesting(), '\t') << '(' << tystr(getType()) << ") " << getRange() << " { ";
+  for (auto &MA : getAccesses())
+    O << "#" << MA.getID() << ' ';
+  O << "} #" << getID();
+  if ( getParent()) {
+    O << " parent: #" << dyn_cast<LoopNest>(getParent())->getID();
+  } else {
+    O << " parent: none";
+  }
 }
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &os, const MemoryStmt &S) {
-  os << '(' << tystr(S.getType()) << ") " << S.getRange() << " { ";
-  for (auto &MA : S.getAccesses())
-    os << "#" << MA.getID() << ' ';
-  os << "} #" << S.getID();
-  return os;
+
+bool MemoryStmt::classof(const KermaNode *S) {
+  return S->getKind() == NK_MemStmt;
 }
+
 
 } // namespace kerma

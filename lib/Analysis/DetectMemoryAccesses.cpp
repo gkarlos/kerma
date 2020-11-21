@@ -1,17 +1,25 @@
 #include "kerma/Analysis/DetectMemoryAccesses.h"
+#include "kerma/Base/Loop.h"
 #include "kerma/Base/MemoryAccess.h"
 #include "kerma/Base/MemoryStmt.h"
+#include "kerma/Base/Node.h"
 #include "kerma/NVVM/NVVMUtilities.h"
 #include "kerma/SourceInfo/SourceInfo.h"
 #include "kerma/SourceInfo/SourceLoc.h"
+#include <algorithm>
+#include <cstddef>
+#include <llvm-10/llvm/Analysis/LoopInfo.h>
 #include <llvm/Analysis/ValueTracking.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/IntrinsicInst.h>
+#include <memory>
+#include <stack>
 #include <utility>
 
 namespace kerma {
 
 using namespace llvm;
+using namespace std;
 
 MemoryAccess *MemoryAccessInfo::getByID(unsigned ID) {
   for (auto &E : L)
@@ -41,7 +49,8 @@ MemoryAccess *MemoryAccessInfo::getByID(unsigned ID) {
   return nullptr;
 }
 
-std::vector<MemoryAccess> MemoryAccessInfo::getAccessesForKernel(unsigned int ID) {
+std::vector<MemoryAccess>
+MemoryAccessInfo::getAccessesForKernel(unsigned int ID) {
   std::vector<MemoryAccess> Res;
   auto itL = L.find(ID);
   auto itS = S.find(ID);
@@ -71,63 +80,64 @@ MemoryAccessInfo::getIgnoredAccessesForKernel(const Kernel &K) {
   return Res;
 }
 
-MemoryStmt *MemoryAccessInfo::getStmtForAccess(const MemoryAccess &MA) {
-  for ( auto &Entry : MAS)
-    for ( auto &S : Entry.second)
-      for ( auto &A : S.getAccesses())
-        if ( A == MA)
+MemoryStmt *MemoryAccessInfo::getMemoryStmtForAccess(const MemoryAccess &MA) {
+  for (auto &Entry : MAS)
+    for (auto &S : Entry.second)
+      for (auto &A : S.getAccesses())
+        if (A == MA)
           return &S;
   return nullptr;
 }
 
-MemoryStmt *MemoryAccessInfo::getStmtAtRange(const SourceRange &R, bool strict) {
-  for ( auto &Entry : MAS)
-    for ( auto &S : Entry.second) {
-      if ( S.getRange().contains(R))
+MemoryStmt *MemoryAccessInfo::getMemoryStmtAtRange(const SourceRange &R,
+                                                   bool strict) {
+  for (auto &Entry : MAS)
+    for (auto &S : Entry.second) {
+      if (S.getRange().contains(R))
         return &S;
-      if ( !strict && S.getRange().overlaps(R))
+      if (!strict && S.getRange().overlaps(R))
         return &S;
     }
   return nullptr;
 }
 
-unsigned int MemoryAccessInfo::getNumStmts() {
+unsigned int MemoryAccessInfo::getNumMemoryStmts() {
   unsigned int res = 0;
-  for ( auto &E : MAS)
+  for (auto &E : MAS)
     res += E.second.size();
   return res;
 }
 
 unsigned int MemoryAccessInfo::getNumAccesses() {
   unsigned int res = 0;
-  for ( auto &E : L)
+  for (auto &E : L)
     res += E.second.size();
-  for ( auto &E : S)
+  for (auto &E : S)
     res += E.second.size();
-  for ( auto &E : A)
+  for (auto &E : A)
     res += E.second.size();
-  for ( auto &E : MM)
+  for (auto &E : MM)
     res += E.second.size();
-  for ( auto &E : MC)
+  for (auto &E : MC)
     res += E.second.size();
-  for ( auto &E : MS)
+  for (auto &E : MS)
     res += E.second.size();
   return res;
 }
 
 unsigned int MemoryAccessInfo::getNumIgnoredAccesses() {
   unsigned int res = 0;
-  for ( auto &E : IgnL)
+  for (auto &E : IgnL)
     res += E.second.size();
-  for ( auto &E : IgnS)
+  for (auto &E : IgnS)
     res += E.second.size();
-  for ( auto &E : IgnA)
+  for (auto &E : IgnA)
     res += E.second.size();
-  for ( auto &E : IgnMM)
+  for (auto &E : IgnMM)
     res += E.second.size();
-  for ( auto &E : IgnMC)
+  for (auto &E : IgnMC)
     res += E.second.size();
-  for ( auto &E : IgnMS)
+  for (auto &E : IgnMS)
     res += E.second.size();
   return res;
 }
@@ -140,8 +150,14 @@ using namespace kerma::nvvm;
 char DetectMemoryAccessesPass::ID = 6;
 
 DetectMemoryAccessesPass::DetectMemoryAccessesPass(KernelInfo &KI,
-                                                   MemoryInfo &MI)
-    : KI(KI), MI(MI), ModulePass(ID) {}
+                                                   MemoryInfo &MI,
+                                                   SourceInfo &SI)
+    : KI(KI), MI(MI), SI(SI), ModulePass(ID) {}
+
+void DetectMemoryAccessesPass::getAnalysisUsage(AnalysisUsage &AU) const {
+  AU.addRequired<LoopInfoWrapperPass>();
+  AU.setPreservesAll();
+}
 
 bool DetectMemoryAccessesPass::runOnModule(Module &M) {
 
@@ -157,7 +173,8 @@ bool DetectMemoryAccessesPass::runOnModule(Module &M) {
             MA.setLoc(SourceLoc::from(LI->getDebugLoc()));
             MAI.L[Kernel.getID()].push_back(MA);
           } else {
-            // llvm::errs() << *LI << "\n\t" << *Obj << "\n\t" << SourceLoc(LI->getDebugLoc()) << '\n';
+            // llvm::errs() << *LI << "\n\t" << *Obj << "\n\t" <<
+            // SourceLoc(LI->getDebugLoc()) << '\n';
             MAI.IgnL[Kernel.getID()].push_back(std::make_pair(LI, Obj));
           }
         } else if (auto *SI = dyn_cast<StoreInst>(&I)) {
@@ -169,7 +186,8 @@ bool DetectMemoryAccessesPass::runOnModule(Module &M) {
             MA.setLoc(SourceLoc::from(SI->getDebugLoc()));
             MAI.S[Kernel.getID()].push_back(MA);
           } else {
-            // llvm::errs() << *SI << "\n\t" << *Obj << "\n\t" << SourceLoc(SI->getDebugLoc()) << '\n';
+            // llvm::errs() << *SI << "\n\t" << *Obj << "\n\t" <<
+            // SourceLoc(SI->getDebugLoc()) << '\n';
             MAI.IgnS[Kernel.getID()].push_back(std::make_pair(SI, Obj));
           }
         } else if (auto *CI = dyn_cast<CallInst>(&I)) {
@@ -182,7 +200,8 @@ bool DetectMemoryAccessesPass::runOnModule(Module &M) {
               MA.setLoc(SourceLoc::from(CI->getDebugLoc()));
               MAI.A[Kernel.getID()].push_back(MA);
             } else {
-              // llvm::errs() << *CI << "\n\t" << *Obj << "\n\t" << SourceLoc(SI->getDebugLoc()) << '\n';
+              // llvm::errs() << *CI << "\n\t" << *Obj << "\n\t" <<
+              // SourceLoc(SI->getDebugLoc()) << '\n';
               MAI.IgnA[Kernel.getID()].push_back(std::make_pair(CI, Obj));
             }
           }
@@ -190,38 +209,118 @@ bool DetectMemoryAccessesPass::runOnModule(Module &M) {
       }
     }
   }
-
+  buildMemoryAccessInfo();
   return false;
 }
 
-MemoryAccessInfo &DetectMemoryAccessesPass::getMemoryAccessInfo(SourceInfo &SI) {
-  // For now we built the MemoryStmts here. This may not be ideal though
+static void getNodesForLoop(LoopNest *ME, vector<LoopNest*> &Loops,
+                            vector<KermaNode *> &Nodes,
+                            vector<MemoryStmt *> &Unassigned) {
+  // the stmts before our body belong to our parent
+  auto itPre = Unassigned.begin();
+  while (itPre != Unassigned.end()) {
+    if ((*itPre)->getRange().getEnd() < ME->getRange().getStart()) {
+      if (!ME->getParent()) // we are at the top level
+        Nodes.push_back(*itPre);
+      else { // we have a parent
+        assert(isa<LoopNest>(ME->getParent()) && "Parent not a LoopNest!");
+        dyn_cast<LoopNest>(ME->getParent())->addChild(**itPre);
+      }
+      itPre = Unassigned.erase(itPre++);
+    } else {
+      ++itPre;
+    }
+  }
 
-  for ( auto &Kernel : KI.getKernels()) {
-    auto Ranges = SI.getRangesInRange(Kernel.getSourceRange());
-    auto Accesses = MAI.getAccessesForKernel(Kernel);
+  // insert ourselves to the node-list if we are top level
+  if ( !ME->getParent())
+    Nodes.push_back(ME);
+  else {
+    // we have a parent
+    // no need to assert as if something went wrong the previous assertion will fail
+    dyn_cast<LoopNest>(ME->getParent())->addChild(*ME);
+  }
 
-    for ( auto &Access : Accesses) {
-      // if there is a stmt for this access bail
-      if ( MAI.getStmtForAccess(Access)) continue;
+  // Go through the subloops
+  for (auto *SubLoop : ME->getLoop()->getSubLoops()) {
+    Loops.push_back(new LoopNest(SubLoop, ME));
+    getNodesForLoop(Loops.back(), Loops, Nodes, Unassigned);
+  }
 
-      // find the range of the source statement for this access
-      if ( auto Range  = SI.getRangeForLoc(Access.getLoc())) {
-        // if there is a MemoryStmt with that range in MAS
-        if ( auto *Stmt = MAI.getStmtAtRange(Range)) {
-          // just append the access to that statement
-          Stmt->addMemoryAccess(Access, SI);
-        } else {
-          // otherwise create a new MemoryStmt
-          MemoryStmt S(Range);
-          S.addMemoryAccess(Access, SI);
-          MAI.MAS[Kernel.getID()].push_back(S);
-        }
+  // add any statements between the end of
+  // the last subloop and our end also to us
+  auto itPost = Unassigned.begin();
+  while (itPost != Unassigned.end()) {
+    if ( (*itPost)->getRange().getEnd() <= ME->getRange().getEnd()) {
+      ME->addChild(**itPost);
+      itPost = Unassigned.erase(itPost++);
+    } else {
+      ++itPost;
+    }
+  }
+}
+
+static void groupMemoryAccessesToMemoryStmts(Kernel &Kernel, SourceInfo &SI, MemoryAccessInfo &MAI) {
+  auto Ranges = SI.getRangesInRange(Kernel.getSourceRange());
+  auto Accesses = MAI.getAccessesForKernel(Kernel);
+  for (auto &Access : Accesses) {
+    // if there is a MemoryStmt for this access bail
+    if (MAI.getMemoryStmtForAccess(Access))
+      continue;
+    // find the range of the source statement for this access
+    if (auto Range = SI.getRangeForLoc(Access.getLoc())) {
+      // if there is a MemoryStmt with that range in MAS
+      if (auto *Stmt = MAI.getMemoryStmtAtRange(Range)) {
+        // just append the access to that statement
+        Stmt->addMemoryAccess(Access, SI);
+      } else {
+        // otherwise create a new MemoryStmt
+        MemoryStmt S(Range);
+        S.addMemoryAccess(Access, SI);
+        // MAI.MAS[Kernel.getID()].push_back(S);
+        MAI.addMemoryStmtForKernel(Kernel, S);
       }
     }
-
   }
-  return MAI;
+}
+void DetectMemoryAccessesPass::buildMemoryAccessInfo() {
+  for (auto &Kernel : KI.getKernels()) {
+    groupMemoryAccessesToMemoryStmts(Kernel, SI, MAI);
+
+    // if the kernel has not memory acceses bail
+    if (MAI.MAS[Kernel.getID()].empty()) return;
+
+    auto &LI =
+        getAnalysis<LoopInfoWrapperPass>(*Kernel.getFunction()).getLoopInfo();
+
+    // create a vector with all the statements
+    // and sort on start loc
+    std::vector<MemoryStmt *> Unassigned;
+    for (auto &E : MAI.MAS[Kernel.getID()])
+      Unassigned.push_back(&E);
+    // struct  {
+    //   bool operator() (MemoryStmt *A, MemoryStmt *B) {
+    //     return A->getRange().getStart() <= B->getRange().getStart();
+    //   }
+    // } StartLocComparator;
+    // sort(Unassigned, StartLocComparator);
+
+    // Go through the top level loops
+    for (auto *L : LI) {
+      MAI.Loops[Kernel.getID()].push_back(new LoopNest(L));
+      getNodesForLoop(MAI.Loops[Kernel.getID()].back(), MAI.Loops[Kernel.getID()],
+                      MAI.Nodes[Kernel.getID()], Unassigned);
+    }
+
+    // Whatever remains just insert to the graph
+    for ( auto &E : Unassigned)
+      MAI.Nodes[Kernel.getID()].push_back(E);
+
+    errs() << '\n' << "<<<Graph>>> " << Kernel.getName() << " \n";
+    for (auto *Node : MAI.Nodes[Kernel.getID()]) {
+      errs() << *Node << '\n';
+    }
+  }
 }
 
 } // namespace kerma

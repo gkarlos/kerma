@@ -15,6 +15,7 @@ set(Kerma_SOURCES
     Analysis/DetectMemories.cpp
     Analysis/DetectMemoryAccesses.cpp
     Analysis/InferAddressSpaces.cpp
+    Analysis/Loops.cpp
     Analysis/Names.cpp
     Analysis/Typecheck.cpp
 
@@ -22,9 +23,11 @@ set(Kerma_SOURCES
     Base/Dim.cpp
     Base/Index.cpp
     Base/Kernel.cpp
+    Base/Loop.cpp
     Base/Memory.cpp
     Base/MemoryAccess.cpp
     Base/MemoryStmt.cpp
+    Base/Node.cpp
 
     Compile/CompilationAdjuster.cpp
     Compile/Compiler.cpp

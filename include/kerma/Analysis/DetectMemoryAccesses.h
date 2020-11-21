@@ -4,9 +4,11 @@
 #include "kerma/Analysis/DetectKernels.h"
 #include "kerma/Analysis/DetectMemories.h"
 #include "kerma/Base/Kernel.h"
+#include "kerma/Base/Loop.h"
 #include "kerma/Base/Memory.h"
 #include "kerma/Base/MemoryAccess.h"
 #include "kerma/Base/MemoryStmt.h"
+#include "kerma/Base/Node.h"
 #include "kerma/SourceInfo/SourceInfo.h"
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -30,6 +32,11 @@ private:
 
   // The memory accesses grouped in statements, per kernel
   std::unordered_map<unsigned, std::vector<MemoryStmt>> MAS;
+  // The Loop nests, per kernel
+  std::unordered_map<unsigned, std::vector<LoopNest*>> Loops;
+
+  // The actual nodes lists, per kernel
+  std::unordered_map<unsigned, std::vector<KermaNode*>> Nodes;
 
   // Ignored accesses. Keys are kernel ids
   // Values are vectors of <instruction,underlying-object> pairs
@@ -62,15 +69,21 @@ private:
       IgnMS; // memset
 
 public:
+  const std::vector<KermaNode> &getNodes();
+
   std::vector<MemoryAccess> getAccessesForKernel(const Kernel &K) {
     return getAccessesForKernel(K.getID());
   }
   std::vector<MemoryAccess> getAccessesForKernel(unsigned int ID);
 
-  const std::vector<MemoryStmt> &getStmtsForKernel(const Kernel &K) {
+  void addMemoryStmtForKernel(const Kernel &K, const MemoryStmt &Stmt) {
+    MAS[K.getID()].push_back(Stmt);
+  }
+
+  const std::vector<MemoryStmt> &getMemoryStmtsForKernel(const Kernel &K) {
     return MAS[K.getID()];
   }
-  const std::vector<MemoryStmt> &getStmtsForKernel(unsigned int ID) {
+  const std::vector<MemoryStmt> &getMemoryStmtsForKernel(unsigned int ID) {
     return MAS[ID];
   }
 
@@ -90,12 +103,12 @@ public:
            MM[K.getID()].size() + MC[K.getID()].size() + MS[K.getID()].size();
   }
 
-  unsigned int getNumStmts();
-  unsigned int getNumStmtsForKernel(const Kernel &K) {
+  unsigned int getNumMemoryStmts();
+  unsigned int getNumMemoryStmtsForKernel(const Kernel &K) {
     return MAS[K.getID()].size();
   }
 
-  unsigned int getNumStmtsForKernel(unsigned int ID) {
+  unsigned int getNumMemoryStmtsForKernel(unsigned int ID) {
     return MAS[ID].size();
   }
 
@@ -130,8 +143,8 @@ public:
     return MS[K.getID()];
   }
 
-  MemoryStmt *getStmtForAccess(const MemoryAccess &MA);
-  MemoryStmt *getStmtAtRange(const SourceRange &R, bool strict = false);
+  MemoryStmt *getMemoryStmtForAccess(const MemoryAccess &MA);
+  MemoryStmt *getMemoryStmtAtRange(const SourceRange &R, bool strict = false);
 
   // Retrieve an access by ID
   MemoryAccess *getByID(unsigned int);
@@ -149,14 +162,19 @@ public:
 
 public:
   static char ID;
-  DetectMemoryAccessesPass(KernelInfo &KI, MemoryInfo &MI);
+  DetectMemoryAccessesPass(KernelInfo &KI, MemoryInfo &MI, SourceInfo &SI);
   bool runOnModule(llvm::Module &M) override;
-  MemoryAccessInfo &getMemoryAccessInfo(SourceInfo &SI);
+  void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
+  MemoryAccessInfo &getMemoryAccessInfo() { return MAI; }
 
+  llvm::StringRef getPassName() const override { return "DetectMemoryAccessesPass"; }
 private:
   KernelInfo &KI;
   MemoryInfo &MI;
+  SourceInfo &SI;
   MemoryAccessInfo MAI;
+
+  void buildMemoryAccessInfo();
 };
 
 } // namespace kerma
