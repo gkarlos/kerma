@@ -86,7 +86,9 @@ static std::string tystr(MemoryStmt::Type Ty) {
     return "U";
 }
 
-void MemoryStmt::print(llvm::raw_ostream &O) {
+void MemoryStmt::print(llvm::raw_ostream &O) const {
+  auto nesting = std::string(getNesting(), '\t');
+  auto nestingPlus1 = nesting + '\t';
   O << std::string(getNesting(), '\t') << '(' << tystr(getType()) << ") " << getRange() << " { ";
   for (auto &MA : getAccesses())
     O << "#" << MA.getID() << ' ';
@@ -96,6 +98,8 @@ void MemoryStmt::print(llvm::raw_ostream &O) {
   } else {
     O << " parent: none";
   }
+  for ( auto &A : this->getAccesses())
+    O << '\n' << nestingPlus1 << A;
 }
 
 

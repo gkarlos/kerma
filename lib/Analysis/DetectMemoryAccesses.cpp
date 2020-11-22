@@ -167,14 +167,13 @@ bool DetectMemoryAccessesPass::runOnModule(Module &M) {
         if (auto *LI = dyn_cast<LoadInst>(&I)) {
           auto *Obj =
               GetUnderlyingObject(LI->getPointerOperand(), M.getDataLayout());
+          // errs() << LI->getDebugLoc().getLine() << ':' << LI->getDebugLoc().getCol() << " -- " << *Obj << '\n';
           if (auto *M = MI.getMemoryForVal(Obj, &Kernel)) {
+            errs() << *M << '\n';
             MemoryAccess MA(*M, LI, LI->getPointerOperand(),
                             MemoryAccess::Load);
             MA.setLoc(SourceLoc::from(LI->getDebugLoc()));
-            MAI.L[Kernel.getID()].push_back(MA);
           } else {
-            // llvm::errs() << *LI << "\n\t" << *Obj << "\n\t" <<
-            // SourceLoc(LI->getDebugLoc()) << '\n';
             MAI.IgnL[Kernel.getID()].push_back(std::make_pair(LI, Obj));
           }
         } else if (auto *SI = dyn_cast<StoreInst>(&I)) {
@@ -186,8 +185,6 @@ bool DetectMemoryAccessesPass::runOnModule(Module &M) {
             MA.setLoc(SourceLoc::from(SI->getDebugLoc()));
             MAI.S[Kernel.getID()].push_back(MA);
           } else {
-            // llvm::errs() << *SI << "\n\t" << *Obj << "\n\t" <<
-            // SourceLoc(SI->getDebugLoc()) << '\n';
             MAI.IgnS[Kernel.getID()].push_back(std::make_pair(SI, Obj));
           }
         } else if (auto *CI = dyn_cast<CallInst>(&I)) {
@@ -200,8 +197,6 @@ bool DetectMemoryAccessesPass::runOnModule(Module &M) {
               MA.setLoc(SourceLoc::from(CI->getDebugLoc()));
               MAI.A[Kernel.getID()].push_back(MA);
             } else {
-              // llvm::errs() << *CI << "\n\t" << *Obj << "\n\t" <<
-              // SourceLoc(SI->getDebugLoc()) << '\n';
               MAI.IgnA[Kernel.getID()].push_back(std::make_pair(CI, Obj));
             }
           }
@@ -263,6 +258,11 @@ static void getNodesForLoop(LoopNest *ME, vector<LoopNest*> &Loops,
 static void groupMemoryAccessesToMemoryStmts(Kernel &Kernel, SourceInfo &SI, MemoryAccessInfo &MAI) {
   auto Ranges = SI.getRangesInRange(Kernel.getSourceRange());
   auto Accesses = MAI.getAccessesForKernel(Kernel);
+
+  // std::sort(Accesses.begin(), Accesses.end(), [](MemoryAccess &A, MemoryAccess &B) {
+  //   return A.getID() < B.getID();
+  // });
+
   for (auto &Access : Accesses) {
     // if there is a MemoryStmt for this access bail
     if (MAI.getMemoryStmtForAccess(Access))
@@ -283,6 +283,7 @@ static void groupMemoryAccessesToMemoryStmts(Kernel &Kernel, SourceInfo &SI, Mem
     }
   }
 }
+
 void DetectMemoryAccessesPass::buildMemoryAccessInfo() {
   for (auto &Kernel : KI.getKernels()) {
     groupMemoryAccessesToMemoryStmts(Kernel, SI, MAI);
@@ -315,11 +316,6 @@ void DetectMemoryAccessesPass::buildMemoryAccessInfo() {
     // Whatever remains just insert to the graph
     for ( auto &E : Unassigned)
       MAI.Nodes[Kernel.getID()].push_back(E);
-
-    errs() << '\n' << "<<<Graph>>> " << Kernel.getName() << " \n";
-    for (auto *Node : MAI.Nodes[Kernel.getID()]) {
-      errs() << *Node << '\n';
-    }
   }
 }
 

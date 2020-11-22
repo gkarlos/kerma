@@ -32,11 +32,12 @@ private:
 
   // The memory accesses grouped in statements, per kernel
   std::unordered_map<unsigned, std::vector<MemoryStmt>> MAS;
+
   // The Loop nests, per kernel
-  std::unordered_map<unsigned, std::vector<LoopNest*>> Loops;
+  std::unordered_map<unsigned, std::vector<LoopNest *>> Loops;
 
   // The actual nodes lists, per kernel
-  std::unordered_map<unsigned, std::vector<KermaNode*>> Nodes;
+  std::unordered_map<unsigned, std::vector<KermaNode *>> Nodes;
 
   // Ignored accesses. Keys are kernel ids
   // Values are vectors of <instruction,underlying-object> pairs
@@ -69,7 +70,13 @@ private:
       IgnMS; // memset
 
 public:
-  const std::vector<KermaNode> &getNodes();
+  // Retrieve the nodes of the Memory Tree for a given kernel.
+  // The nodes are stored in level-order (BFS).
+  // There is a catch. If any functions are inlined we might find
+  // nodes with source locations outside of the kernel
+  const std::vector<KermaNode *> &getMemoryTree(const Kernel &Kernel) {
+    return Nodes[Kernel.getID()];
+  }
 
   std::vector<MemoryAccess> getAccessesForKernel(const Kernel &K) {
     return getAccessesForKernel(K.getID());
@@ -80,10 +87,11 @@ public:
     MAS[K.getID()].push_back(Stmt);
   }
 
-  const std::vector<MemoryStmt> &getMemoryStmtsForKernel(const Kernel &K) {
+  std::vector<MemoryStmt> &getMemoryStmtsForKernel(const Kernel &K) {
     return MAS[K.getID()];
   }
-  const std::vector<MemoryStmt> &getMemoryStmtsForKernel(unsigned int ID) {
+
+  std::vector<MemoryStmt> &getMemoryStmtsForKernel(unsigned int ID) {
     return MAS[ID];
   }
 
@@ -127,18 +135,23 @@ public:
     return A[K.getID()];
   }
 
-  unsigned int getNumMemmovesForKernel(Kernel &K) { return MM[K.getID()].size(); }
+  unsigned int getNumMemmovesForKernel(Kernel &K) {
+    return MM[K.getID()].size();
+  }
   const std::vector<MemoryAccess> &getMemmovesForKernel(const Kernel &K) {
     return MM[K.getID()];
   }
 
-
-  unsigned int getNumMemcpysForKernel(Kernel &K) { return MC[K.getID()].size(); }
+  unsigned int getNumMemcpysForKernel(Kernel &K) {
+    return MC[K.getID()].size();
+  }
   const std::vector<MemoryAccess> &getMemcpysForKernel(const Kernel &K) {
     return MC[K.getID()];
   }
 
-  unsigned int getNumMemsetsForKernel(Kernel &K) { return MS[K.getID()].size(); }
+  unsigned int getNumMemsetsForKernel(Kernel &K) {
+    return MS[K.getID()].size();
+  }
   const std::vector<MemoryAccess> &getMemsetsForKernel(const Kernel &K) {
     return MS[K.getID()];
   }
@@ -167,7 +180,10 @@ public:
   void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
   MemoryAccessInfo &getMemoryAccessInfo() { return MAI; }
 
-  llvm::StringRef getPassName() const override { return "DetectMemoryAccessesPass"; }
+  llvm::StringRef getPassName() const override {
+    return "DetectMemoryAccessesPass";
+  }
+
 private:
   KernelInfo &KI;
   MemoryInfo &MI;

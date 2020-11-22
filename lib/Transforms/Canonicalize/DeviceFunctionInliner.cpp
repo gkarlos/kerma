@@ -17,10 +17,10 @@
 #include "kerma/NVVM/NVVMUtilities.h"
 #include "kerma/Support/Demangle.h"
 
+#include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Analysis/AssumptionCache.h>
 #include <llvm/Analysis/InlineCost.h>
-#include <llvm/ADT/SmallVector.h>
 #include <llvm/Analysis/OptimizationRemarkEmitter.h>
 #include <llvm/Demangle/Demangle.h>
 #include <llvm/IR/CallSite.h>
@@ -30,11 +30,11 @@
 #include <llvm/Pass.h>
 #include <llvm/PassAnalysisSupport.h>
 #include <llvm/Support/FormatVariadic.h>
+#include <llvm/Support/WithColor.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Transforms/IPO/AlwaysInliner.h>
 #include <llvm/Transforms/Utils/Cloning.h>
 #include <llvm/Transforms/Utils/ModuleUtils.h>
-#include <llvm/Support/WithColor.h>
 
 using namespace kerma;
 using namespace llvm;
@@ -43,30 +43,32 @@ char DeviceFunctionInliner::ID = 114;
 
 DeviceFunctionInliner::DeviceFunctionInliner() : ModulePass(ID) {}
 
-bool DeviceFunctionInliner::doInline(Module& M) {
+bool DeviceFunctionInliner::doInline(Module &M) {
   InlineFunctionInfo IFI;
 
   SmallVector<CallBase *, 16> Calls;
   SmallVector<Function *, 16> InlinedFunctions;
   bool Changed = false;
 
-  for ( auto& F : M) {
-    if ( !F.isDeclaration() && !F.isIntrinsic() && F.hasFnAttribute(Attribute::AlwaysInline) && isInlineViable(F)) {
+  for (auto &F : M) {
+    if (!F.isDeclaration() && !F.isIntrinsic() &&
+        F.hasFnAttribute(Attribute::AlwaysInline) && isInlineViable(F)) {
       Calls.clear();
 
       for (User *U : F.users())
-        if (auto* CB = dyn_cast<CallBase>(U))
+        if (auto *CB = dyn_cast<CallBase>(U))
           if (CB->getCalledFunction() == &F)
             Calls.push_back(CB);
 
-      for ( CallBase *CB : Calls) {
+      for (CallBase *CB : Calls) {
         CallsChecked++;
-        auto *Prev  = CB->getPrevNonDebugInstruction();
-        auto *Next  = CB->getNextNonDebugInstruction();
-        auto *Caller= CB->getCaller();
-        if ( InlineFunction(CB, IFI, nullptr, false) ) {
+        auto *Prev = CB->getPrevNonDebugInstruction();
+        auto *Next = CB->getNextNonDebugInstruction();
+        auto *Caller = CB->getCaller();
+        if (InlineFunction(CB, IFI, nullptr, false)) {
           CallsInlined++;
-          Info.push_back( InlineInfo(CB->getCalledFunction(), Caller, Prev, Next));
+          Info.push_back(
+              InlineInfo(CB->getCalledFunction(), Caller, Prev, Next));
           Changed = true;
         }
       }
@@ -78,12 +80,10 @@ bool DeviceFunctionInliner::doInline(Module& M) {
     });
 
     // Delete the non-comdat ones from the module and also from our vector.
-    auto NonComdatBegin = partition(InlinedFunctions,
-                                    [&](Function *F) {
-                                      return F->hasComdat();
-                                    });
+    auto NonComdatBegin = partition(
+        InlinedFunctions, [&](Function *F) { return F->hasComdat(); });
 
-    for (auto* F : make_range(NonComdatBegin, InlinedFunctions.end()))
+    for (auto *F : make_range(NonComdatBegin, InlinedFunctions.end()))
       M.getFunctionList().erase(F);
 
     InlinedFunctions.erase(NonComdatBegin, InlinedFunctions.end());
@@ -91,7 +91,7 @@ bool DeviceFunctionInliner::doInline(Module& M) {
     if (!InlinedFunctions.empty()) {
       filterDeadComdatFunctions(M, InlinedFunctions);
       // The remaining functions are actually dead.
-      for (auto* F : InlinedFunctions)
+      for (auto *F : InlinedFunctions)
         M.getFunctionList().erase(F);
     }
   }
@@ -99,8 +99,8 @@ bool DeviceFunctionInliner::doInline(Module& M) {
   return Changed;
 }
 
-bool DeviceFunctionInliner::runOnModule(Module& M) {
-  if ( !nvvm::isDeviceModule(M))
+bool DeviceFunctionInliner::runOnModule(Module &M) {
+  if (!nvvm::isDeviceModule(M))
     return false;
 
   FunctionsMarkedForInlining.clear();
@@ -109,20 +109,14 @@ bool DeviceFunctionInliner::runOnModule(Module& M) {
   Info.clear();
 
   // step 1: Mark for inline
-  for ( auto& F : M) {
-    if ( F.isDeclaration() || F.isIntrinsic()
-                           || nvvm::isCudaInternal(F)
-                           || nvvm::isKernelFunction(F)
-                           || nvvm::isCudaAPIFunction(F)
-                           || nvvm::isAtomicFunction(F)
-                           || nvvm::isIntrinsicFunction(F)
-                           || nvvm::isReadOnlyCacheFunction(F)
-                           || StringRef(demangle(F.getName())).startswith("__kerma")) {
-                             llvm::errs() <<F.getName() << " skipping\n";
-                             continue;
-                           }
-
-    llvm::errs() << F.getName() << " not skipping\n";
+  for (auto &F : M) {
+    if (F.isDeclaration() || F.isIntrinsic() || nvvm::isCudaInternal(F) ||
+        nvvm::isKernelFunction(F) || nvvm::isCudaAPIFunction(F) ||
+        nvvm::isAtomicFunction(F) || nvvm::isIntrinsicFunction(F) ||
+        nvvm::isReadOnlyCacheFunction(F) ||
+        StringRef(demangle(F.getName())).startswith("__kerma")) {
+      continue;
+    }
     F.removeFnAttr(Attribute::AttrKind::OptimizeNone);
     F.removeFnAttr(Attribute::AttrKind::NoInline);
     F.addFnAttr(Attribute::AttrKind::AlwaysInline);
@@ -132,35 +126,35 @@ bool DeviceFunctionInliner::runOnModule(Module& M) {
   // step 2: perform the inlining
   doInline(M);
 
-// #ifdef KERMA_OPT_PLUGIN
+#ifdef KERMA_OPT_PLUGIN
   WithColor(errs(), HighlightColor::Note) << '[';
-  WithColor(errs(), raw_ostream::Colors::GREEN) << formatv("{0,15}", "DeviceInliner");
+  WithColor(errs(), raw_ostream::Colors::GREEN)
+      << formatv("{0,15}", "DeviceInliner");
   WithColor(errs(), HighlightColor::Note) << ']';
   errs() << ' ' << FunctionsMarkedForInlining.size() << " functions";
-// #endif
+#endif
 
-  if ( FunctionsMarkedForInlining.size()) {
-// #ifdef KERMA_OPT_PLUGIN
+  if (FunctionsMarkedForInlining.size()) {
+#ifdef KERMA_OPT_PLUGIN
     errs() << ", " << CallsInlined << '/' << CallsChecked << " calls\n";
-    for ( auto *F : FunctionsMarkedForInlining)
+    for (auto *F : FunctionsMarkedForInlining)
       WithColor::note() << demangleFnWithoutArgs(*F) << '\n';
-// #endif
+#endif
     return CallsInlined;
   } else {
-// #ifdef KERMA_OPT_PLUGIN
+#ifdef KERMA_OPT_PLUGIN
     errs() << '\n';
-// #endif
+#endif
     return false;
   }
 }
 
-
 namespace {
 
-static llvm::RegisterPass<kerma::DeviceFunctionInliner> RegisterDeviceFunctionInliner(
-                                        /* pass arg  */    "kerma-dev-inline",
-                                        /* pass name */    "Inline device functions",
-                                        /* modifies CFG */ false,
-                                        /* analysis pass*/ false);
+static llvm::RegisterPass<kerma::DeviceFunctionInliner>
+    RegisterDeviceFunctionInliner(
+        /* pass arg  */ "kerma-dev-inline",
+        /* pass name */ "Inline device functions",
+        /* modifies CFG */ false,
+        /* analysis pass*/ false);
 }
-
