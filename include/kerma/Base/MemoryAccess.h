@@ -5,6 +5,7 @@
 #include "kerma/Base/Memory.h"
 #include "kerma/SourceInfo/SourceLoc.h"
 #include <llvm/IR/Instruction.h>
+#include <map>
 
 namespace kerma {
 
@@ -75,6 +76,17 @@ public:
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &os,
                                        const MemoryAccess &MA);
   friend std::ostream &operator<<(std::ostream &os, const MemoryAccess &MA);
+
+  friend void swap(MemoryAccess &A, MemoryAccess &B) {
+    using std::swap;
+    swap(A.ID, B.ID);
+    swap(A.M, B.M);
+    swap(A.Inst, B.Inst);
+    swap(A.Ptr, B.Ptr);
+    swap(A.Loc, B.Loc);
+    swap(A.Ty, B.Ty);
+    swap(A.Idx, B.Idx);
+  }
 
 private:
   MemoryAccess(unsigned int ID, Memory &M, llvm::Instruction *Inst,

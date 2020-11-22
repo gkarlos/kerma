@@ -51,9 +51,13 @@ public:
 
   const std::vector<MemoryAccess> & getAccesses() const { return MAS; }
   const unsigned int getNumAccesses() const { return MAS.size(); }
-  virtual void print(llvm::raw_ostream &O) override;
+  virtual void print(llvm::raw_ostream &O) const override;
   // friend std::ostream & operator<<(std::ostream &os, const MemoryStmt &S);
   // friend llvm::raw_ostream & operator<<(llvm::raw_ostream &os, const MemoryStmt &S);
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &O, const MemoryStmt &KN) {
+    KN.print(O);
+    return O;
+  }
 
   static bool classof(const KermaNode *S);
 

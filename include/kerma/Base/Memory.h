@@ -18,18 +18,6 @@ class Memory {
 public:
   enum Kind : unsigned { Unknown = 0, Arg, Global, Alloca};
 
-private:
-  unsigned int ID;
-  std::string Name;
-  Kind Kind;
-  Dim KnownDim;
-  Dim AssumedDim;
-  nvvm::AddressSpace::Ty AddrSpace;
-  llvm::Value *V = nullptr;
-  llvm::Type *T = nullptr;
-  std::set<unsigned> KernelUsers;
-  unsigned TySize = 0;
-
 public:
   Memory(const std::string &Name,
          nvvm::AddressSpace::Ty AddrSpace = nvvm::AddressSpace::Unknown);
@@ -100,6 +88,32 @@ public:
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &os, const Memory &M);
 
   friend std::ostream &operator<<(std::ostream &os, const Memory &M);
+
+  friend void swap(Memory &A, Memory &B) {
+    using std::swap;
+    swap(A.ID, B.ID);
+    swap(A.Kind, B.Kind);
+    swap(A.Name, B.Name);
+    swap(A.KnownDim, B.KnownDim);
+    swap(A.AssumedDim, B.AssumedDim);
+    swap(A.AddrSpace, B.AddrSpace);
+    swap(A.V, B.V);
+    swap(A.T, B.T);
+    swap(A.KernelUsers, B.KernelUsers);
+    swap(A.TySize, B.TySize);
+  }
+
+  private:
+    unsigned int ID;
+    std::string Name;
+    Kind Kind;
+    Dim KnownDim;
+    Dim AssumedDim;
+    nvvm::AddressSpace::Ty AddrSpace;
+    llvm::Value *V = nullptr;
+    llvm::Type *T = nullptr;
+    std::set<unsigned> KernelUsers;
+    unsigned TySize = 0;
 };
 
 } // namespace kerma

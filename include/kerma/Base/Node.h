@@ -22,7 +22,7 @@ protected:
   KermaNode *Parent = nullptr;
   SourceRange Range;
   static unsigned genID();
-  virtual void print(llvm::raw_ostream &O) {
+  virtual void print(llvm::raw_ostream &O) const {
     O << "(?) Node " << this;
   }
 

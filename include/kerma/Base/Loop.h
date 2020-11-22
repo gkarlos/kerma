@@ -25,9 +25,9 @@ public:
   std::vector<KermaNode*> getLoopChildren();
   std::vector<KermaNode*> getNonLoopChildren();
   const std::vector<KermaNode*> &getChildren() { return Children; }
-  unsigned getID() { return ID; }
+  unsigned getID() const { return ID; }
 
-  virtual void print(llvm::raw_ostream &O) override {
+  virtual void print(llvm::raw_ostream &O) const override {
     O << std::string(getNesting(), '\t') << "(Loop) " << getRange() << " #" << getID() << " children: " << Children.size() << ", ";
     if ( getParent()) {
       O << " parent: #" << llvm::dyn_cast<LoopNest>(getParent())->getID();
