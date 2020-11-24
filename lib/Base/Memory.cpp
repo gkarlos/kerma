@@ -136,7 +136,7 @@ static std::string KindToString(enum Memory::Kind K) {
 }
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Memory &M) {
-  OS << M.getName() << ':' << M.TySize << " !" << M.getAddrSpace().getID() << ' ';
+  OS << '\'' << M.getName() << "':" << M.TySize << " !" << M.getAddrSpace().getID() << ' ';
   OS << M.KnownDim;
   OS << ",";
   OS << M.AssumedDim;
@@ -144,7 +144,7 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Memory &M) {
 }
 
 std::ostream &operator<<(std::ostream &OS, const Memory &M) {
-  OS << M.getName() << ':' << M.TySize << " !" << M.getAddrSpace().getID() << ' ';
+  OS << '\'' << M.getName() << "':" << M.TySize << " !" << M.getAddrSpace().getID() << ' ';
   OS << M.KnownDim;
   OS << ",";
   OS << M.AssumedDim;
