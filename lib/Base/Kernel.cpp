@@ -25,6 +25,16 @@ Kernel::Kernel(unsigned int ID, llvm::Function *F) : ID(ID), F(F) {
   DemangledName = demangleFnWithoutArgs(*F);
 }
 
-Kernel::Kernel(const Kernel& Other)
-: F(Other.F), DemangledName(Other.DemangledName), ID(Other.ID) {}
+Kernel::Kernel(const Kernel& Other) {
+  *this = Other;
+}
+
+namespace kerma {
+
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Kernel &K) {
+  OS << "<KERNEL> " << K.Range << " #" << K.getID() << " '" << K.getName() << '\'';
+  return OS;
+}
+
+}
 
