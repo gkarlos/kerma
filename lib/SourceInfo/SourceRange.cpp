@@ -3,13 +3,10 @@
 
 namespace kerma {
 
-SourceRange::SourceRange(SourceLoc start)
-: S(start), E(start)
-{}
+SourceRange::SourceRange(SourceLoc start) : S(start), E(start) {}
 
 SourceRange::SourceRange(SourceLoc start, SourceLoc end)
-: S(start), E(end < start? start : end)
-{}
+    : S(start), E(end < start ? start : end) {}
 
 bool SourceRange::isValid() const { return S.isValid(); }
 
@@ -18,37 +15,36 @@ bool SourceRange::isInvalid() const { return S.isInvalid(); }
 bool SourceRange::isEmpty() const { return S == E; }
 
 bool SourceRange::operator==(const SourceRange &other) const {
-  return  S == other.S && E == other.E;
+  return (S == other.S) && (E == other.E);
 }
 
 bool SourceRange::contains(const SourceLoc &Loc) const {
-  return S <= Loc && Loc <= E;
+  return (S <= Loc) && (Loc <= E);
 }
 
 bool SourceRange::contains(const SourceRange &Range) const {
-  return contains(Range.getStart())
-      && contains(Range.getEnd());
+  return contains(Range.getStart()) && contains(Range.getEnd());
 }
 
 bool SourceRange::containsLine(const SourceLoc &Loc) const {
-  return Loc.getLine() >= S.getLine() && (E? Loc.getLine() <= E.getLine() : true);
+  return (Loc.getLine() >= S.getLine()) &&
+         (E ? Loc.getLine() <= E.getLine() : true);
 }
 
 bool SourceRange::overlaps(const SourceRange &Range) const {
-  return contains(Range.getStart())
-      || contains(Range.getEnd());
+  return contains(Range.getStart()) || contains(Range.getEnd());
 }
 
 bool SourceRange::operator!=(const SourceRange &other) const {
   return !(*this == other);
 }
 
-std::ostream & operator<<(std::ostream &os, const SourceRange &loc) {
+std::ostream &operator<<(std::ostream &os, const SourceRange &loc) {
   os << loc.S << "," << loc.E;
   return os;
 }
 
-llvm::raw_ostream & operator<<(llvm::raw_ostream &os, const SourceRange &loc) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &os, const SourceRange &loc) {
   os << loc.S << "," << loc.E;
   return os;
 }
@@ -57,7 +53,9 @@ const SourceRange SourceRange::Unknown(SourceLoc::Unknown);
 
 } // namespace kerma
 
-std::size_t std::hash<kerma::SourceRange>::operator()(const kerma::SourceRange& Range) const {
-  return (std::hash<kerma::SourceLoc>()(Range.getStart())
-          ^ (std::hash<kerma::SourceLoc>()(Range.getEnd()) << 1)) >> 1;
+std::size_t std::hash<kerma::SourceRange>::operator()(
+    const kerma::SourceRange &Range) const {
+  return (std::hash<kerma::SourceLoc>()(Range.getStart()) ^
+          (std::hash<kerma::SourceLoc>()(Range.getEnd()) << 1)) >>
+         1;
 }

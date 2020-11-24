@@ -63,7 +63,7 @@ SourceLoc &SourceLoc::operator=(const SourceLoc &other) {
 }
 
 bool SourceLoc::operator==(const SourceLoc &other) const {
-  return L == other.L && C == other.C;
+  return (L == other.L) && (C == other.C);
 }
 
 bool SourceLoc::operator!=(const SourceLoc &other) const {
@@ -71,19 +71,19 @@ bool SourceLoc::operator!=(const SourceLoc &other) const {
 }
 
 bool SourceLoc::operator<(const SourceLoc &other) const {
-  return L == other.L ? C < other.C : L < other.L;
+  return (L == other.L) ? (C < other.C) : (L < other.L);
 }
 
 bool SourceLoc::operator<=(const SourceLoc &other) const {
-  return L == other.L ? C <= other.C : L <= other.L;
+  return (L == other.L) ? (C <= other.C) : (L <= other.L);
 }
 
 bool SourceLoc::operator>(const SourceLoc &other) const {
-  return L == other.L ? C > other.C : L > other.L;
+  return (L == other.L) ? (C > other.C) : (L > other.L);
 }
 
 bool SourceLoc::operator>=(const SourceLoc &other) const {
-  return L == other.L ? C >= other.C : L >= other.L;
+  return (L == other.L) ? (C >= other.C) : (L >= other.L);
 }
 
 std::ostream &operator<<(std::ostream &os, const SourceLoc &loc) {
@@ -97,7 +97,7 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &os, const SourceLoc &loc) {
 }
 
 SourceLoc SourceLoc::from(const llvm::DebugLoc &DL) {
-  return SourceLoc(DL.getLine(), DL.getCol());
+  return SourceLoc(DL ? DL.getLine() : 0, DL ? DL.getCol() : 0);
 }
 
 } // namespace kerma
