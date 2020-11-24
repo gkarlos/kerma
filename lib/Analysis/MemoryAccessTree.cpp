@@ -17,6 +17,16 @@ using namespace llvm;
 
 namespace kerma {
 
+void MemoryAccessTree::dump() {
+  errs() << Kernel << '\n';
+  for ( auto *Node : Tree)
+    errs() << *Node;
+  errs() << '\n';
+}
+
+
+// Pass
+
 char MATBuilder::ID = 43;
 
 MATBuilder::MATBuilder(KernelInfo &KI, MemoryInfo &MI, SourceInfo &SI)
@@ -68,36 +78,6 @@ static struct {
     return A->getRange().getStart() < B->getRange().getStart();
   }
 } StartLocComparator;
-
-// void MATBuilder::PopulateLoop(Kernel &K, LoopNest *Myself,
-//                               std::vector<KermaNode *> &All) {
-//   auto it1 = All.begin();
-//   while (it1 != All.end()) {
-//     if ((*it1)->getRange().getEnd() < Myself->getRange().getStart()) {
-//       auto *node = *it1;
-//       it1 = All.erase(it1++);
-//       if (auto *S = dyn_cast<Stmt>(node)) {
-//         InsertNodeToParent(Myself, S, K);
-//       } else if (auto *IF = dyn_cast<If>(node)) {
-//         PopulateIf(K, IF, All);
-//         InsertNodeToParent(Myself, IF, K);
-//       } else {
-//         errs() << "WTF\n";
-//       }
-//     } else {
-//       break;
-//     }
-//   }
-
-//   for (auto &Loop : Myself->getLoop()->getSubLoops()) {
-//     auto *LN = new LoopNest(Loop);
-//     LoopNodes[K.getID()].push_back(LN);
-//     PopulateLoop(K, LN, All);
-//   }
-// }
-
-// void MATBuilder::PopulateIf(Kernel &K, If *IFNode,
-//                             std::vector<KermaNode *> &All) {}
 
 // Create Nodes for each if statement. This function does not
 // link nodes with their parents. We do that later.
@@ -169,13 +149,10 @@ void MATBuilder::Nest(KermaNode *Node, KermaNode *Scope, Kernel &Kernel,
 }
 
 bool MATBuilder::runOnModule(llvm::Module &M) {
-  // errs() << "\n\n";
-
   auto &Kernels = KI.getKernels();
   auto &MAI = getAnalysis<DetectMemoryAccessesPass>().getMemoryAccessInfo();
 
   for (auto &Kernel : Kernels) {
-    // errs() << Kernel << '\n';
     if (MAI.getNumAccessesForKernel(Kernel) == 0)
       continue;
 
@@ -192,19 +169,11 @@ bool MATBuilder::runOnModule(llvm::Module &M) {
     CreateLoopNodes(Kernel, All, LI);
     sort(All, StartLocComparator);
 
-    // errs() << "ALL STATEMENTS: \n";
-    // for ( auto *e : All)
-    //   errs() << *e << '\n';
-    // errs() << "#####################\n\n";
-
     while (!All.empty()) {
       auto *N = *All.begin();
       All.erase(All.begin());
       Nest(N, nullptr, Kernel, All);
     }
-
-    for (auto *Node : Trees[Kernel.getID()])
-      errs() << *Node << '\n';
   }
 
   return false;
