@@ -39,6 +39,7 @@ public:
   InferAddressSpacesPass();
 public:
   bool runOnFunction(llvm::Function& F) override;
+  llvm::StringRef getPassName() const override { return "InferAddressSpacesPass"; }
 };
 
 } // namespace kerma
