@@ -13,44 +13,45 @@ public:
   // We should probably make the Kernel/Function also a KermaNode
   // but for now we store kernel nodes in a hashmap with entries
   // <Kernel, NodeList>
-  enum NodeKind { NK_MemStmt = 0, NK_Loop};
+  enum NodeKind { NK_Stmt = 0, NK_If, NK_Loop };
 
 private:
+  unsigned ID;
   NodeKind Kind;
 
 protected:
   KermaNode *Parent = nullptr;
   SourceRange Range;
-  static unsigned genID();
-  virtual void print(llvm::raw_ostream &O) const {
-    O << "(?) Node " << this;
-  }
+  virtual void print(llvm::raw_ostream &O) const { O << "(?) Node " << this; }
+
+private:
+  KermaNode(unsigned ID, NodeKind Kind, const SourceRange &Range,
+            KermaNode *Parent = nullptr)
+      : ID(ID), Kind(Kind), Range(Range), Parent(Parent) {}
 
 public:
-  KermaNode()=delete;
+  KermaNode() = delete;
   KermaNode(const KermaNode &O) { *this = O; }
   KermaNode(NodeKind Kind, const SourceRange &Range,
-            KermaNode *Parent = nullptr)
-      : Kind(Kind), Range(Range), Parent(Parent) {}
+            KermaNode *Parent = nullptr);
   NodeKind getKind() const { return Kind; }
+  unsigned getID() const { return ID; }
   virtual const SourceRange &getRange() const { return Range; }
-  virtual KermaNode *getParent() const { return Parent; }
-  virtual void setParent(KermaNode *Node) { Parent = Node; }
-  virtual unsigned getNesting() const {
+  KermaNode *getParent() const { return Parent; }
+  void setParent(KermaNode *Node) { Parent = Node; }
+  unsigned getNesting() const {
     return Parent ? (1 + Parent->getNesting()) : 0;
   }
 
-  virtual KermaNode &operator=(const KermaNode &O) {
+  KermaNode &operator=(const KermaNode &O) {
     Parent = O.Parent;
     Range = O.Range;
+    Kind = O.Kind;
+    ID = O.ID;
     return *this;
   }
-  virtual bool operator==(const KermaNode &O) const {
-    return Range == O.Range;
-  }
-  virtual bool operator!=(const KermaNode &O) const {
-    return !operator==(O);
-  }
+  virtual bool operator==(const KermaNode &O) const { return Range == O.Range; }
+  virtual bool operator!=(const KermaNode &O) const { return !operator==(O); }
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &O, KermaNode &KN) {
     KN.print(O);
     return O;

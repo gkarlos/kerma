@@ -1,8 +1,8 @@
 #ifndef KERMA_BASE_MEMORY_STMT
 #define KERMA_BASE_MEMORY_STMT
 
-#include "kerma/Base/Node.h"
 #include "kerma/Base/MemoryAccess.h"
+#include "kerma/Base/Node.h"
 #include "kerma/SourceInfo/SourceInfo.h"
 #include "kerma/SourceInfo/SourceRange.h"
 #include <ostream>
@@ -11,50 +11,55 @@ namespace kerma {
 
 // Represents a source code statement that contains
 // a number of MemoryAccesses (at least 1)
-class MemoryStmt : public KermaNode {
+class Stmt : public KermaNode {
 public:
   enum Type : unsigned { UKN = 0, RD, WR, RDWR };
 
-protected:
-  MemoryStmt(unsigned ID, SourceRange R, Type Ty, KermaNode *Parent);
+  // protected:
+  //   Stmt(unsigned ID, SourceRange R, Type Ty, KermaNode *Parent);
 
 public:
-  MemoryStmt() : MemoryStmt(SourceRange::Unknown) {}
-  MemoryStmt(SourceRange R) : MemoryStmt(R, UKN) {}
-  MemoryStmt(SourceRange R, Type Ty) : MemoryStmt(R, Ty, nullptr) {}
-  MemoryStmt(SourceRange R, Type Ty, KermaNode *Parent);
+  Stmt() : Stmt(SourceRange::Unknown, UKN) {}
+  Stmt(SourceRange R) : Stmt(R, UKN) {}
+  Stmt(SourceRange R, Type Ty, KermaNode *Parent=nullptr)
+      : KermaNode(NK_Stmt, R, Parent), Ty(Ty) {}
 
   const Type getType() const { return Ty; }
-  const unsigned getID() const { return ID; }
 
   // Set the range of the statement. If the statement
   // already contains a number of accesses, then those
   // accesses that do not fit the new range are removed
   // Setting to SourceRange::Unknown is equivalent to
   // removing all MemoryAccesses
-  MemoryStmt &setRange(const SourceRange &R);
+  Stmt &setRange(const SourceRange &R);
 
-  virtual MemoryStmt &operator=(const MemoryStmt &O) {
+  virtual Stmt &operator=(const Stmt &O) {
     KermaNode::operator=(O);
     Ty = O.Ty;
-    MAS = O.MAS;
+    Accesses = O.Accesses;
     return *this;
   }
+
   // Add a MemoryAccess to this statement
-  // If the MemoryStmt already has a known range and \p MI does not
+  // If the Stmt already has a known range and \p MI does not
   // fit that range, false is returned <br/>
-  // If the MemoryStmt is has an unknown range, the MemoryStmts range becomes
+  // If the Stmt is has an unknown range, the Stmts range becomes
   // becomes the range of the statement \p MI belongs to which is
   // looked up in \p SI. <br> If the lookup fails \p MI is not added
   bool addMemoryAccess(MemoryAccess &MI, SourceInfo &SI);
 
+  // Returns true if the statement is a memory statement, that
+  // is type is RD/WR or RDWR. False otherwise
+  operator bool() const { return getType() != UKN; }
 
-  const std::vector<MemoryAccess> & getAccesses() const { return MAS; }
-  const unsigned int getNumAccesses() const { return MAS.size(); }
+  const std::vector<MemoryAccess> &getAccesses() const { return Accesses; }
+  const unsigned int getNumAccesses() const { return Accesses.size(); }
+
   virtual void print(llvm::raw_ostream &O) const override;
-  // friend std::ostream & operator<<(std::ostream &os, const MemoryStmt &S);
-  // friend llvm::raw_ostream & operator<<(llvm::raw_ostream &os, const MemoryStmt &S);
-  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &O, const MemoryStmt &KN) {
+  // friend std::ostream & operator<<(std::ostream &os, const Stmt &S);
+  // friend llvm::raw_ostream & operator<<(llvm::raw_ostream &os, const Stmt
+  // &S);
+  friend llvm::raw_ostream &operator<<(llvm::raw_ostream &O, const Stmt &KN) {
     KN.print(O);
     return O;
   }
@@ -62,9 +67,9 @@ public:
   static bool classof(const KermaNode *S);
 
 private:
-  KermaNode *Parent;
-  unsigned ID;
-  std::vector<MemoryAccess> MAS;
+  // KermaNode *Parent;
+  // unsigned ID;
+  std::vector<MemoryAccess> Accesses;
   SourceRange R;
   Type Ty;
 };

@@ -6,8 +6,8 @@ namespace kerma {
 
 static std::mutex mtx;
 
-unsigned KermaNode::genID() {
-  static volatile unsigned int IDs = 0;
+unsigned genID() {
+  static unsigned int IDs = 0;
   unsigned int id;
   mtx.lock();
   id = IDs++;
@@ -15,9 +15,13 @@ unsigned KermaNode::genID() {
   return id;
 }
 
-// llvm::raw_ostream &operator<<(llvm::raw_ostream &O, const KermaNode &KN) {
-//   KN.print(O);
-//   return O;
-// }
+static unsigned id = 0;
+
+KermaNode::KermaNode(NodeKind Kind, const SourceRange &Range, KermaNode *Parent)
+    : KermaNode(genID(), Kind, Range, Parent) {}
+
+// KermaNode::KermaNode(unsigned ID, NodeKind Kind, const SourceRange &Range,
+//                      KermaNode *Parent)
+//     : ID(ID), Kind(Kind), Range(Range), Parent(Parent) {}
 
 } // namespace kerma
