@@ -16,8 +16,8 @@ private:
   std::vector<Kernel> Kernels;
 
 public:
-  KernelInfo()=default;
-  KernelInfo(const std::vector<Kernel> &Kernels) : Kernels(Kernels) {}
+  KernelInfo()=delete;
+  // KernelInfo(const std::vector<Kernel> &Kernels) : Kernels(Kernels) {}
   KernelInfo(std::vector<Kernel> &Kernels) : Kernels(Kernels) {}
   bool isKernel(llvm::Function &F);
   Kernel *findByID(unsigned ID);
