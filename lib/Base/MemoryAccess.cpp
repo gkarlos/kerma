@@ -65,16 +65,14 @@ bool MemoryAccess::operator==(const MemoryAccess &O) const {
 }
 
 llvm::raw_ostream &operator<<(llvm::raw_ostream &os, const MemoryAccess &MA) {
-  os << " (" << MA.getTypeString() << " @" << MA.getLoc() << ") {"
-     << MA.getMemory() << "} " << MA.getIndex() << " "
-     << "#" << MA.getID();
+  os << "(" << MA.getTypeString() << ") " << MA.getLoc() << " #" << MA.getID() << " "
+     << MA.getMemory() << " . " << MA.getIndex();
   return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const MemoryAccess &MA) {
-  os << " (" << MA.getTypeString() << " @" << MA.getLoc() << ") {"
-     << MA.getMemory() << "} " << MA.getIndex() << " "
-     << "#" << MA.getID();
+  os << "(" << MA.getTypeString() << ") " << MA.getLoc() << " #" << MA.getID() << " "
+     << MA.getMemory() << " . " << MA.getIndex();
   return os;
 }
 
