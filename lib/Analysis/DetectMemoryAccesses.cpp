@@ -1,7 +1,7 @@
 #include "kerma/Analysis/DetectMemoryAccesses.h"
 #include "kerma/Base/Loop.h"
 #include "kerma/Base/MemoryAccess.h"
-#include "kerma/Base/MemoryStmt.h"
+#include "kerma/Base/Stmt.h"
 #include "kerma/Base/Node.h"
 #include "kerma/NVVM/NVVMUtilities.h"
 #include "kerma/SourceInfo/SourceInfo.h"
@@ -80,7 +80,7 @@ MemoryAccessInfo::getIgnoredAccessesForKernel(const Kernel &K) {
   return Res;
 }
 
-MemoryStmt *MemoryAccessInfo::getMemoryStmtForAccess(const MemoryAccess &MA) {
+Stmt *MemoryAccessInfo::getStmtForAccess(const MemoryAccess &MA) {
   for (auto &Entry : MAS)
     for (auto &S : Entry.second)
       for (auto &A : S.getAccesses())
@@ -89,7 +89,7 @@ MemoryStmt *MemoryAccessInfo::getMemoryStmtForAccess(const MemoryAccess &MA) {
   return nullptr;
 }
 
-MemoryStmt *MemoryAccessInfo::getMemoryStmtAtRange(const SourceRange &R,
+Stmt *MemoryAccessInfo::getStmtAtRange(const SourceRange &R,
                                                    bool strict) {
   for (auto &Entry : MAS)
     for (auto &S : Entry.second) {
@@ -101,7 +101,7 @@ MemoryStmt *MemoryAccessInfo::getMemoryStmtAtRange(const SourceRange &R,
   return nullptr;
 }
 
-unsigned int MemoryAccessInfo::getNumMemoryStmts() {
+unsigned int MemoryAccessInfo::getNumStmts() {
   unsigned int res = 0;
   for (auto &E : MAS)
     res += E.second.size();
@@ -155,28 +155,26 @@ DetectMemoryAccessesPass::DetectMemoryAccessesPass(KernelInfo &KI,
     : KI(KI), MI(MI), SI(SI), ModulePass(ID) {}
 
 void DetectMemoryAccessesPass::getAnalysisUsage(AnalysisUsage &AU) const {
-  AU.addRequired<LoopInfoWrapperPass>();
   AU.setPreservesAll();
 }
 
 bool DetectMemoryAccessesPass::runOnModule(Module &M) {
-
   for (auto &Kernel : KI.getKernels()) {
     for (auto &BB : *Kernel.getFunction()) {
       for (auto &I : BB) {
         if (auto *LI = dyn_cast<LoadInst>(&I)) {
           auto *Obj =
               GetUnderlyingObject(LI->getPointerOperand(), M.getDataLayout());
-          // errs() << LI->getDebugLoc().getLine() << ':' << LI->getDebugLoc().getCol() << " -- " << *Obj << '\n';
           if (auto *M = MI.getMemoryForVal(Obj, &Kernel)) {
-            errs() << *M << '\n';
             MemoryAccess MA(*M, LI, LI->getPointerOperand(),
                             MemoryAccess::Load);
             MA.setLoc(SourceLoc::from(LI->getDebugLoc()));
+            MAI.L[Kernel.getID()].push_back(MA);
           } else {
             MAI.IgnL[Kernel.getID()].push_back(std::make_pair(LI, Obj));
           }
-        } else if (auto *SI = dyn_cast<StoreInst>(&I)) {
+        }
+        else if (auto *SI = dyn_cast<StoreInst>(&I)) {
           auto *Obj =
               GetUnderlyingObject(SI->getPointerOperand(), M.getDataLayout());
           if (auto *M = MI.getMemoryForVal(Obj, &Kernel)) {
@@ -187,7 +185,16 @@ bool DetectMemoryAccessesPass::runOnModule(Module &M) {
           } else {
             MAI.IgnS[Kernel.getID()].push_back(std::make_pair(SI, Obj));
           }
-        } else if (auto *CI = dyn_cast<CallInst>(&I)) {
+        }
+        else if (auto *CI = dyn_cast<CallInst>(&I)) {
+          // FIXME: Here we handle only atomic calls
+          //        We should also handle memory intrinsics
+          //        The most important one is memcpy because
+          //        something like struct S s = structs[...]
+          //        will produce:
+          //          alocca s;
+          //          ...
+          //          memcpy(s, structs + ..., sizeof(struct S));
           if (isAtomicFunction(*CI->getCalledFunction())) {
             auto *Obj =
                 GetUnderlyingObject(CI->getArgOperand(0), M.getDataLayout());
@@ -201,6 +208,11 @@ bool DetectMemoryAccessesPass::runOnModule(Module &M) {
             }
           }
         }
+        // else if (auto *BI = dyn_cast<BranchInst>(&I)) {
+        //   auto *IfRange = this->SI.getRangeForBranch(BI);
+        //   if ( IfRange)
+        //     this->SI.print(errs(), *IfRange) << " " << *BI << '\n';
+        // }
       }
     }
   }
@@ -208,115 +220,83 @@ bool DetectMemoryAccessesPass::runOnModule(Module &M) {
   return false;
 }
 
-static void getNodesForLoop(LoopNest *ME, vector<LoopNest*> &Loops,
-                            vector<KermaNode *> &Nodes,
-                            vector<MemoryStmt *> &Unassigned) {
-  // the stmts before our body belong to our parent
-  auto itPre = Unassigned.begin();
-  while (itPre != Unassigned.end()) {
-    if ((*itPre)->getRange().getEnd() < ME->getRange().getStart()) {
-      if (!ME->getParent()) // we are at the top level
-        Nodes.push_back(*itPre);
-      else { // we have a parent
-        assert(isa<LoopNest>(ME->getParent()) && "Parent not a LoopNest!");
-        dyn_cast<LoopNest>(ME->getParent())->addChild(**itPre);
-      }
-      itPre = Unassigned.erase(itPre++);
-    } else {
-      ++itPre;
-    }
-  }
+// static void getNodesForLoop(LoopNest *ME, vector<LoopNest*> &Loops,
+//                             vector<KermaNode *> &Nodes,
+//                             vector<Stmt *> &Unassigned) {
+//   // the stmts before our body belong to our parent
+//   auto itPre = Unassigned.begin();
+//   while (itPre != Unassigned.end()) {
+//     if ((*itPre)->getRange().getEnd() < ME->getRange().getStart()) {
+//       if (!ME->getParent()) // we are at the top level
+//         Nodes.push_back(*itPre);
+//       else { // we have a parent
+//         assert(isa<LoopNest>(ME->getParent()) && "Parent not a LoopNest!");
+//         dyn_cast<LoopNest>(ME->getParent())->addChild(**itPre);
+//       }
+//       itPre = Unassigned.erase(itPre++);
+//     } else {
+//       ++itPre;
+//     }
+//   }
 
-  // insert ourselves to the node-list if we are top level
-  if ( !ME->getParent())
-    Nodes.push_back(ME);
-  else {
-    // we have a parent
-    // no need to assert as if something went wrong the previous assertion will fail
-    dyn_cast<LoopNest>(ME->getParent())->addChild(*ME);
-  }
+//   // insert ourselves to the node-list if we are top level
+//   if ( !ME->getParent())
+//     Nodes.push_back(ME);
+//   else {
+//     // we have a parent
+//     // no need to assert as if something went wrong the previous assertion will fail
+//     dyn_cast<LoopNest>(ME->getParent())->addChild(*ME);
+//   }
 
-  // Go through the subloops
-  for (auto *SubLoop : ME->getLoop()->getSubLoops()) {
-    Loops.push_back(new LoopNest(SubLoop, ME));
-    getNodesForLoop(Loops.back(), Loops, Nodes, Unassigned);
-  }
+//   // Go through the subloops
+//   for (auto *SubLoop : ME->getLoop()->getSubLoops()) {
+//     Loops.push_back(new LoopNest(SubLoop, ME));
+//     getNodesForLoop(Loops.back(), Loops, Nodes, Unassigned);
+//   }
 
-  // add any statements between the end of
-  // the last subloop and our end also to us
-  auto itPost = Unassigned.begin();
-  while (itPost != Unassigned.end()) {
-    if ( (*itPost)->getRange().getEnd() <= ME->getRange().getEnd()) {
-      ME->addChild(**itPost);
-      itPost = Unassigned.erase(itPost++);
-    } else {
-      ++itPost;
-    }
-  }
-}
+//   // add any statements between the end of
+//   // the last subloop and our end also to us
+//   auto itPost = Unassigned.begin();
+//   while (itPost != Unassigned.end()) {
+//     if ( (*itPost)->getRange().getEnd() <= ME->getRange().getEnd()) {
+//       ME->addChild(**itPost);
+//       itPost = Unassigned.erase(itPost++);
+//     } else {
+//       ++itPost;
+//     }
+//   }
+// }
 
-static void groupMemoryAccessesToMemoryStmts(Kernel &Kernel, SourceInfo &SI, MemoryAccessInfo &MAI) {
+static void groupMemoryAccessesToStmts(Kernel &Kernel, SourceInfo &SI, MemoryAccessInfo &MAI) {
   auto Ranges = SI.getRangesInRange(Kernel.getSourceRange());
   auto Accesses = MAI.getAccessesForKernel(Kernel);
 
-  // std::sort(Accesses.begin(), Accesses.end(), [](MemoryAccess &A, MemoryAccess &B) {
-  //   return A.getID() < B.getID();
-  // });
-
   for (auto &Access : Accesses) {
-    // if there is a MemoryStmt for this access bail
-    if (MAI.getMemoryStmtForAccess(Access))
+    // if there is a Stmt for this access bail
+    if (MAI.getStmtForAccess(Access))
       continue;
+
     // find the range of the source statement for this access
     if (auto Range = SI.getRangeForLoc(Access.getLoc())) {
-      // if there is a MemoryStmt with that range in MAS
-      if (auto *Stmt = MAI.getMemoryStmtAtRange(Range)) {
+      // if there is a Stmt with that range in MAS
+      if (auto *stmt = MAI.getStmtAtRange(Range)) {
         // just append the access to that statement
-        Stmt->addMemoryAccess(Access, SI);
+        stmt->addMemoryAccess(Access, SI);
       } else {
-        // otherwise create a new MemoryStmt
-        MemoryStmt S(Range);
+        // otherwise create a new Stmt
+        Stmt S(Range);
         S.addMemoryAccess(Access, SI);
-        // MAI.MAS[Kernel.getID()].push_back(S);
-        MAI.addMemoryStmtForKernel(Kernel, S);
+        MAI.addStmtForKernel(Kernel, S);
       }
+    } else {
+      errs() << "**WARNING** No range for " << Access << '\n';
     }
   }
 }
 
 void DetectMemoryAccessesPass::buildMemoryAccessInfo() {
-  for (auto &Kernel : KI.getKernels()) {
-    groupMemoryAccessesToMemoryStmts(Kernel, SI, MAI);
-
-    // if the kernel has not memory acceses bail
-    if (MAI.MAS[Kernel.getID()].empty()) return;
-
-    auto &LI =
-        getAnalysis<LoopInfoWrapperPass>(*Kernel.getFunction()).getLoopInfo();
-
-    // create a vector with all the statements
-    // and sort on start loc
-    std::vector<MemoryStmt *> Unassigned;
-    for (auto &E : MAI.MAS[Kernel.getID()])
-      Unassigned.push_back(&E);
-    // struct  {
-    //   bool operator() (MemoryStmt *A, MemoryStmt *B) {
-    //     return A->getRange().getStart() <= B->getRange().getStart();
-    //   }
-    // } StartLocComparator;
-    // sort(Unassigned, StartLocComparator);
-
-    // Go through the top level loops
-    for (auto *L : LI) {
-      MAI.Loops[Kernel.getID()].push_back(new LoopNest(L));
-      getNodesForLoop(MAI.Loops[Kernel.getID()].back(), MAI.Loops[Kernel.getID()],
-                      MAI.Nodes[Kernel.getID()], Unassigned);
-    }
-
-    // Whatever remains just insert to the graph
-    for ( auto &E : Unassigned)
-      MAI.Nodes[Kernel.getID()].push_back(E);
-  }
+  for (auto &Kernel : KI.getKernels())
+    groupMemoryAccessesToStmts(Kernel, SI, MAI);
 }
 
 } // namespace kerma

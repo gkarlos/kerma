@@ -7,7 +7,7 @@
 #include "kerma/Base/Loop.h"
 #include "kerma/Base/Memory.h"
 #include "kerma/Base/MemoryAccess.h"
-#include "kerma/Base/MemoryStmt.h"
+#include "kerma/Base/Stmt.h"
 #include "kerma/Base/Node.h"
 #include "kerma/SourceInfo/SourceInfo.h"
 #include <llvm/IR/Instruction.h>
@@ -21,6 +21,7 @@ namespace kerma {
 
 class MemoryAccessInfo {
   friend class DetectMemoryAccessesPass;
+  friend class MATBuilder;
 
 private:
   std::unordered_map<unsigned, std::vector<MemoryAccess>> L;
@@ -31,7 +32,7 @@ private:
   std::unordered_map<unsigned, std::vector<MemoryAccess>> MS; // memset
 
   // The memory accesses grouped in statements, per kernel
-  std::unordered_map<unsigned, std::vector<MemoryStmt>> MAS;
+  std::unordered_map<unsigned, std::vector<Stmt>> MAS;
 
   // The Loop nests, per kernel
   std::unordered_map<unsigned, std::vector<LoopNest *>> Loops;
@@ -83,15 +84,15 @@ public:
   }
   std::vector<MemoryAccess> getAccessesForKernel(unsigned int ID);
 
-  void addMemoryStmtForKernel(const Kernel &K, const MemoryStmt &Stmt) {
+  void addStmtForKernel(const Kernel &K, const Stmt &Stmt) {
     MAS[K.getID()].push_back(Stmt);
   }
 
-  std::vector<MemoryStmt> &getMemoryStmtsForKernel(const Kernel &K) {
+  std::vector<Stmt> &getStmtsForKernel(const Kernel &K) {
     return MAS[K.getID()];
   }
 
-  std::vector<MemoryStmt> &getMemoryStmtsForKernel(unsigned int ID) {
+  std::vector<Stmt> &getStmtsForKernel(unsigned int ID) {
     return MAS[ID];
   }
 
@@ -111,12 +112,12 @@ public:
            MM[K.getID()].size() + MC[K.getID()].size() + MS[K.getID()].size();
   }
 
-  unsigned int getNumMemoryStmts();
-  unsigned int getNumMemoryStmtsForKernel(const Kernel &K) {
+  unsigned int getNumStmts();
+  unsigned int getNumStmtsForKernel(const Kernel &K) {
     return MAS[K.getID()].size();
   }
 
-  unsigned int getNumMemoryStmtsForKernel(unsigned int ID) {
+  unsigned int getNumStmtsForKernel(unsigned int ID) {
     return MAS[ID].size();
   }
 
@@ -156,8 +157,8 @@ public:
     return MS[K.getID()];
   }
 
-  MemoryStmt *getMemoryStmtForAccess(const MemoryAccess &MA);
-  MemoryStmt *getMemoryStmtAtRange(const SourceRange &R, bool strict = false);
+  Stmt *getStmtForAccess(const MemoryAccess &MA);
+  Stmt *getStmtAtRange(const SourceRange &R, bool strict = false);
 
   // Retrieve an access by ID
   MemoryAccess *getByID(unsigned int);
@@ -179,7 +180,6 @@ public:
   bool runOnModule(llvm::Module &M) override;
   void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
   MemoryAccessInfo &getMemoryAccessInfo() { return MAI; }
-
   llvm::StringRef getPassName() const override {
     return "DetectMemoryAccessesPass";
   }
