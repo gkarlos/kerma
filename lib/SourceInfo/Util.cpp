@@ -94,10 +94,19 @@ SourceRange GetSourceRange(const clang::SourceManager &SM,
   return SourceRange(Begin, End);
 }
 
+SourceRange GetForStmtInitRange(const clang::SourceManager &SM,
+                                const clang::ForStmt &F) {
+  SourceLoc Begin(SM.getPresumedLineNumber(F.getInit()->getBeginLoc()),
+                  SM.getPresumedColumnNumber(F.getInit()->getBeginLoc()));
+  SourceLoc End(SM.getPresumedLineNumber(F.getInit()->getEndLoc()),
+                SM.getPresumedColumnNumber(F.getInit()->getEndLoc()));
+  return SourceRange(Begin, End);
+}
+
 SourceRange GetForStmtHeaderRange(const clang::SourceManager &SM,
                                   const clang::ForStmt &F) {
-  SourceLoc Begin(SM.getPresumedLineNumber(F.getLParenLoc()),
-                  SM.getPresumedColumnNumber(F.getLParenLoc()));
+  SourceLoc Begin(SM.getPresumedLineNumber(F.getCond()->getBeginLoc()),
+                  SM.getPresumedColumnNumber(F.getCond()->getBeginLoc()));
   SourceLoc End(SM.getPresumedLineNumber(F.getRParenLoc()),
                 SM.getPresumedColumnNumber(F.getRParenLoc()));
   return SourceRange(Begin, End);

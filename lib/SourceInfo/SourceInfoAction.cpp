@@ -1,7 +1,6 @@
 #include "kerma/SourceInfo/SourceInfoAction.h"
 #include "kerma/SourceInfo/SourceInfo.h"
 #include "kerma/SourceInfo/Util.h"
-#include "clang/Basic/SourceLocation.h"
 
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/Attr.h>
@@ -10,9 +9,11 @@
 #include <clang/AST/Stmt.h>
 #include <clang/AST/StmtVisitor.h>
 #include <clang/Basic/Cuda.h>
+#include <clang/Basic/SourceLocation.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <llvm/Support/Casting.h>
 #include <memory>
+#include <tuple>
 
 namespace kerma {
 
@@ -20,7 +21,7 @@ using namespace clang;
 using namespace llvm;
 
 /// The main Clang AST visitor, recording all the required
-/// source code information. It is passes a SourceInfo obj,
+/// source code information. It is passed a SourceInfo obj,
 /// which it populates.
 class SourceInfoVisitor : public clang::StmtVisitor<SourceInfoVisitor> {
 public:
@@ -46,44 +47,56 @@ public:
   }
 
   bool VisitExpr(Expr *E) {
-    if ( !E) return true;
-    // llvm::errs() << E->getStmtClassName() << " - " << GetSourceRange(SourceManager, *E) << '\n';
+    if (!E)
+      return true;
     SI.Exprs.push_back(GetSourceRange(SourceManager, *E));
     return true;
   }
 
   bool VisitStmt(Stmt *S) {
-    if ( !S) return true;
+    if (!S)
+      return true;
 
     if (auto *Compound = dyn_cast<CompoundStmt>(S)) {
       for (auto *C : Compound->body())
         VisitStmt(C);
     } else if (auto *If = dyn_cast<IfStmt>(S)) {
-      SI.IfConditions.push_back(GetSourceRange(SourceManager, *If->getCond()));
+      SourceRange Cond, Then, Else;
+      if ( If->getCond()) Cond = GetSourceRange(SourceManager, *If->getCond());
+      if ( If->getThen()) Then = GetSourceRange(SourceManager, *If->getThen());
+      if ( If->getElse()) Else = GetSourceRange(SourceManager, *If->getElse());
+
+      SI.IfStmts.push_back(std::make_tuple(Cond, Then, Else));
+
+      // errs() << "(IF) cond: " << Cond;
+      // errs() << "     then: " << Then;
+      // errs() << "     else: " << Else;
+      // errs() << "\n";
       VisitStmt(If->getThen());
       if (auto *Else = If->getElse())
         VisitStmt(Else);
     } else if (auto *For = dyn_cast<ForStmt>(S)) {
+      SI.ForInits.push_back(GetForStmtInitRange(SourceManager, *For));
       SI.ForHeaders.push_back(GetForStmtHeaderRange(SourceManager, *For));
-      if( For->getBody())
+      if (For->getBody())
         VisitStmt(For->getBody());
-    } else if ( auto *DoWhile = dyn_cast<DoStmt>(S)) {
-      SI.DoConditions.push_back(GetSourceRange(SourceManager, *DoWhile->getCond()));
-      if ( DoWhile->getBody())
+    } else if (auto *DoWhile = dyn_cast<DoStmt>(S)) {
+      SI.DoConditions.push_back(
+          GetSourceRange(SourceManager, *DoWhile->getCond()));
+      if (DoWhile->getBody())
         VisitStmt(DoWhile->getBody());
-    } else if ( auto *While = dyn_cast<WhileStmt>(S) ) {
-      SI.WhileConditions.push_back(GetSourceRange(SourceManager, *While->getCond()));
-      if ( While->getBody())
+    } else if (auto *While = dyn_cast<WhileStmt>(S)) {
+      SI.WhileConditions.push_back(
+          GetSourceRange(SourceManager, *While->getCond()));
+      if (While->getBody())
         VisitStmt(While->getBody());
     } else {
-      // llvm::errs() << S->getStmtClassName() << " - " << GetSourceRange(SourceManager, *S) << '\n';
       SI.Stmts.push_back(GetSourceRange(SourceManager, *S));
     }
     return true;
   }
 
   bool VisitTranslationUnit(TranslationUnitDecl *TU) {
-
     for (auto *D : TU->decls())
       if (SourceManager.isInMainFile(D->getBeginLoc())) {
         if (auto *F = dyn_cast<FunctionDecl>(D))
@@ -108,8 +121,7 @@ class SourceInfoConsumer : public ASTConsumer {
 public:
   SourceInfoConsumer(CompilerInstance &CI, SourceInfo &SI,
                      std::set<std::string> &Targets)
-      : Visitor(CI, SI, Targets)
-  {
+      : Visitor(CI, SI, Targets) {
     SI.clear();
     CI.getDiagnosticOpts().ShowCarets = true;
   }

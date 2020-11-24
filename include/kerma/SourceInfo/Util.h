@@ -34,6 +34,7 @@ SourceRange GetSourceRange(const clang::SourceManager &SM,
                            const clang::SourceLocation &B,
                            const clang::SourceLocation &E);
 
+SourceRange GetForStmtInitRange(const clang::SourceManager &SM, const clang::ForStmt &F);
 SourceRange GetForStmtHeaderRange(const clang::SourceManager &SM, const clang::ForStmt &For);
 
 }

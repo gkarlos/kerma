@@ -1,9 +1,6 @@
 #include "kerma/SourceInfo/SourceInfoBuilder.h"
-// #include "kerma/SourceInfo/Functions.h"
 #include "kerma/SourceInfo/SourceInfoAction.h"
 #include "kerma/Support/FileSystem.h"
-// #include "clang/Frontend/CompilerInstance.h"
-
 #include <boost/filesystem.hpp>
 #include <memory>
 
@@ -40,11 +37,8 @@ SourceInfoBuilder::SourceInfoBuilder(const std::string &SourcePath,
       DBFiles.end())
     throw std::runtime_error(RealSourcePath +
                              " not found in CompilationDatabase");
-
-  // this->SourcePath = RealSourcePath;
   SourcePaths.push_back(RealSourcePath);
   Tool = std::make_unique<clang::tooling::ClangTool>(*CompileDB, SourcePaths);
-  // FunctionRanges = std::make_unique<FunctionRangeActionFactory>();
 }
 
 SourceInfo SourceInfoBuilder::getSourceInfo() {

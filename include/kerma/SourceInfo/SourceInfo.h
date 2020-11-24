@@ -2,8 +2,11 @@
 #define KERMA_SOURCEINFO_SOURCEINFO_H
 
 #include "kerma/Base/Kernel.h"
+#include "kerma/SourceInfo/SourceLoc.h"
 #include "kerma/SourceInfo/SourceRange.h"
 #include <llvm/IR/DebugLoc.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/Support/raw_ostream.h>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -19,24 +22,28 @@ private:
   std::unordered_map<std::string, SourceRange> KernelRanges;
   std::unordered_map<std::string, SourceRange> DeviceFunctionRanges;
   std::vector<SourceRange> IfInitializers;
-  std::vector<SourceRange> IfConditions;
+
+  std::vector<std::tuple<SourceRange, SourceRange, SourceRange>> IfStmts;
+
   std::vector<SourceRange> DoConditions;
   std::vector<SourceRange> WhileConditions;
+  std::vector<SourceRange> ForInits;
   std::vector<SourceRange> ForHeaders;
   std::vector<SourceRange> Stmts;
   std::vector<SourceRange> Exprs;
   std::vector<std::vector<SourceRange> *> Containers{
-      &IfInitializers, &IfConditions, &DoConditions, &WhileConditions,
-      &ForHeaders,     &Stmts,        &Exprs};
+      &IfInitializers, &DoConditions, &WhileConditions, &ForInits, &ForHeaders,
+      &Stmts,          &Exprs};
 
 protected:
   void clear() {
     KernelRanges.clear();
     DeviceFunctionRanges.clear();
     IfInitializers.clear();
-    IfConditions.clear();
+    IfStmts.clear();
     DoConditions.clear();
     WhileConditions.clear();
+    ForInits.clear();
     ForHeaders.clear();
     Stmts.clear();
   }
@@ -49,16 +56,23 @@ public:
     KernelRanges = O.KernelRanges;
     DeviceFunctionRanges = O.DeviceFunctionRanges;
     IfInitializers = O.IfInitializers;
-    IfConditions = O.IfConditions;
+    IfStmts = O.IfStmts;
     DoConditions = O.DoConditions;
     WhileConditions = O.WhileConditions;
+    ForInits = O.ForInits;
     ForHeaders = O.ForHeaders;
     Stmts = O.Stmts;
     Exprs = O.Exprs;
     return *this;
   }
 
-  const std::vector<SourceRange> &getIfConditions() { return IfConditions; }
+  const std::vector<std::tuple<SourceRange, SourceRange, SourceRange>> &
+  getIfStmts() {
+    return IfStmts;
+  }
+  std::vector<SourceRange> getIfConditionsInRange(SourceRange R);
+  std::vector<std::tuple<SourceRange, SourceRange, SourceRange>>
+  getIfRangesInRange(SourceRange R);
   const std::vector<SourceRange> &getDoConditions() { return DoConditions; }
   const std::vector<SourceRange> &getWhileConditions() {
     return WhileConditions;
@@ -88,6 +102,13 @@ public:
 
   const SourceRange &getRangeForLoc(const SourceLoc &L);
   const SourceRange &getRangeForLoc(const llvm::DebugLoc &DL);
+  const SourceRange &getForInitRangeForLoc(const SourceLoc &L);
+  const std::tuple<SourceRange, SourceRange, SourceRange> *
+  getRangeForBranch(llvm::BranchInst *BI);
+
+  llvm::raw_ostream &
+  print(llvm::raw_ostream &OS,
+        const std::tuple<SourceRange, SourceRange, SourceRange> &IfRanges);
 };
 
 } // namespace kerma
