@@ -2,7 +2,7 @@
 #define KERMA_BASE_MEMORY_H
 
 #include "kerma/Base/Dim.h"
-#include "kerma/Base/Kernel.h"
+// #include "kerma/Base/Kernel.h"
 #include "kerma/NVVM/NVVM.h"
 
 #include <llvm/IR/Argument.h>
@@ -44,12 +44,12 @@ public:
   Memory &setType(llvm::Type *T);
   Memory &setTypeSize(unsigned SZ);
 
-  Memory &addKernelUser(const Kernel& Kernel);
+  // Memory &addKernelUser(const Kernel& Kernel);
   Memory &addKernelUser(unsigned int KernelID);
-  Memory &removeKernelUser(const Kernel& Kernel);
+  // Memory &removeKernelUser(const Kernel& Kernel);
   Memory &removeKernelUser(unsigned int KernelID);
 
-  bool hasKernelUser(const Kernel& Kernel);
+  // bool hasKernelUser(const Kernel& Kernel);
   bool hasKernelUser(unsigned int KernelID);
 
 

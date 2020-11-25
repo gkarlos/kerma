@@ -96,27 +96,27 @@ Memory &Memory::setTypeSize(unsigned int SZ) {
   return *this;
 }
 
-Memory &Memory::addKernelUser(const Kernel& Kernel) {
-  return addKernelUser(Kernel.getID());
-}
+// Memory &Memory::addKernelUser(const Kernel& Kernel) {
+//   return addKernelUser(Kernel.getID());
+// }
 
 Memory &Memory::addKernelUser(unsigned int KernelID) {
   this->KernelUsers.insert(KernelID);
   return *this;
 }
 
-Memory &Memory::removeKernelUser(const Kernel& Kernel) {
-  return removeKernelUser(Kernel.getID());
-}
+// Memory &Memory::removeKernelUser(const Kernel& Kernel) {
+//   return removeKernelUser(Kernel.getID());
+// }
 
 Memory &Memory::removeKernelUser(unsigned int KernelID) {
   this->KernelUsers.erase(KernelID);
   return *this;
 }
 
-bool Memory::hasKernelUser(const Kernel& Kernel) {
-  return hasKernelUser(Kernel.getID());
-}
+// bool Memory::hasKernelUser(const Kernel& Kernel) {
+//   return hasKernelUser(Kernel.getID());
+// }
 
 bool Memory::hasKernelUser(unsigned int KernelID) {
   return KernelUsers.find(KernelID) != KernelUsers.end();
