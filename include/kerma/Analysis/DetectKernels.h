@@ -27,6 +27,12 @@ public:
     Kernels = O.Kernels;
     return *this;
   }
+  Kernel *getKernelForFunction(llvm::Function &F) {
+    for ( auto &Kernel : Kernels)
+      if ( Kernel.getFunction() == &F)
+        return &Kernel;
+    return nullptr;
+  }
 };
 
 class DetectKernelsPass : public llvm::ModulePass {
