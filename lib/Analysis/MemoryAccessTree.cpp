@@ -8,6 +8,7 @@
 #include "kerma/Base/Node.h"
 #include <algorithm>
 #include <cstdio>
+#include <llvm-10/llvm/Support/raw_ostream.h>
 #include <llvm/Transforms/Scalar/SimplifyCFG.h>
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Analysis/ScalarEvolution.h>
@@ -20,8 +21,15 @@ namespace kerma {
 void MemoryAccessTree::dump() {
   errs() << Kernel << '\n';
   for ( auto *Node : Tree)
-    errs() << *Node;
+    errs() << *Node << '\n';
   errs() << '\n';
+}
+
+void MemoryAccessTree::print(raw_ostream &OS) const {
+  OS << Kernel << '\n';
+  for ( auto *Node : Tree)
+    OS << *Node << '\n';
+  OS << '\n';
 }
 
 

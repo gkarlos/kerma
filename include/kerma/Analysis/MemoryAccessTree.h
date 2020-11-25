@@ -10,6 +10,7 @@
 #include "kerma/Base/MemoryAccess.h"
 #include "kerma/Base/Node.h"
 #include "kerma/SourceInfo/SourceInfo.h"
+#include <llvm/Support/raw_ostream.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Pass.h>
@@ -31,6 +32,7 @@ private:
 
 public:
   void dump();
+  void print(llvm::raw_ostream &OS) const;
 
 private:
   Kernel &Kernel;
