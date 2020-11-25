@@ -1,4 +1,5 @@
 #include "kerma/Base/Assumption.h"
+#include <llvm-10/llvm/Support/Casting.h>
 
 
 namespace kerma{
@@ -25,9 +26,18 @@ bool FPAssumption::classof(const Assumption *A) {
   return A && A->getKind() == Assumption::AK_FPVAL;
 }
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Assumption &A) {
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Assumption &A) {
   A.print(OS);
   return OS;
 }
+
+// ValAssumption &ValAssumption::operator=(const ValAssumption &O) {
+//   Assumption::operator=(O);
+//   if ( auto *IA = dyn_cast<IAssumption>(&O))
+//     *this = *IA;
+//   else
+//     *this = *(dyn_cast<FPAssumption>(&O));
+//   return *this;
+// }
 
 } // namespace kerma

@@ -2,7 +2,7 @@
 #define KERMA_BASE_ASSUMPTION_H
 
 #include "kerma/Base/Dim.h"
-#include "kerma/Base/Kernel.h"
+// #include "kerma/Base/Kernel.h"
 #include "kerma/Base/Memory.h"
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
@@ -37,16 +37,17 @@ public:
   virtual bool operator!=(const Assumption &O) { return !operator==(O); }
   virtual llvm::Value *getIRValue() { return V; }
   virtual void setIRValue(llvm::Value *V) { this->V = V; }
-  virtual void print(llvm::raw_ostream &OS) {
-    OS << "assumption for ";
-    if (V)
-      OS << *V;
-    else
-      OS << "nullptr";
+  virtual void print(llvm::raw_ostream &OS) const {
+    // OS << "assumption for ";
+    // if (V)
+    //   OS << *V;
+    // else
+    //   OS << "nullptr";
+    OS << "none";
   }
 };
 
-llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, Assumption &M);
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Assumption &M);
 std::ostream &operator<<(std::ostream &OS, Assumption &M);
 
 class DimAssumption : public Assumption {
@@ -78,12 +79,13 @@ public:
     M = O.M;
     return *this;
   }
-  virtual void print(llvm::raw_ostream &OS) override {
-    OS << "shape " << D << " for ";
-    if (V)
-      OS << *V;
-    else
-      OS << "nullptr";
+  virtual void print(llvm::raw_ostream &OS) const override {
+    OS << D;
+    // OS << "shape " << D << " for ";
+    // if (V)
+    //   OS << *V;
+    // else
+    //   OS << "nullptr";
   }
   static bool classof(const Assumption *A);
 };
@@ -100,6 +102,8 @@ public:
       : Assumption(AK_LAUNCH, Kernel), GridDim(Grid), BlockDim(Block),
         Kernel(Kernel) {}
   LaunchAssumption(const LaunchAssumption &O) : Assumption(O) { *this = O; }
+  const Dim &getBlock() const { return BlockDim; }
+  const Dim &getGrid() const { return GridDim; }
   LaunchAssumption &setKernel(llvm::Function &F) {
     Kernel = &F;
     setIRValue(&F);
@@ -123,12 +127,13 @@ public:
     return *this;
   }
 
-  virtual void print(llvm::raw_ostream &OS) override {
-    OS << "launch " << GridDim << " | " << BlockDim << " for ";
-    if (Kernel)
-      OS << Kernel->getName();
-    else
-      OS << "nullptr";
+  virtual void print(llvm::raw_ostream &OS) const override {
+    OS << '+' << GridDim << ',' << BlockDim;
+    // OS << "launch " << GridDim << " | " << BlockDim << " for ";
+    // if (Kernel)
+    //   OS << Kernel->getName();
+    // else
+    //   OS << "nullptr";
   }
 
   static bool classof(const Assumption *A);
@@ -148,7 +153,9 @@ public:
     return Assumption::operator==(O);
   }
   virtual bool operator!=(const ValAssumption &O) { return !operator==(O); }
-
+  // virtual void print(llvm::raw_ostream &OS) const override {
+  //   ValAssumption::print(OS);
+  // }
 public:
   static bool classof(const Assumption *A);
 };
@@ -177,12 +184,8 @@ public:
     return *this;
   }
 
-  virtual void print(llvm::raw_ostream &OS) override {
-    OS << "value " << Val << " for ";
-    if (V)
-      OS << *V;
-    else
-      OS << "nullptr";
+  virtual void print(llvm::raw_ostream &OS) const override {
+    OS << Val;
   }
 
   static bool classof(const Assumption *A);
@@ -211,12 +214,16 @@ public:
     return *this;
   }
 
-  virtual void print(llvm::raw_ostream &OS) override {
-    OS << "value " << Val << " for ";
-    if (V)
-      OS << *V;
-    else
-      OS << "nullptr";
+  // virtual void print(llvm::raw_ostream &OS) override {
+  //   OS << "value " << Val << " for ";
+  //   if (V)
+  //     OS << *V;
+  //   else
+  //     OS << "nullptr";
+  // }
+
+  virtual void print(llvm::raw_ostream &OS) const override {
+    OS << Val;
   }
 
   static bool classof(const Assumption *A);
