@@ -1,10 +1,12 @@
 #ifndef KERMA_BASE_KERNEL_H
 #define KERMA_BASE_KERNEL_H
 
+#include "kerma/Base/Assumption.h"
 #include "kerma/SourceInfo/SourceRange.h"
 #include <llvm/ADT/iterator.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/IR/Function.h>
+#include <unordered_map>
 
 namespace kerma {
 
@@ -14,6 +16,9 @@ private:
   std::string DemangledName;
   unsigned ID;
   SourceRange Range;
+  LaunchAssumption *LaunchAssume=nullptr;
+  std::vector<Assumption*> ArgAssume;
+  bool hasArgAssumptions = false;
 
 public:
   Kernel()=delete;
@@ -26,6 +31,8 @@ public:
     DemangledName = Other.DemangledName;
     ID = Other.ID;
     Range = Other.Range;
+    LaunchAssume = Other.LaunchAssume;
+    ArgAssume = Other.ArgAssume;
     return *this;
   }
 
@@ -39,6 +46,21 @@ public:
     this->Range = Range;
     return *this;
   }
+  Kernel& setLaunchAssumption(LaunchAssumption *LA) {
+    LaunchAssume = LA;
+    return *this;
+  }
+  Kernel& setArgAssumption(unsigned argidx, Assumption &A) {
+    if ( argidx >= ArgAssume.size())
+      throw std::runtime_error("argidx out of range");
+    ArgAssume[argidx] = &A;
+    return *this;
+  }
+
+  const LaunchAssumption *getLaunchAssumption() const {
+    return LaunchAssume;
+  }
+
   SourceRange& getSourceRange() { return Range; }
   const std::string& getName() const { return DemangledName; }
   const std::string& getDemangledName() const { return DemangledName; };

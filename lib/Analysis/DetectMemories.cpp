@@ -157,7 +157,7 @@ static Memory GetMemoryFromGlobal(const Kernel &Kernel, GlobalVariable &GV) {
              nvvm::getAddressSpaceWithId(GV.getAddressSpace()));
   Mem.setKind(Memory::Kind::Global);
   Mem.setValue(&GV);
-  Mem.addKernelUser(Kernel);
+  Mem.addKernelUser(Kernel.getID());
 
   auto *Ty = GV.getValueType();
 
@@ -196,7 +196,7 @@ static Memory GetMemoryFromArg(const Kernel &Kernel, Argument &Arg) {
   Memory Mem(Arg.getName(), nvvm::AddressSpace::Global);
   Mem.setKind(Memory::Kind::Arg);
   Mem.setValue(&Arg);
-  Mem.addKernelUser(Kernel);
+  Mem.addKernelUser(Kernel.getID());
   Mem.setKnownDim(Dim::None); // we cant know dim for ptrs
   Mem.setType(Arg.getType()->getPointerElementType());
   return Mem;
@@ -207,7 +207,6 @@ bool DetectMemoriesPass::runOnModule(llvm::Module &M) {
     MI.M[Kernel.getID()]; // make sure every kernel has an entry
 
     auto GlobalsUsed = GetGlobalsUsedInKernel(Kernel);
-
     for (auto *G : GlobalsUsed) {
       auto Mem = GetMemoryFromGlobal(Kernel, *G);
       // MI.Memories[Kernel.getID()][Mem.getValue()] = Mem;

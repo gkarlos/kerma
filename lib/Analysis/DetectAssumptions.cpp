@@ -4,6 +4,7 @@
 #include "kerma/Base/Assumption.h"
 #include "kerma/Base/Kernel.h"
 #include <algorithm>
+#include <llvm/Support/WithColor.h>
 #include <llvm/Analysis/ValueTracking.h>
 #include <llvm/IR/Argument.h>
 #include <llvm/IR/Constants.h>
@@ -19,21 +20,46 @@ namespace kerma {
 
 using namespace llvm;
 
-AssumptionInfo &AssumptionInfo::add(llvm::Value *V, Assumption &A) {
+AssumptionInfo &AssumptionInfo::operator=(const AssumptionInfo &O) {
+  for ( auto E: Vals)
+    delete E.second;
+  for ( auto E: Dims)
+    delete E.second;
+  for ( auto E: Launches)
+    delete E.second;
+
+  this->Dims.clear();
+  this->Vals.clear();
+  this->Launches.clear();
+
+  for ( auto E: O.Dims)
+    this->Dims[E.first] = new DimAssumption(*E.second);
+  for ( auto E: O.Vals)
+    if ( auto *IA = dyn_cast<IAssumption>(E.second)) {
+      this->Vals[E.first] = new IAssumption(*IA);
+    } else {
+      this->Vals[E.first] = new FPAssumption(*dyn_cast<FPAssumption>(E.second));
+    }
+  for ( auto E: O.Launches)
+    this->Launches[E.first] = new LaunchAssumption(*E.second);
+  return *this;
+}
+
+AssumptionInfo &AssumptionInfo::add(llvm::Value *V, Assumption *A) {
   if (V) {
     if (auto *F = dyn_cast<Function>(V)) {
-      if ( auto *LA = dyn_cast<LaunchAssumption>(&A))
-        Launches[F] = *LA;
-    } else if (auto *DA = dyn_cast<DimAssumption>(&A)) {
-      Dims[V] = *DA;
-    } else if (auto *VA = dyn_cast<ValAssumption>(&A)) {
-      Vals[V] = *VA;
+      if ( auto *LA = dyn_cast<LaunchAssumption>(A))
+        Launches[F] = LA;
+    } else if (auto *DA = dyn_cast<DimAssumption>(A)) {
+      Dims[V] = DA;
+    } else if (auto *VA = dyn_cast<ValAssumption>(A)) {
+      Vals[V] = VA;
     }
   }
   return *this;
 }
 
-AssumptionInfo &AssumptionInfo::addLaunch(llvm::Function *F, LaunchAssumption &LA) {
+AssumptionInfo &AssumptionInfo::addLaunch(llvm::Function *F, LaunchAssumption *LA) {
   if (F)
     Launches[F] = LA;
   return *this;
@@ -42,25 +68,25 @@ AssumptionInfo &AssumptionInfo::addLaunch(llvm::Function *F, LaunchAssumption &L
 std::vector<ValAssumption *> AssumptionInfo::getVals() {
   std::vector<ValAssumption *> Res;
   for (auto &E : Vals)
-    Res.push_back(&E.second);
+    Res.push_back(E.second);
   return Res;
 }
 
 std::vector<DimAssumption *> AssumptionInfo::getDims() {
   std::vector<DimAssumption *> Res;
   for (auto &E : Dims)
-    Res.push_back(&E.second);
+    Res.push_back(E.second);
   return Res;
 }
 
 std::vector<Assumption *> AssumptionInfo::getAll() {
   std::vector<Assumption *> Res;
   for (auto &E : Launches)
-    Res.push_back(&E.second);
+    Res.push_back(E.second);
   for (auto &E : Vals)
-    Res.push_back(&E.second);
+    Res.push_back(E.second);
   for (auto &E : Dims)
-    Res.push_back(&E.second);
+    Res.push_back(E.second);
   return Res;
 }
 
@@ -152,8 +178,11 @@ static void getGlobalVarAssumptions(Module &M, KernelInfo &KI, MemoryInfo &MI,
                   if (auto *Kernel = KI.find(F)) {
                     auto Grid = parseDim(AS.substr(0, AS.find(':')));
                     auto Block = parseDim(AS.substr(AS.find(':') + 1, AS.size()));
-                    LaunchAssumption LA(Grid, Block, Kernel->getFunction());
+                    auto *LA = new LaunchAssumption(Grid, Block, Kernel->getFunction());
                     AI.addLaunch(Kernel->getFunction(), LA);
+                    auto *K = KI.getKernelForFunction(*F);
+                    if ( !K)
+                      WithColor::warning() << "DetectAssumptions: Found function assumptions for non-kernel function " << F->getName() << '\n';
                   }
                 } else if (auto *GV = dyn_cast<GlobalVariable>(G)) {
                   // GV is always a ptr so check element type
@@ -161,16 +190,16 @@ static void getGlobalVarAssumptions(Module &M, KernelInfo &KI, MemoryInfo &MI,
                     if (auto *M = MI.getMemoryForVal(GV)) {
                       auto Dim = parseDim(AS);
                       M->setAssumedDim(Dim);
-                      DimAssumption DA(Dim, *M);
+                      auto *DA = new DimAssumption(Dim, *M);
                       AI.add(GV, DA);
                     } else {
                       llvm::errs() << " **warn** Ignored assumption for '" << GV->getName() << "'. Unused memory\n";
                     }
                   } else if (GV->getType()->getElementType()->isIntegerTy()) {
-                    IAssumption IA(std::stoll(AS), GV);
+                    auto *IA = new IAssumption(std::stoll(AS), GV);
                     AI.add(GV, IA);
                   } else if (GV->getType()->getElementType()->isFirstClassType()) {
-                    FPAssumption FPA(std::stoll(AS), GV);
+                    auto *FPA = new FPAssumption (std::stoll(AS), GV);
                     AI.add(GV, FPA);
                   } else {
                   }
@@ -197,16 +226,18 @@ static void getAssumptionForArg(ConstantDataArray *CDA, Argument *Arg,
   try {
     if (Arg->getType()->isPointerTy() && !Arg->hasAttribute(Attribute::ByVal)) {
       if (auto *M = MI.getMemoryForArg(Arg)) {
-        DimAssumption Ass(parseDim(CDA->getAsString()), *M);
-        M->setAssumedDim(Ass.getDim());
-        Ass.setMemory(*M);
-        AI.add(Arg, Ass);
+        auto *DA = new DimAssumption(parseDim(CDA->getAsString()), *M);
+        M->setAssumedDim(DA->getDim());
+        DA->setMemory(*M);
+        AI.add(Arg, DA);
+      } else {
+        llvm::errs() << "**WARNING** Found no memory to attach dim assumption: '" << CDA->getAsString() << "'\n";
       }
     } else if (Arg->getType()->isIntegerTy()) {
-      IAssumption Ass(std::stoll(CDA->getAsString()), Arg);
+      auto *Ass = new IAssumption(std::stoll(CDA->getAsString()), Arg);
       AI.add(Arg, Ass);
     } else if (Arg->getType()->isFloatingPointTy()) {
-      FPAssumption Ass(std::stod(CDA->getAsString()), Arg);
+      auto *Ass = new FPAssumption(std::stod(CDA->getAsString()), Arg);
       AI.add(Arg, Ass);
     } else {
       throw;

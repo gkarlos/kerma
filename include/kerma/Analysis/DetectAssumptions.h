@@ -15,14 +15,22 @@ class AssumptionInfo {
   friend class DetectAsumptionsPass;
 
 private:
-  std::unordered_map<llvm::Value *, ValAssumption> Vals;
-  std::unordered_map<llvm::Value *, DimAssumption> Dims;
-  std::unordered_map<llvm::Function *, LaunchAssumption> Launches;
+  std::unordered_map<llvm::Value *, ValAssumption*> Vals;
+  std::unordered_map<llvm::Value *, DimAssumption*> Dims;
+  std::unordered_map<llvm::Function *, LaunchAssumption*> Launches;
 
 public:
   AssumptionInfo()=default;
-  AssumptionInfo& add(llvm::Value *, Assumption &A);
-  AssumptionInfo& addLaunch(llvm::Function *F, LaunchAssumption &LA);
+  // ~AssumptionInfo() {
+  //   for ( auto E: Vals)
+  //     delete E.second;
+  //   for ( auto E: Dims)
+  //     delete E.second;
+  //   for ( auto E: Launches)
+  //     delete E.second;
+  // }
+  AssumptionInfo& add(llvm::Value *, Assumption *A);
+  AssumptionInfo& addLaunch(llvm::Function *F, LaunchAssumption *LA);
   unsigned getSize() { return Vals.size() + Dims.size(); }
   unsigned getLaunchCount() { return Launches.size(); }
   unsigned getValCount() { return Vals.size(); }
@@ -31,14 +39,28 @@ public:
   std::vector<DimAssumption*> getDims();
   std::vector<LaunchAssumption*> getLaunches();
   std::vector<Assumption*> getAll();
-  Assumption *getForArg(llvm::Argument *Arg);
-  LaunchAssumption *getLaunch(llvm::Function *F) {
+  Assumption *getForArg(llvm::Argument *Arg) const {
+    if ( Arg) {
+      for ( auto &E : Vals)
+        if ( E.first == Arg)
+          return E.second;
+      for ( auto &E : Dims)
+        if ( E.first == Arg)
+          return E.second;
+      return nullptr;
+    }
+    return nullptr;
+  }
+  AssumptionInfo &operator=(const AssumptionInfo &O);
+
+  LaunchAssumption *getLaunch(llvm::Function *F) const {
     if ( !F) return nullptr;
     if ( auto E = Launches.find(F); E != Launches.end())
-      return &E->second;
+      return E->second;
     return nullptr;
   }
   LaunchAssumption *getLaunch(Kernel &K) { return getLaunch(K.getFunction()); }
+  void dump();
 };
 
 class DetectAsumptionsPass : public llvm::ModulePass {
@@ -50,7 +72,7 @@ public:
   DetectAsumptionsPass(KernelInfo *KI, MemoryInfo *MI);
 
   bool runOnModule(llvm::Module &M) override;
-  AssumptionInfo getAssumptionInfo() { return AI; }
+  const AssumptionInfo &getAssumptionInfo() { return AI; }
   llvm::StringRef getPassName() const override { return "DetectAssumptionsPass"; }
 
 private:
