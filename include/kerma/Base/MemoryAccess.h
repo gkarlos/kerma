@@ -6,6 +6,7 @@
 #include "kerma/SourceInfo/SourceLoc.h"
 #include <llvm/IR/Instruction.h>
 #include <map>
+#include <ostream>
 
 namespace kerma {
 
@@ -72,6 +73,9 @@ public:
   MemoryAccess &operator=(const MemoryAccess &Other);
 
   bool operator==(const MemoryAccess &O) const;
+
+  void print(llvm::raw_ostream &OS, bool v=false) const;
+  void print(std::ostream &OS, bool v=false) const;
 
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &os,
                                        const MemoryAccess &MA);

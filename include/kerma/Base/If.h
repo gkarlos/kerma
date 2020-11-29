@@ -75,9 +75,9 @@ public:
     O << std::string(getNesting(), '\t') << "(IF) " << getRange() << " #"
       << getID() << " then: " << Then.size() << ", else: " << Else.size();
     if (getParent()) {
-      O << " parent: #" << getParent()->getID();
+      O << ", parent: #" << getParent()->getID();
     } else {
-      O << " parent: none";
+      O << ", parent: none";
     }
     O << '\n' << std::string(getNesting() + 1, '\t') << "[cond: " << CondRange;
     if ( Condition) {

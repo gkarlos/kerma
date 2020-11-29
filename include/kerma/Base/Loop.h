@@ -56,11 +56,11 @@ public:
 
   virtual void print(llvm::raw_ostream &O) const override {
     O << std::string(getNesting(), '\t') << "(LOOP) " << getRange() << " #"
-      << getID() << " init: " << InitChildren.size() << ", children: " << Children.size() << ", ";
+      << getID() << " init: " << InitChildren.size() << ", children: " << Children.size();
     if (getParent()) {
-      O << "parent: #" << getParent()->getID();
+      O << ", parent: #" << getParent()->getID();
     } else {
-      O << "parent: none";
+      O << ", parent: none";
     }
     O << '\n' << std::string(getNesting() + 1, '\t') << "[init]";
     for (auto *InitChild : InitChildren)

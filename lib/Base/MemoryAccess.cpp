@@ -1,6 +1,5 @@
 #include "kerma/Base/MemoryAccess.h"
-
-// #include <llvm/IR/Instruction.h>
+#include <llvm/Support/raw_ostream.h>
 #include <mutex>
 
 namespace kerma {
@@ -64,15 +63,27 @@ bool MemoryAccess::operator==(const MemoryAccess &O) const {
          Ty == O.Ty && Idx == O.Idx;
 }
 
+void MemoryAccess::print(llvm::raw_ostream &OS, bool v) const {
+  OS << "(" << getTypeString() << ") " << getLoc() << " #" << getID() << " "
+     << getMemory();
+  if (v)
+    OS << " . " << Inst;
+}
+
+void MemoryAccess::print(std::ostream &OS, bool v) const {
+  OS << "(" << getTypeString() << ") " << getLoc() << " #" << getID() << " "
+     << getMemory();
+  if (v)
+    OS << " . " << Inst;
+}
+
 llvm::raw_ostream &operator<<(llvm::raw_ostream &os, const MemoryAccess &MA) {
-  os << "(" << MA.getTypeString() << ") " << MA.getLoc() << " #" << MA.getID() << " "
-     << MA.getMemory() << " . " << MA.getIndex();
+  MA.print(os);
   return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const MemoryAccess &MA) {
-  os << "(" << MA.getTypeString() << ") " << MA.getLoc() << " #" << MA.getID() << " "
-     << MA.getMemory() << " . " << MA.getIndex();
+  MA.print(os);
   return os;
 }
 
