@@ -128,7 +128,7 @@ public:
   }
 
   virtual void print(llvm::raw_ostream &OS) const override {
-    OS << '+' << GridDim << ',' << BlockDim;
+    OS << GridDim << ',' << BlockDim;
     // OS << "launch " << GridDim << " | " << BlockDim << " for ";
     // if (Kernel)
     //   OS << Kernel->getName();

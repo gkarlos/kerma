@@ -1,5 +1,5 @@
 #include "kerma/Base/Assumption.h"
-#include <llvm-10/llvm/Support/Casting.h>
+#include <llvm/Support/Casting.h>
 
 
 namespace kerma{
