@@ -38,10 +38,11 @@ namespace kerma {
 llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, const Kernel &K) {
   OS << "(KERNEL) " << K.Range << " #" << K.getID() << " '" << K.getName() << '\'';
   if ( K.getLaunchAssumption())
-    OS << ' ' << K.getLaunchAssumption()->getGrid() << ',' << K.getLaunchAssumption()->getBlock() << '\n';
+    OS << ' ' << K.getLaunchAssumption()->getGrid() << ',' << K.getLaunchAssumption()->getBlock();
   else
-    OS << " <>,<>\n";
-  OS << "         { ";
+    OS << " <>,<>";
+  // OS << " b:" << K.BlockIndex << ",t:" << K.ThreadIndex << ",w:" << K.WarpIndex << '\n';
+  OS << "\n         { ";
   if ( K.getFunction()->arg_size()) {
     if (K.ArgAssume[0])
       OS << "0:" << *K.ArgAssume[0];

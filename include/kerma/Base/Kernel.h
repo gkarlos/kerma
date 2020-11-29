@@ -1,7 +1,10 @@
 #ifndef KERMA_BASE_KERNEL_H
 #define KERMA_BASE_KERNEL_H
 
+// #include "kerma/Analysis/MemoryAccessTree.h"
 #include "kerma/Base/Assumption.h"
+#include "kerma/Base/Index.h"
+#include "kerma/Base/MemoryAccess.h"
 #include "kerma/SourceInfo/SourceRange.h"
 #include <llvm/ADT/iterator.h>
 #include <llvm/Support/raw_ostream.h>
@@ -9,6 +12,8 @@
 #include <unordered_map>
 
 namespace kerma {
+
+class MemoryAccessTree;
 
 class Kernel {
 private:
@@ -19,6 +24,10 @@ private:
   LaunchAssumption *LaunchAssume=nullptr;
   std::vector<Assumption*> ArgAssume;
   bool hasArgAssumptions = false;
+  MemoryAccessTree *MAT=nullptr;
+  // unsigned WarpIndex=0;
+  // Index BlockIndex=Index(0,0,0);
+  // Index ThreadIndex=Index(0,0,0);
 
 public:
   Kernel()=delete;
@@ -38,6 +47,16 @@ public:
 
   bool operator==(const Kernel &Other) { return ID == Other.ID; }
   bool operator==(const llvm::Function& F) { return this->F == &F; }
+
+  // const Index &getBlock() { return BlockIndex; }
+  // const Index &getThread() { return ThreadIndex; }
+  // unsigned getWarp() { return WarpIndex; }
+
+  void attachMAT(MemoryAccessTree *MAT) {
+    this->MAT = MAT;
+  }
+
+  MemoryAccessTree *getMAT() { return this->MAT; }
 
   llvm::Function *getFunction() const { return F; }
   unsigned getID() const { return ID; }
