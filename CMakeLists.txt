@@ -57,10 +57,6 @@ include_directories(${KERMA_INCLUDE_DIR})
 add_subdirectory(lib)
 add_subdirectory(tools)
 
-if(BUILD_EXAMPLES)
-    add_subdirectory(examples)
-endif()
-
 if(ENABLE_TESTS)
     enable_testing()
     add_subdirectory(test)
