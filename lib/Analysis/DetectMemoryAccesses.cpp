@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <llvm-10/llvm/Analysis/LoopInfo.h>
+#include <llvm-10/llvm/IR/Instruction.h>
 #include <llvm/Analysis/ValueTracking.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/IntrinsicInst.h>
@@ -20,6 +21,34 @@ namespace kerma {
 
 using namespace llvm;
 using namespace std;
+
+MemoryAccess *MemoryAccessInfo::getForInst(const Instruction *I) {
+  for (auto &E : L)
+    for (auto &M : E.second)
+      if (M.getInst() == I)
+        return &M;
+  for (auto &E : S)
+    for (auto &M : E.second)
+      if (M.getInst() == I)
+        return &M;
+  for (auto &E : A)
+    for (auto &M : E.second)
+      if (M.getInst() == I)
+        return &M;
+  for (auto &E : MM)
+    for (auto &M : E.second)
+      if (M.getInst() == I)
+        return &M;
+  for (auto &E : MC)
+    for (auto &M : E.second)
+      if (M.getInst() == I)
+        return &M;
+  for (auto &E : MS)
+    for (auto &M : E.second)
+      if (M.getInst() == I)
+        return &M;
+  return nullptr;
+}
 
 MemoryAccess *MemoryAccessInfo::getByID(unsigned ID) {
   for (auto &E : L)
@@ -49,22 +78,46 @@ MemoryAccess *MemoryAccessInfo::getByID(unsigned ID) {
   return nullptr;
 }
 
-std::vector<MemoryAccess>
+std::vector<MemoryAccess*>
 MemoryAccessInfo::getAccessesForKernel(unsigned int ID) {
-  std::vector<MemoryAccess> Res;
-  auto itL = L.find(ID);
-  auto itS = S.find(ID);
-  auto itA = A.find(ID);
-  auto itMM = MM.find(ID);
-  auto itMC = MC.find(ID);
-  auto itMS = MS.find(ID);
+  std::vector<MemoryAccess*> Res;
+  // auto itL = L.find(ID);
+  // auto itS = S.find(ID);
+  // auto itA = A.find(ID);
+  // auto itMM = MM.find(ID);
+  // auto itMC = MC.find(ID);
+  // auto itMS = MS.find(ID);
 
-  Res.insert(Res.end(), L[ID].begin(), L[ID].end());
-  Res.insert(Res.end(), S[ID].begin(), S[ID].end());
-  Res.insert(Res.end(), A[ID].begin(), A[ID].end());
-  Res.insert(Res.end(), MM[ID].begin(), MM[ID].end());
-  Res.insert(Res.end(), MC[ID].begin(), MC[ID].end());
-  Res.insert(Res.end(), MS[ID].begin(), MS[ID].end());
+  for ( auto &l : L[ID]) {
+    Res.push_back(&l);
+  }
+
+  for ( auto &s : S[ID]) {
+    Res.push_back(&s);
+  }
+
+  for ( auto &a : A[ID]) {
+    Res.push_back(&a);
+  }
+
+  for ( auto &mm : MM[ID]) {
+    Res.push_back(&mm);
+  }
+
+  for ( auto &mc : MC[ID]) {
+    Res.push_back(&mc);
+  }
+
+  for ( auto &ms : MS[ID]) {
+    Res.push_back(&ms);
+  }
+
+  // Res.insert(Res.end(), L[ID].begin(), L[ID].end());
+  // Res.insert(Res.end(), S[ID].begin(), S[ID].end());
+  // Res.insert(Res.end(), A[ID].begin(), A[ID].end());
+  // Res.insert(Res.end(), MM[ID].begin(), MM[ID].end());
+  // Res.insert(Res.end(), MC[ID].begin(), MC[ID].end());
+  // Res.insert(Res.end(), MS[ID].begin(), MS[ID].end());
   return Res;
 }
 
@@ -271,21 +324,21 @@ static void groupMemoryAccessesToStmts(Kernel &Kernel, SourceInfo &SI, MemoryAcc
   auto Ranges = SI.getRangesInRange(Kernel.getSourceRange());
   auto Accesses = MAI.getAccessesForKernel(Kernel);
 
-  for (auto &Access : Accesses) {
+  for (auto *Access : Accesses) {
     // if there is a Stmt for this access bail
-    if (MAI.getStmtForAccess(Access))
+    if (MAI.getStmtForAccess(*Access))
       continue;
 
     // find the range of the source statement for this access
-    if (auto Range = SI.getRangeForLoc(Access.getLoc())) {
+    if (auto Range = SI.getRangeForLoc(Access->getLoc())) {
       // if there is a Stmt with that range in MAS
       if (auto *stmt = MAI.getStmtAtRange(Range)) {
         // just append the access to that statement
-        stmt->addMemoryAccess(Access, SI);
+        stmt->addMemoryAccess(*Access, SI);
       } else {
         // otherwise create a new Stmt
         Stmt S(Range);
-        S.addMemoryAccess(Access, SI);
+        S.addMemoryAccess(*Access, SI);
         MAI.addStmtForKernel(Kernel, S);
       }
     } else {

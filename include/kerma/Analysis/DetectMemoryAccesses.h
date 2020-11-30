@@ -71,6 +71,9 @@ private:
       IgnMS; // memset
 
 public:
+
+  MemoryAccess *getForInst(const llvm::Instruction *I);
+
   // Retrieve the nodes of the Memory Tree for a given kernel.
   // The nodes are stored in level-order (BFS).
   // There is a catch. If any functions are inlined we might find
@@ -79,10 +82,10 @@ public:
     return Nodes[Kernel.getID()];
   }
 
-  std::vector<MemoryAccess> getAccessesForKernel(const Kernel &K) {
+  std::vector<MemoryAccess*> getAccessesForKernel(const Kernel &K) {
     return getAccessesForKernel(K.getID());
   }
-  std::vector<MemoryAccess> getAccessesForKernel(unsigned int ID);
+  std::vector<MemoryAccess*> getAccessesForKernel(unsigned int ID);
 
   void addStmtForKernel(const Kernel &K, const Stmt &Stmt) {
     MAS[K.getID()].push_back(Stmt);
