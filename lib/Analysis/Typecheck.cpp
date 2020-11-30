@@ -396,7 +396,6 @@ bool TypeCheckerPass::moduleTypechecks() { return Errors.empty(); }
 
 void TypeCheckerPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
   AU.setPreservesAll();
-  AU.addRequired<DetectKernelsPass>();
 }
 
 void TypeCheckerPass::dumpErrors() {
@@ -418,8 +417,11 @@ bool
 TypeCheckerPass::runOnModule(llvm::Module &M) {
   Errors.clear();
   typecheckGlobals(M, Errors);
-  for ( auto Kernel : getAnalysis<DetectKernelsPass>().getKernels() )
-    typecheckKernel(*Kernel.getFunction(), Errors);
+  for ( auto &F : M)
+    if ( isKerneFunction(F))
+      typecheckKernel(F, Errors);
+  // for ( auto Kernel : getAnalysis<DetectKernelsPass>().getKernels() )
+  //   typecheckKernel(*Kernel.getFunction(), Errors);
 
 #ifdef KERMA_OPT_PLUGIN
   dumpErrors();
