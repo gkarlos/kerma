@@ -45,6 +45,12 @@ AssumptionInfo &AssumptionInfo::operator=(const AssumptionInfo &O) {
   return *this;
 }
 
+void AssumptionInfo::dump() {
+  for ( auto &E : Launches) {
+    errs() << "launch: " << E.first->getName() << ' ' << *E.second << "\n";
+  }
+}
+
 AssumptionInfo &AssumptionInfo::add(llvm::Value *V, Assumption *A) {
   if (V) {
     if (auto *F = dyn_cast<Function>(V)) {
