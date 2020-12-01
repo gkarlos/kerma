@@ -10,10 +10,10 @@
 #include "kerma/Base/MemoryAccess.h"
 #include "kerma/Base/Node.h"
 #include "kerma/SourceInfo/SourceInfo.h"
-#include <llvm/Support/raw_ostream.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Pass.h>
+#include <llvm/Support/raw_ostream.h>
 #include <memory>
 #include <unordered_map>
 
@@ -27,19 +27,29 @@ public:
 private:
   MemoryAccessTree(Kernel &Kernel, std::vector<KermaNode *> &Tree,
                    std::vector<LoopNest *> &LoopNodes,
-                   std::vector<If *> &IfNodes)
-      : Kernel(Kernel), Tree(Tree), LoopNodes(LoopNodes), IfNodes(IfNodes) {}
+                   std::vector<If *> &IfNodes, MemoryAccessInfo *MAI)
+      : Kernel(Kernel), Tree(Tree), LoopNodes(LoopNodes), IfNodes(IfNodes), MAI(MAI) {}
 
 public:
   void dump();
   void print(llvm::raw_ostream &OS) const;
+  operator bool() { return Tree.size(); }
+
+  MemoryAccess *getAccessForInst(const llvm::Instruction *I);
+  std::vector<MemoryAccess*> getAllAccesses();
 
 private:
   Kernel &Kernel;
   std::vector<KermaNode *> &Tree;
   std::vector<LoopNest *> &LoopNodes;
   std::vector<If *> &IfNodes;
+  MemoryAccessInfo *MAI;
 };
+
+// llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, MemoryAccessTree &MAT) {
+//   MAT.print(OS);
+//   return OS;
+// }
 
 // Pass
 
@@ -52,12 +62,19 @@ public:
   llvm::StringRef getPassName() const override { return "MATBuilder"; }
 
   // Get the tree for a kernel
-  std::unique_ptr<MemoryAccessTree> get(Kernel &Kernel) {
-    if (Trees.find(Kernel.getID()) == Trees.end())
+  // std::unique_ptr<MemoryAccessTree> get(Kernel &Kernel) {
+  //   if (Trees.find(Kernel.getID()) == Trees.end())
+  //     return nullptr;
+  //   return std::unique_ptr<MemoryAccessTree>(new MemoryAccessTree(
+  //       Kernel, Trees[Kernel.getID()], LoopNodes[Kernel.getID()],
+  //       IFNodes[Kernel.getID()]));
+  // }
+  MemoryAccessTree *get(Kernel &Kernel) {
+    if ( Trees.find(Kernel.getID()) == Trees.end())
       return nullptr;
-    return std::unique_ptr<MemoryAccessTree>(new MemoryAccessTree(
-        Kernel, Trees[Kernel.getID()], LoopNodes[Kernel.getID()],
-        IFNodes[Kernel.getID()]));
+    return new MemoryAccessTree(Kernel, Trees[Kernel.getID()],
+                                LoopNodes[Kernel.getID()],
+                                IFNodes[Kernel.getID()], MAI);
   }
 
 private:
@@ -65,6 +82,7 @@ private:
   KernelInfo &KI;
   MemoryInfo &MI;
   SourceInfo &SI;
+  MemoryAccessInfo *MAI;
 
   std::unordered_map<unsigned, std::vector<LoopNest *>> LoopNodes;
   std::unordered_map<unsigned, std::vector<If *>> IFNodes;
