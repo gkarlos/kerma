@@ -57,13 +57,13 @@ cl::opt<std::string> InstruTarget("kerma-instru-target", cl::Optional,
                                   cl::cat(InstruOptionCategory), cl::init(""));
 cl::opt<kerma::Mode> InstruMode(
     "kerma-instru-mode", cl::Optional, cl::desc("Instrumentation mode"),
-    cl::values(clEnumValN(kerma::Mode::BLOCK_MODE, "block",
+    cl::values(clEnumValN(kerma::Mode::BLOCK, "block",
                           "Instrument all threads in block 0"),
-               clEnumValN(kerma::Mode::WARP_MODE, "warp",
+               clEnumValN(kerma::Mode::WARP, "warp",
                           "Instrument all threads in warp 0 of block 0"),
-               clEnumValN(kerma::Mode::THREAD_MODE, "thread",
+               clEnumValN(kerma::Mode::THREAD, "thread",
                           "Instrument thread 0 in block 0")),
-    cl::init(kerma::Mode::BLOCK_MODE), cl::cat(InstruOptionCategory));
+    cl::init(kerma::Mode::BLOCK), cl::cat(InstruOptionCategory));
 
 } // namespace
 #endif
@@ -113,6 +113,7 @@ static unsigned int getSize(Module &M, Value *Ptr) {
 }
 
 static const std::string &getName(Value *V) {
+
   assert((isa<Argument>(V) || isa<GlobalVariable>(V) || isa<AllocaInst>(V)) &&
          "Object not an Arg/Loc/Glob");
   if (auto *Arg = dyn_cast<Argument>(V))
@@ -274,23 +275,13 @@ static bool isIntermediateObject(Value *Obj) {
          !isa<AllocaInst>(Obj);
 }
 
-bool isPointerToStruct(Type *Ty) {
-  return Ty && isa<PointerType>(Ty) &&
-         dyn_cast<PointerType>(Ty)->getElementType()->isStructTy();
-}
-
-bool isArrayOfStructs(Type *Ty) {
-  return Ty && isa<ArrayType>(Ty) &&
-         dyn_cast<ArrayType>(Ty)->getElementType()->isStructTy();
-}
-
 MemCpyInst *isMemCpy(Instruction *I) { return dyn_cast_or_null<MemCpyInst>(I); }
 
 static Function *getHook(Module &M, AccessType AT, Mode Mode) {
-  if (Mode == BLOCK_MODE)
+  if (Mode == BLOCK)
     return AT == AccessType::Memcpy ? M.getFunction("__kerma_rec_copy_b")
                                     : M.getFunction("__kerma_rec_access_b");
-  else if (Mode == WARP_MODE)
+  else if (Mode == WARP)
     return AT == AccessType::Memcpy ? M.getFunction("__kerma_rec_copy_w")
                                     : M.getFunction("__kerma_rec_access_w");
   else
@@ -357,62 +348,59 @@ bool InstrumentPrintfPass::instrumentCopy(const Kernel &K, MemCpyInst *I,
     // IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0),
     // IRB.getInt8PtrTy())
 
-    if (Mode == BLOCK_MODE)
-      Args = {/*status*/ TraceStatus,
-              /* bid  */ ConstantInt::get(IRB.getInt32Ty(), 0),
-              /* line */ ConstantInt::get(IRB.getInt32Ty(), Loc.getLine()),
-              /* col  */ ConstantInt::get(IRB.getInt32Ty(), Loc.getCol()),
-              /* sname*/
-                  SourceLocal
-                  ? IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0),
-                                       IRB.getInt8PtrTy())
-                  : GlobalVariableForSymbol[SourceName],
-              /* soff */ SourceOffset,
-              /* dname*/
-                  DestLocal
-                  ? IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0),
-                                       IRB.getInt8PtrTy())
-                  : GlobalVariableForSymbol[DestName],
-              /* doff */ DestOffset,
-              /* sz   */ IRB.CreateZExt(I->getLength(), IRB.getInt32Ty())};
-    else if (Mode == WARP_MODE)
-      Args = {/*status*/ TraceStatus,
-              /* bid  */ ConstantInt::get(IRB.getInt32Ty(), 0),
-              /* wid  */ ConstantInt::get(IRB.getInt32Ty(), 0),
-              /* line */ ConstantInt::get(IRB.getInt32Ty(), Loc.getLine()),
-              /* col  */ ConstantInt::get(IRB.getInt32Ty(), Loc.getCol()),
-              /* sname*/
-                  SourceLocal
-                  ? IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0),
-                                       IRB.getInt8PtrTy())
-                  : GlobalVariableForSymbol[SourceName],
-              /* soff */ SourceOffset,
-              /* dname*/
-                  DestLocal
-                  ? IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0),
-                                       IRB.getInt8PtrTy())
-                  : GlobalVariableForSymbol[DestName],
-              /* doff */ DestOffset,
-              /* sz   */ IRB.CreateZExt(I->getLength(), IRB.getInt32Ty())};
+    if (Mode == BLOCK)
+      Args = {
+          /*status*/ TraceStatus,
+          /* bid  */ ConstantInt::get(IRB.getInt32Ty(), 0),
+          /* line */ ConstantInt::get(IRB.getInt32Ty(), Loc.getLine()),
+          /* col  */ ConstantInt::get(IRB.getInt32Ty(), Loc.getCol()),
+          /* sname*/
+          SourceLocal ? IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0),
+                                           IRB.getInt8PtrTy())
+                      : GlobalVariableForSymbol[SourceName],
+          /* soff */ SourceOffset,
+          /* dname*/
+          DestLocal ? IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0),
+                                         IRB.getInt8PtrTy())
+                    : GlobalVariableForSymbol[DestName],
+          /* doff */ DestOffset,
+          /* sz   */ IRB.CreateZExt(I->getLength(), IRB.getInt32Ty())};
+    else if (Mode == WARP)
+      Args = {
+          /*status*/ TraceStatus,
+          /* bid  */ ConstantInt::get(IRB.getInt32Ty(), 0),
+          /* wid  */ ConstantInt::get(IRB.getInt32Ty(), 0),
+          /* line */ ConstantInt::get(IRB.getInt32Ty(), Loc.getLine()),
+          /* col  */ ConstantInt::get(IRB.getInt32Ty(), Loc.getCol()),
+          /* sname*/
+          SourceLocal ? IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0),
+                                           IRB.getInt8PtrTy())
+                      : GlobalVariableForSymbol[SourceName],
+          /* soff */ SourceOffset,
+          /* dname*/
+          DestLocal ? IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0),
+                                         IRB.getInt8PtrTy())
+                    : GlobalVariableForSymbol[DestName],
+          /* doff */ DestOffset,
+          /* sz   */ IRB.CreateZExt(I->getLength(), IRB.getInt32Ty())};
     else // THREAD_MODE
-      Args = {/*status*/ TraceStatus,
-              /* bid  */ ConstantInt::get(IRB.getInt32Ty(), 0),
-              /* tid  */ ConstantInt::get(IRB.getInt32Ty(), 0),
-              /* line */ ConstantInt::get(IRB.getInt32Ty(), Loc.getLine()),
-              /* col  */ ConstantInt::get(IRB.getInt32Ty(), Loc.getCol()),
-              /* sname*/
-                  SourceLocal
-                  ? IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0),
-                                       IRB.getInt8PtrTy())
-                  : GlobalVariableForSymbol[SourceName],
-              /* soff */ SourceOffset,
-              /* dname*/
-                  DestLocal
-                  ? IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0),
-                                       IRB.getInt8PtrTy())
-                  : GlobalVariableForSymbol[DestName],
-              /* doff */ DestOffset,
-              /* sz   */ IRB.CreateZExt(I->getLength(), IRB.getInt32Ty())};
+      Args = {
+          /*status*/ TraceStatus,
+          /* bid  */ ConstantInt::get(IRB.getInt32Ty(), 0),
+          /* tid  */ ConstantInt::get(IRB.getInt32Ty(), 0),
+          /* line */ ConstantInt::get(IRB.getInt32Ty(), Loc.getLine()),
+          /* col  */ ConstantInt::get(IRB.getInt32Ty(), Loc.getCol()),
+          /* sname*/
+          SourceLocal ? IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0),
+                                           IRB.getInt8PtrTy())
+                      : GlobalVariableForSymbol[SourceName],
+          /* soff */ SourceOffset,
+          /* dname*/
+          DestLocal ? IRB.CreatePtrToInt(ConstantInt::get(IRB.getInt8Ty(), 0),
+                                         IRB.getInt8PtrTy())
+                    : GlobalVariableForSymbol[DestName],
+          /* doff */ DestOffset,
+          /* sz   */ IRB.CreateZExt(I->getLength(), IRB.getInt32Ty())};
 
     if (auto *CI = CallInst::Create(Hook, Args, "", I)) {
       CI->setCallingConv(CallingConv::PTX_Device);
@@ -438,7 +426,7 @@ bool InstrumentPrintfPass::insertCallForAccess(
     ArrayRef<Value *> Args;
     Value *Offset = IRB.CreatePtrToInt(Ptr, IRB.getInt64Ty());
 
-    if (Mode == BLOCK_MODE)
+    if (Mode == BLOCK)
       Args = {/* stat*/ TraceStatus,
               /* ty  */ ConstantInt::get(IRB.getInt8Ty(), AT),
               /* bid */ ConstantInt::get(IRB.getInt32Ty(), 0),
@@ -447,7 +435,7 @@ bool InstrumentPrintfPass::insertCallForAccess(
               /* name*/ GlobalVariableForSymbol[Name],
               /* off */ Offset,
               /* sz  */ ConstantInt::get(IRB.getInt32Ty(), Size)};
-    else if (Mode == WARP_MODE)
+    else if (Mode == WARP)
       Args = {/* stat*/ TraceStatus,
               /* ty  */ ConstantInt::get(IRB.getInt8Ty(), AT),
               /* bid */ ConstantInt::get(IRB.getInt32Ty(), 0),

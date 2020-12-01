@@ -2,6 +2,7 @@
 #define KERMA_TRANSFORMS_INSTRUMENT_INSTRUMENT_PRINTF_H
 
 #include "kerma/Base/Kernel.h"
+#include "kerma/Base/Mode.h"
 #include "kerma/RT/Util.h"
 
 #include <llvm/ADT/StringRef.h>
@@ -40,19 +41,11 @@ struct PassStats {
   }
 };
 
-// struct SourceLoc { unsigned int line; unsigned int col; };
-
-enum Mode : unsigned char {
-  BLOCK_MODE ='b',
-  WARP_MODE  ='w',
-  THREAD_MODE='t'
-};
-
 class InstrumentPrintfPass : public llvm::ModulePass {
 private:
   std::vector<std::string> Targets;
   AccessType TargetOp;
-  Mode Mode=BLOCK_MODE;
+  Mode Mode=BLOCK;
   bool IgnoreLocal;
 
 private:
