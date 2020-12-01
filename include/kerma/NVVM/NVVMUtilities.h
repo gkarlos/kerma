@@ -34,6 +34,11 @@ const AddressSpace::Ty& getAddressSpaceWithId(int id);
 /// Check if the name names a CUDA atomic function
 bool isAtomic(const std::string& F);
 
+///
+bool isBarrier(const llvm::Function &F);
+
+bool isMathFunction(const llvm::Function &F);
+
 /// Check if the name names a CUDA intrinsic function
 bool isIntrinsic(const std::string& F);
 

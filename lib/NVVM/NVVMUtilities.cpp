@@ -135,8 +135,21 @@ bool isCudaAPIFunction(const llvm::Function &F) {
     || std::find(CudaAPI.begin(), CudaAPI.end(), demangleFnWithoutArgs(F)) != CudaAPI.end();
 }
 
+bool isBarrier(const llvm::Function &F) {
+  return F.getName().startswith("llvm.nvvm.barrier0");
+}
+
+static std::unordered_map<std::string, bool> MathFunctions = {
+  {"llvm.nvvm.lg2.approx.f", true},
+  {"llvm.nvvm.ex2.approx.f", true}
+};
+
+bool isMathFunction(const llvm::Function &F) {
+  return MathFunctions.find(F.getName()) != MathFunctions.end();
+}
+
 bool isReadOnlyCacheFunction(const llvm::Function &F) {
-  StringRef Name = demangle(F.getName());
+  StringRef Name = F.getName();
   return Name.startswith("llvm.nvvm.ldg")
       || Name.startswith("llvm.nvvm.ldcg")
       || Name.startswith("llvm.nvvm.ldca")
