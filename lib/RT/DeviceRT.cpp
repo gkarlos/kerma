@@ -38,6 +38,39 @@ extern "C" __device__ void __kerma_stop_tracing(bool *stop_tracing,
     stop_tracing[kernel_id] = true;
 }
 
+extern "C" __device__ void __rec_access_mat_b(bool stop_tracing, unsigned bid, unsigned access_id, unsigned long offset) {
+  if ( stop_tracing) return;
+  unsigned int linearBlockIdx =
+    blockIdx.z * gridDim.x * gridDim.y + blockIdx.y * gridDim.x + blockIdx.x;
+  if ( linearBlockIdx == bid)
+    printf("%u,%u,%u:%u:%lu\n", threadIdx.z, threadIdx.y, threadIdx.x, access_id, offset);
+}
+
+extern "C" __device__ void __rec_access_mat_w(bool stop_tracing, unsigned bid, unsigned wid, unsigned access_id, unsigned long offset) {
+  if (stop_tracing) return;
+  unsigned int linearBlockIdx =
+      blockIdx.z * gridDim.x * gridDim.y + blockIdx.y * gridDim.x + blockIdx.x;
+  if (linearBlockIdx == bid) {
+    unsigned int linearLocalThreadIdx = threadIdx.z * blockDim.x * blockDim.y +
+                                        threadIdx.y * blockDim.x + threadIdx.x;
+    unsigned int warpid = linearLocalThreadIdx / 32;
+    if ( warpid == wid)
+      printf("%u,%u,%u:%u:%lu\n", threadIdx.z, threadIdx.y, threadIdx.x, access_id, offset);
+  }
+}
+
+extern "C" __device__ void __rec_access_mat_t(bool stop_tracing, unsigned bid, unsigned tid, unsigned access_id, unsigned long offset) {
+  if (stop_tracing) return;
+  unsigned int linearBlockIdx =
+      blockIdx.z * gridDim.x * gridDim.y + blockIdx.y * gridDim.x + blockIdx.x;
+  if (linearBlockIdx == bid) {
+    unsigned int linearLocalThreadIdx = threadIdx.z * blockDim.x * blockDim.y +
+                                        threadIdx.y * blockDim.x + threadIdx.x;
+    if (linearLocalThreadIdx == tid)
+      printf("%u,%u,%u:%u:%lu\n", threadIdx.z, threadIdx.y, threadIdx.x, access_id, offset);
+  }
+}
+
 ///
 extern "C" __device__ void
 __kerma_rec_kernel(bool stop_tracing, unsigned char id, const char *name) {

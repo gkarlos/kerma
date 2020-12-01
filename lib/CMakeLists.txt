@@ -17,6 +17,7 @@ set(Kerma_SOURCES
     Analysis/InferAddressSpaces.cpp
     Analysis/Loops.cpp
     Analysis/MemoryAccessTree.cpp
+    Analysis/MemoryAccessTreeBuilder.cpp
     Analysis/Names.cpp
     Analysis/Nests.cpp
     Analysis/Typecheck.cpp
@@ -29,8 +30,9 @@ set(Kerma_SOURCES
     Base/Loop.cpp
     Base/Memory.cpp
     Base/MemoryAccess.cpp
-    Base/Stmt.cpp
+    Base/Mode.cpp
     Base/Node.cpp
+    Base/Stmt.cpp
 
     Compile/CompilationAdjuster.cpp
     Compile/Compiler.cpp
@@ -59,9 +61,13 @@ set(Kerma_SOURCES
     Transforms/Canonicalize/DeviceFunctionInliner.cpp
     Transforms/Canonicalize/GepifyMem.cpp
     Transforms/Canonicalize/SimplifyGEP.cpp
-    Transforms/Instrument/FullInstrumenter.cpp
+    Transforms/Canonicalize/StripPrintf.cpp
+    Transforms/Instrument/MatInstrumenter.cpp
     Transforms/Instrument/InstrumentPrintf.cpp
     Transforms/Instrument/LinkDeviceRT.cpp
+    Transforms/Materializer.cpp
+    Transforms/MetaKernels.cpp
+    Transforms/PrepareMetaDriver.cpp
     Transforms/StripAnnotations.cpp
     # Transforms/MaterializeDims.cpp
     # Transforms/MaterializeIdx.cpp
