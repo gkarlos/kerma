@@ -14,7 +14,7 @@ Type* stripPointers(Type *Ty) {
   return tmp;
 }
 
-unsigned int getPointerDepth(llvm::PointerType& PtrTy) {
+unsigned int getPointerDepth(PointerType& PtrTy) {
   unsigned int res = 1;
   llvm::Type *tmp = PtrTy.getElementType();
   while (auto *ptr = dyn_cast<llvm::PointerType>(tmp)) {
@@ -24,9 +24,20 @@ unsigned int getPointerDepth(llvm::PointerType& PtrTy) {
   return res;
 }
 
-bool isNestedPointer(llvm::PointerType& PtrTy) {
+bool isNestedPointer(PointerType& PtrTy) {
   return getPointerDepth(PtrTy) > 1;
 }
+
+bool isPointerToStruct(Type *Ty) {
+  return Ty && isa<PointerType>(Ty) &&
+         dyn_cast<PointerType>(Ty)->getElementType()->isStructTy();
+}
+
+bool isArrayOfStructs(Type *Ty) {
+  return Ty && isa<ArrayType>(Ty) &&
+         dyn_cast<ArrayType>(Ty)->getElementType()->isStructTy();
+}
+
 
 std::vector<const llvm::Value *> getGlobalValuesUsedinFunction(const llvm::Function *F) {
   std::vector<const llvm::Value *> GlobalsUsed;
@@ -46,6 +57,16 @@ std::vector<const llvm::Value *> getGlobalValuesUsedinFunction(const llvm::Funct
     }
   }
   return GlobalsUsed;
+}
+
+ConstantInt *CreateUnsignedInt(LLVMContext &context, unsigned int value, unsigned numbits) {
+  auto *ty = IntegerType::get(context, numbits);
+  return ConstantInt::get(ty, value, false);
+}
+
+ConstantInt *CreateSignedInt(LLVMContext &context, unsigned int value, unsigned numbits) {
+  auto *ty = IntegerType::get(context, numbits);
+  return ConstantInt::get(ty, value, true);
 }
 
 GlobalVariable *insertGlobalStr(Module &M, llvm::StringRef Str) {
