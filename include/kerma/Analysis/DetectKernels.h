@@ -53,6 +53,9 @@ public:
   const std::vector<Kernel> & getKernels();
   void getKernels(std::vector<Kernel>& Kernels);
   llvm::StringRef getPassName() const override { return "DetectKernelsPass"; }
+  KernelInfo getKernelInfo() {
+    return KernelInfo(Kernels);
+  }
 private:
   std::vector<Kernel> Kernels;
 };
