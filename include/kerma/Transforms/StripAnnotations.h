@@ -7,6 +7,10 @@
 
 namespace kerma {
 
+
+bool StripAnnotations(llvm::Function *F);
+
+// Remove Assumption related stuff from the IR
 class StripAnnotationsPass : public llvm::ModulePass {
 public:
   static char ID;
