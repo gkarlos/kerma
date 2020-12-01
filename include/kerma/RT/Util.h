@@ -50,6 +50,8 @@ bool isDeviceRTLinked(const llvm::Module& M);
 bool isDeviceRTFunction(std::string& FName);
 bool isDeviceRTFunction(llvm::Function& F);
 
+std::string getMathFunctionFor(llvm::Function &F);
+
 } // namespace kerma
 
 #endif // KERMA_RT_UTIL_H

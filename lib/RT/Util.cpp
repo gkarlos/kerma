@@ -91,4 +91,17 @@ KermaRTNotFoundError::KermaRTNotFoundError(const std::string &Msg)
 KermaRTIRParseError::KermaRTIRParseError(const std::string &Msg)
     : std::runtime_error("KermaRT not parsed: " + Msg) {}
 
+
+static std::unordered_map<std::string, std::string> MathFunctions = {
+  {"llvm.nvvm.lg2.approx.f", "_log2f"},
+  {"llvm.nvvm.ex2.approx.f", "_pow2f"}
+};
+
+std::string getMathFunctionFor(Function &F) {
+  auto E = MathFunctions.find(F.getName());
+  if ( E != MathFunctions.end())
+    return E->second;
+  return "unknown_math_function";
+}
+
 } // namespace kerma
