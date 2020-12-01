@@ -253,7 +253,7 @@ bool DetectMemoryAccessesPass::runOnModule(Module &M) {
                 GetUnderlyingObject(CI->getArgOperand(0), M.getDataLayout());
             if (auto *M = MI.getMemoryForVal(Obj, &Kernel)) {
               MemoryAccess MA(*M, CI, CI->getArgOperand(0),
-                              MemoryAccess::Store);
+                              MemoryAccess::Atomic);
               MA.setLoc(SourceLoc::from(CI->getDebugLoc()));
               MAI.A[Kernel.getID()].push_back(MA);
             } else {
