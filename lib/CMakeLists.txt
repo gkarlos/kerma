@@ -19,7 +19,6 @@ set(Kerma_SOURCES
     Analysis/MemoryAccessTree.cpp
     Analysis/MemoryAccessTreeBuilder.cpp
     Analysis/Names.cpp
-    Analysis/Nests.cpp
     Analysis/Typecheck.cpp
 
     Base/Assumption.cpp
