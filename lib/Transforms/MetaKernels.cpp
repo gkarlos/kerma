@@ -25,6 +25,7 @@
 #include <llvm/Transforms/Utils/Cloning.h>
 #include <llvm/Transforms/Utils/ValueMapper.h>
 
+
 namespace kerma {
 
 using namespace llvm;
@@ -263,6 +264,7 @@ static Function *CreateMetaKernelFor(Kernel &K, const Index &Bid,
   // Give proper names to the clone's arguments
   for (size_t i = 0; i < K.getFunction()->arg_size(); ++i)
     MetaKernel->getArg(i)->setName(K.getFunction()->getArg(i)->getName());
+
   MetaKernel->getArg(K.getFunction()->arg_size())->setName("tidz");
   MetaKernel->getArg(K.getFunction()->arg_size() + 1)->setName("tidy");
   MetaKernel->getArg(K.getFunction()->arg_size() + 2)->setName("tidx");
@@ -305,9 +307,11 @@ static Instruction *CreateMetaKernelCall(Function *MetaKernel, Kernel &K,
             Constant::getNullValue(MetaKernel->getArg(i)->getType()));
       } else if (auto *A = AI.getForArg(OriginalArg)) {
         // we found an assumption for a scalar arg
-        if (auto *FPA = dyn_cast<FPAssumption>(A))
-          Args.push_back(ConstantFP::get(Ctx, APFloat(FPA->getValue())));
-        else if (auto *IA = dyn_cast<IAssumption>(A))
+        if (auto *FPA = dyn_cast<FPAssumption>(A)) {
+          Args.push_back(ConstantFP::get(OriginalArg->getType(), FPA->getValue()));
+          // Args.push_back(ConstantFP::get(Ctx, APFloat(FPA->getValue())));
+
+        }else if (auto *IA = dyn_cast<IAssumption>(A))
           Args.push_back(ConstantInt::get(
               dyn_cast<IntegerType>(OriginalArg->getType()), IA->getValue()));
         else
@@ -352,7 +356,8 @@ static Instruction *CreateGMetaKernelCall(Function *MetaKernel, Kernel &K,
       } else if (auto *A = AI.getForArg(OriginalArg)) {
         // we found an assumption for a scalar arg
         if (auto *FPA = dyn_cast<FPAssumption>(A))
-          Args.push_back(ConstantFP::get(Ctx, APFloat(FPA->getValue())));
+          Args.push_back(ConstantFP::get(OriginalArg->getType(), FPA->getValue()));
+          // Args.push_back(ConstantFP::get(Ctx, APFloat(FPA->getValue())));
         else if (auto *IA = dyn_cast<IAssumption>(A))
           Args.push_back(ConstantInt::get(
               dyn_cast<IntegerType>(OriginalArg->getType()), IA->getValue()));
@@ -447,6 +452,7 @@ static Instruction *BlockMode(Function *MetaKernel, Function *Wrapper,
 
   auto &Ctx = MetaKernel->getContext();
   auto *LoopZ = *LI.begin();
+  errs() << "LoopZ: " << *LoopZ << '\n';
   auto *LoopY = *LoopZ->getSubLoops().begin();
   auto *LoopX = *LoopY->getSubLoops().begin();
 
@@ -493,16 +499,24 @@ static Instruction *WarpMode(Function *MetaKernel, Function *Wrapper,
   auto *LoopZ = *LI.begin();
   auto *LoopY = *LoopZ->getSubLoops().begin();
   auto *LoopX = *LoopY->getSubLoops().begin();
-  auto &IVZ = *LoopZ->getHeader()->phis().begin();
-  auto &IVY = *LoopY->getHeader()->phis().begin();
-  auto &IVX = *LoopX->getHeader()->phis().begin();
+  errs() << *LoopZ << '\n';
+  // errs() << *LoopZ->getCanonicalInductionVariable() << '\n';
+  auto &IVZ = *(++LoopZ->getHeader()->phis().begin());
+  auto &IVY = *(++LoopY->getHeader()->phis().begin());
+  auto &IVX = *(++LoopX->getHeader()->phis().begin());
+
+  // auto &IVZ = *LoopZ->getInductionVariable(SCEV);
+  // auto &IVY = *LoopY->getInductionVariable(SCEV);
+  // auto &IVX = *LoopX->getInductionVariable(SCEV);
+  errs() << *LoopX << '\n';
+  // auto &IVX = *LoopX->getHeader()->phis().begin();
 
   auto *HeaderTerminator =
       dyn_cast<BranchInst>(LoopX->getHeader()->getTerminator());
   auto *Body = HeaderTerminator->getSuccessor(0);
   auto *MetaKernelCall =
       CreateMetaKernelCall(MetaKernel, Kernel, AI, &IVZ, &IVY, &IVX);
-  MetaKernelCall->insertBefore(Body->getFirstNonPHI());
+  MetaKernelCall->insertBefore(&(*Body->getFirstInsertionPt()));
 
   unsigned Lane0 = WarpIdx * 32;
   auto &BDim = AI.getLaunch(Kernel)->getBlock();
