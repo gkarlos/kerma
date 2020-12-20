@@ -1,4 +1,6 @@
 #include "kerma/Base/MemoryAccess.h"
+#include "kerma/Base/Node.h"
+#include "kerma/SourceInfo/SourceRange.h"
 #include <llvm/Support/raw_ostream.h>
 #include <mutex>
 
@@ -23,7 +25,8 @@ MemoryAccess::MemoryAccess(Memory &M, llvm::Instruction *Inst, llvm::Value *Ptr,
 
 MemoryAccess::MemoryAccess(unsigned int ID, Memory &M, llvm::Instruction *Inst,
                            llvm::Value *Ptr, MemoryAccess::Type Ty)
-    : ID(ID), M(M), Inst(Inst), Ptr(Ptr), Ty(Ty), Idx(Index::Unknown) {}
+    : KermaNode(NK_MA, SourceRange::Unknown, nullptr), ID(ID), M(M), Inst(Inst), Ptr(Ptr), Ty(Ty), Idx(Index::Unknown),
+      DataDep(false), Bytes(1) {}
 
 bool MemoryAccess::isSinglePointerAccess() {
   return Ty == Load || Ty == Store || Ty == Atomic || Ty == Memset;
@@ -48,6 +51,7 @@ const std::string &MemoryAccess::getTypeString() const {
 }
 
 MemoryAccess &MemoryAccess::operator=(const MemoryAccess &Other) {
+  KermaNode::operator=(Other);
   ID = Other.ID;
   M = Other.M;
   Inst = Other.Inst;
@@ -55,6 +59,9 @@ MemoryAccess &MemoryAccess::operator=(const MemoryAccess &Other) {
   Loc = Other.Loc;
   Ty = Other.Ty;
   Idx = Other.Idx;
+  DataDep = Other.DataDep;
+  TransDataDep = Other.TransDataDep;
+  Bytes = Other.Bytes;
   return *this;
 }
 
@@ -64,15 +71,25 @@ bool MemoryAccess::operator==(const MemoryAccess &O) const {
 }
 
 void MemoryAccess::print(llvm::raw_ostream &OS, bool v) const {
-  OS << "(" << getTypeString() << ") " << getLoc() << " #" << getID() << " "
-     << getMemory();
+  OS << "(" << getTypeString() << ")" << (isDataDependent() ? " +" : " -")
+     << (isTransitivelyDataDependent() ? "+ " : "- ") << getLoc() << " #"
+     << getID();
+  OS << " :" << getNumBytes() << " . ";
+  OS << getMemory();
+  if ( Parent)
+    OS << " . parent: #" << Parent->getID();
+  else
+    OS << " . parent: unknown";
   if (v)
     OS << " . " << Inst;
 }
 
 void MemoryAccess::print(std::ostream &OS, bool v) const {
-  OS << "(" << getTypeString() << ") " << getLoc() << " #" << getID() << " "
-     << getMemory();
+  OS << "(" << getTypeString() << ")" << (isDataDependent() ? " +" : " -")
+     << (isTransitivelyDataDependent() ? "+ " : "- ") << getLoc() << " #"
+     << getID();
+  OS << " :" << getNumBytes() << " . ";
+  OS << getMemory();
   if (v)
     OS << " . " << Inst;
 }

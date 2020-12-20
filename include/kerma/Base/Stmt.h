@@ -21,7 +21,7 @@ public:
 public:
   Stmt() : Stmt(SourceRange::Unknown, UKN) {}
   Stmt(SourceRange R) : Stmt(R, UKN) {}
-  Stmt(SourceRange R, Type Ty, KermaNode *Parent=nullptr)
+  Stmt(SourceRange R, Type Ty, KermaNode *Parent = nullptr)
       : KermaNode(NK_Stmt, R, Parent), Ty(Ty) {}
 
   const Type getType() const { return Ty; }
@@ -40,6 +40,14 @@ public:
     return *this;
   }
 
+  void setDataDependent(bool b = true) override { DataDep = b; }
+
+  void setTransitivelyDataDependent(bool b = true) override { TransDataDep = b; }
+
+  bool isDataDependent() const override { return DataDep; }
+
+  bool isTransitivelyDataDependent() const override { return TransDataDep; }
+
   // Add a MemoryAccess to this statement
   // If the Stmt already has a known range and \p MI does not
   // fit that range, false is returned <br/>
@@ -52,7 +60,7 @@ public:
   // is type is RD/WR or RDWR. False otherwise
   operator bool() const { return getType() != UKN; }
 
-  const std::vector<MemoryAccess> &getAccesses() const { return Accesses; }
+  std::vector<MemoryAccess*> &getAccesses() { return Accesses; }
   const unsigned int getNumAccesses() const { return Accesses.size(); }
 
   virtual void print(llvm::raw_ostream &O) const override;
@@ -69,7 +77,9 @@ public:
 private:
   // KermaNode *Parent;
   // unsigned ID;
-  std::vector<MemoryAccess> Accesses;
+  bool DataDep = false;
+  bool TransDataDep = false;
+  std::vector<MemoryAccess*> Accesses;
   SourceRange R;
   Type Ty;
 };

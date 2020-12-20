@@ -30,8 +30,8 @@ Stmt &Stmt::setRange(const SourceRange &R) {
   if (!R) {
     Accesses.clear();
   } else {
-    auto NotInRange = [&R](const MemoryAccess &MA) {
-      return !R.contains(MA.getLoc()) && !R.containsLine(MA.getLoc());
+    auto NotInRange = [&R](const MemoryAccess *MA) {
+      return !R.contains(MA->getLoc()) && !R.containsLine(MA->getLoc());
     };
     std::remove_if(Accesses.begin(), Accesses.end(), NotInRange);
   }
@@ -48,7 +48,7 @@ bool Stmt::addMemoryAccess(MemoryAccess &MA, SourceInfo &SI) {
   }
 
   if (R.contains(MA.getLoc()) || R.containsLine(MA.getLoc())) {
-    Accesses.push_back(MA);
+    Accesses.push_back(&MA);
     switch (MA.getType()) {
     case MemoryAccess::Type::Load: {
       if (this->Ty == UKN)
@@ -88,24 +88,22 @@ static std::string tystr(Stmt::Type Ty) {
 void Stmt::print(llvm::raw_ostream &O) const {
   auto nesting = std::string(getNesting(), '\t');
   auto nestingPlus1 = std::string(getNesting() + 1, '\t');
-  O << nesting << '(' << tystr(getType()) << ") " << getRange() << " #"
-    << this->getID() << " { ";
-  for (auto &MA : getAccesses())
-    O << "#" << MA.getID() << ' ';
+  O << nesting << '(' << tystr(getType()) << ") "
+    << (isDataDependent() ? "+" : "-")
+    << (isTransitivelyDataDependent() ? "+ " : "- ") << getRange() << " #"
+    << this->getID() << " >" << getNesting() << " { ";
+  for (auto &MA : Accesses)
+    O << "#" << MA->getID() << ' ';
   O << "} .";
-  if ( getParent()) {
+  if (getParent()) {
     O << " parent: #" << getParent()->getID();
   } else {
     O << " parent: none";
   }
-  for ( auto &A : this->getAccesses())
-    O << '\n' << nestingPlus1 << A;
+  for (auto *A : Accesses)
+    O << '\n' << nestingPlus1 << *A;
 }
 
-
-bool Stmt::classof(const KermaNode *S) {
-  return S->getKind() == NK_Stmt;
-}
-
+bool Stmt::classof(const KermaNode *S) { return S->getKind() == NK_Stmt; }
 
 } // namespace kerma

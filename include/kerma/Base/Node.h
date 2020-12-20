@@ -13,7 +13,7 @@ public:
   // We should probably make the Kernel/Function also a KermaNode
   // but for now we store kernel nodes in a hashmap with entries
   // <Kernel, NodeList>
-  enum NodeKind { NK_Stmt = 0, NK_If, NK_Loop };
+  enum NodeKind { NK_MA=0, NK_Stmt, NK_If, NK_Loop };
 
 private:
   unsigned ID;
@@ -39,8 +39,8 @@ public:
   virtual const SourceRange &getRange() const { return Range; }
   KermaNode *getParent() const { return Parent; }
   void setParent(KermaNode *Node) { Parent = Node; }
-  unsigned getNesting() const {
-    return Parent ? (1 + Parent->getNesting()) : 0;
+  virtual unsigned getNesting() const {
+    return Parent ? (1 + Parent->getNesting()) : 1;
   }
 
   KermaNode &operator=(const KermaNode &O) {
@@ -50,6 +50,10 @@ public:
     ID = O.ID;
     return *this;
   }
+  virtual void setDataDependent(bool b=true) = 0;
+  virtual void setTransitivelyDataDependent(bool b=true) = 0;
+  virtual bool isDataDependent() const = 0;
+  virtual bool isTransitivelyDataDependent() const = 0;
   virtual bool operator==(const KermaNode &O) const { return Range == O.Range; }
   virtual bool operator!=(const KermaNode &O) const { return !operator==(O); }
   friend llvm::raw_ostream &operator<<(llvm::raw_ostream &O, KermaNode &KN) {

@@ -3,6 +3,7 @@
 
 #include "kerma/Base/Index.h"
 #include "kerma/Base/Memory.h"
+#include "kerma/Base/Node.h"
 #include "kerma/SourceInfo/SourceLoc.h"
 #include <llvm/IR/Instruction.h>
 #include <map>
@@ -10,7 +11,8 @@
 
 namespace kerma {
 
-class MemoryAccess {
+
+class MemoryAccess : public KermaNode {
 public:
   enum Type : unsigned {
     Uknown = 0,
@@ -49,6 +51,8 @@ public:
   const SourceLoc &getLoc() const { return Loc; }
   MemoryAccess &setLoc(const SourceLoc &Loc) {
     this->Loc = Loc;
+    this->Range.setStart(Loc);
+    this->Range.setEnd(Loc);
     return *this;
   }
 
@@ -63,6 +67,14 @@ public:
     this->Ptr = Ptr;
     return *this;
   }
+
+  void setNumBytes(unsigned b) { Bytes = b; }
+  unsigned getNumBytes() const { return Bytes; }
+
+  void setTransitivelyDataDependent(bool b=true) override { TransDataDep = b;}
+  void setDataDependent(bool val=true) override { DataDep = val; }
+  bool isDataDependent() const override { return DataDep; }
+  bool isTransitivelyDataDependent() const override { return TransDataDep; }
 
   bool isSinglePointerAccess();
   bool isMemOperation();
@@ -81,16 +93,30 @@ public:
                                        const MemoryAccess &MA);
   friend std::ostream &operator<<(std::ostream &os, const MemoryAccess &MA);
 
-  friend void swap(MemoryAccess &A, MemoryAccess &B) {
-    using std::swap;
-    swap(A.ID, B.ID);
-    swap(A.M, B.M);
-    swap(A.Inst, B.Inst);
-    swap(A.Ptr, B.Ptr);
-    swap(A.Loc, B.Loc);
-    swap(A.Ty, B.Ty);
-    swap(A.Idx, B.Idx);
+  void addLRInst(llvm::Instruction *I) {
+    LRInstructions.push_back(I);
   }
+
+  virtual unsigned getNesting() const override {
+    if ( auto *P = getParent()) {
+      return P->getNesting();
+    }
+    return 1;
+  }
+
+  // friend void swap(MemoryAccess &A, MemoryAccess &B) {
+  //   using std::swap;
+  //   swap(A.ID, B.ID);
+  //   swap(A.M, B.M);
+  //   swap(A.Inst, B.Inst);
+  //   swap(A.Ptr, B.Ptr);
+  //   swap(A.Loc, B.Loc);
+  //   swap(A.Ty, B.Ty);
+  //   swap(A.Idx, B.Idx);
+  //   swap(A.Bytes, B.Bytes);
+  //   swap(A.DataDep, B.DataDep);
+  //   swap(A.TransDataDep, B.TransDataDep);
+  // }
 
 private:
   MemoryAccess(unsigned int ID, Memory &M, llvm::Instruction *Inst,
@@ -104,6 +130,13 @@ private:
   SourceLoc Loc;
   MemoryAccess::Type Ty;
   Index Idx;
+  bool DataDep=false;
+  bool TransDataDep=false;
+  unsigned Bytes;
+  // This vector stores the instructions that are
+  // duplicated due to LoopRotate. They may come
+  // handy at some point
+  std::vector<llvm::Instruction*> LRInstructions;
 };
 
 } // namespace kerma
